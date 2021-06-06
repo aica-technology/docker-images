@@ -1,69 +1,83 @@
-ARG BASE_IMAGE=ros
-ARG BASE_TAG=foxy
-
-FROM ${BASE_IMAGE}:${BASE_TAG}
+ARG ROS_DISTRO=foxy
+FROM ros:${ROS_DISTRO} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
-ENV USER ros2
+
+COPY config/apt-key /tmp/apt-key
+RUN apt-key add /tmp/apt-key
 
 RUN apt update && apt install -y \
-  sudo \
-  gdb \
   autoconf \
   automake \
-  libtool \
+  build-essential \
   curl \
-  make \
   g++ \
-  unzip \
+  gdb \
+  iputils-ping \
+  libboost-all-dev \
+  libeigen3-dev \
+  libtool \
+  libssl-dev \
+  make \
+  mesa-utils \
   python3-setuptools \
   python3-pip \
-  iputils-ping \
-  mesa-utils \
-  libeigen3-dev \
-  software-properties-common \
-  libboost-all-dev \
   ros-${ROS_DISTRO}-rviz2 \
+  rsync \
+  software-properties-common \
+  ssh \
+  sudo \
+  unzip \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
-# Now create the same user as the host itself
+# Configure sshd server settings
+RUN ( \
+    echo 'LogLevel DEBUG2'; \
+    echo 'PubkeyAuthentication yes'; \
+    echo 'Subsystem sftp /usr/lib/openssh/sftp-server'; \
+  ) > /etc/ssh/sshd_config_development \
+  && mkdir /run/sshd
+
+
+FROM base-dependencies as base-workspace
+ENV USER ros2
+ENV HOME /home/${USER}
+
+# create amd configure a new user
 ARG UID=1000
 ARG GID=1000
 RUN addgroup --gid ${GID} ${USER}
-RUN adduser --gecos "ROS User" --disabled-password --uid ${UID} --gid ${GID} ${USER}
+RUN adduser --gecos "ROS User" --uid ${UID} --gid ${GID} ${USER} && yes | passwd ${USER}
 RUN usermod -a -G dialout ${USER}
-COPY config/99_aptget /etc/sudoers.d/99_aptget
+RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
 RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
 
-# Choose to run as user
-USER ros2
-
-# Change HOME environment variable
-ENV HOME /home/${USER}
+# Configure sshd entrypoint to authorise the new user for ssh access and
+# optionally update UID and GID when invoking the container with the entrypoint script
+COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
+RUN chmod 744 /sshd_entrypoint.sh
 
 # build ROS workspace
-RUN mkdir -p ${HOME}/ros2_ws/src
+USER ${USER}
 WORKDIR ${HOME}/ros2_ws/
+RUN mkdir -p src
 RUN rosdep update
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-RUN /bin/bash -c "source /opt/ros/$ROS_DISTRO/setup.bash; colcon build --symlink-install"
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
 
 # set up environment
 USER root
-COPY config/update_bashrc /sbin/update_bashrc
-RUN chmod +x /sbin/update_bashrc ; sync ; /bin/bash -c /sbin/update_bashrc ; rm /sbin/update_bashrc
 
-# Change entrypoint to source ~/.bashrc and start in ~
-USER ${USER}
-COPY config/entrypoint.sh /ros_entrypoint.sh 
-RUN sudo chmod +x /ros_entrypoint.sh ; sudo chown ${USER} /ros_entrypoint.sh ; 
+# prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
+source /home/${USER}/ros2_ws/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
+RUN echo "session required pam_limits.so" | sudo tee --append /etc/pam.d/common-session > /dev/null
 
-# change to the home root
 WORKDIR ${HOME}
 
 # Clean image
 RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
-ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["bash"]
+# start as the user on default login unless the CMD is overridden.
+CMD su --login ${USER}
