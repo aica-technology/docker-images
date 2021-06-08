@@ -25,17 +25,15 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-BUILD_FLAGS=()
-BUILD_FLAGS+=(-u "${USERNAME}")
+EXEC_FLAGS=()
+EXEC_FLAGS+=(-u "${USERNAME}")
 if [[ "$OSTYPE" == "darwin"* ]]; then
   DISPLAY_IP=$(ifconfig en0 | grep "inet" | cut -d\  -f2)
-  BUILD_FLAGS+=(-e DISPLAY="${DISPLAY_IP}")
+  EXEC_FLAGS+=(-e DISPLAY="${DISPLAY_IP}")
 else
   xhost +
-  BUILD_FLAGS+=(-e DISPLAY="${DISPLAY}")
-  BUILD_FLAGS+=(-e XAUTHORITY="${XAUTH}")
-  BUILD_FLAGS+=(-v /tmp/.X11-unix:/tmp/.X11-unix:rw)
-  BUILD_FLAGS+=(-v "${XAUTH}:${XAUTH}")
+  EXEC_FLAGS+=(-e DISPLAY="${DISPLAY}")
+  EXEC_FLAGS+=(-e XAUTHORITY="${XAUTH}")
 fi
 
-docker container exec -it "${BUILD_FLAGS[@]}" "${CONTAINER_NAME}" /bin/bash
+docker container exec -it "${EXEC_FLAGS[@]}" "${CONTAINER_NAME}" /bin/bash
