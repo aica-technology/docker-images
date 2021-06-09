@@ -69,10 +69,10 @@ COMMAND_FLAGS+=(--user "${USERNAME}")
 
 RUN_FLAGS=()
 if [[ "$OSTYPE" != "darwin"* ]]; then
-  UID=$(id -u "${USER}")
-  GID=$(id -g "${USER}")
-  COMMAND_FLAGS+=(--uid "${UID}")
-  COMMAND_FLAGS+=(--gid "${GID}")
+  USER_ID=$(id -u "${USER}")
+  GROUP_ID=$(id -g "${USER}")
+  COMMAND_FLAGS+=(--uid "${USER_ID}")
+  COMMAND_FLAGS+=(--gid "${GROUP_ID}")
 
   RUN_FLAGS+=(--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw)
   RUN_FLAGS+=(--volume="${XAUTH}:${XAUTH}")
