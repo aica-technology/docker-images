@@ -17,10 +17,10 @@ shift "$(( OPTIND - 1 ))"
 BUILD_FLAGS+=(--build-arg ROS_DISTRO="${ROS_DISTRO}")
 
 if [[ "$OSTYPE" != "darwin"* ]]; then
-  UID="$(id -u "${USER}")"
-  GID="$(id -g "${USER}")"
-  BUILD_FLAGS+=(--build-arg UID="${UID}")
-  BUILD_FLAGS+=(--build-arg GID="${GID}")
+  USER_ID="$(id -u "${USER}")"
+  GROUP_ID="$(id -g "${USER}")"
+  BUILD_FLAGS+=(--build-arg UID="${USER_ID}")
+  BUILD_FLAGS+=(--build-arg GID="${GROUP_ID}")
 fi
 
 BUILD_FLAGS+=(-t "${IMAGE_NAME}")
