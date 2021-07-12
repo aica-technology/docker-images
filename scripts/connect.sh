@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CONTAINER_NAME=""
-USERNAME=ros2
+USERNAME=root
 
 HELP_MESSAGE="Usage: ./connect.sh <container> [-u <username>]
 

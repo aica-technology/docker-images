@@ -3,7 +3,7 @@
 SSH_PORT=3333
 SSH_KEY_FILE="$HOME/.ssh/id_rsa.pub"
 IMAGE_NAME=""
-USERNAME=ros2
+USERNAME=root
 
 HELP_MESSAGE="
 Usage: ./server.sh <image> [-p <port>] [-k <file>] [-n <name>] [-u <user>]

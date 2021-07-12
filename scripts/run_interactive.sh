@@ -55,7 +55,7 @@ if [ -z "$CONTAINER_NAME" ]; then
   CONTAINER_NAME="${CONTAINER_NAME/:/-}-runtime"
 fi
 
-if [ -z "$USERNAME" ]; then
+if [ -n "$USERNAME" ]; then
   RUN_FLAGS+=(-u "${USERNAME}")
 fi
 
@@ -71,4 +71,4 @@ docker run -it --rm \
   "${RUN_FLAGS[@]}" \
   --name "${CONTAINER_NAME}" \
   --hostname "${CONTAINER_NAME}" \
-  "${IMAGE_NAME}"
+  "${IMAGE_NAME}" /bin/bash
