@@ -64,7 +64,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 else
   xhost +
   RUN_FLAGS+=(-e DISPLAY="${DISPLAY}")
-  RUN_FLAGS+=(-e XAUTHORITY="${XAUTH}")
+  RUN_FLAGS+=(-e XAUTHORITY="${XAUTHORITY}")
+  RUN_FLAGS+=(-v /tmp/.X11-unix:/tmp/.X11-unix:rw)
 fi
 
 docker run -it --rm \

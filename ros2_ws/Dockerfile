@@ -74,7 +74,7 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
 source /home/${USER}/ros2_ws/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
 RUN echo "session required pam_limits.so" | sudo tee --append /etc/pam.d/common-session > /dev/null
 
-WORKDIR ${HOME}
+WORKDIR ${HOME}/ros2_ws
 
 # Clean image
 RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
