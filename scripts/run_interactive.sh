@@ -60,8 +60,7 @@ if [ -z "$USERNAME" ]; then
 fi
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  DISPLAY_IP=$(ifconfig en0 | grep "inet" | cut -d\  -f2)
-  RUN_FLAGS+=(-e DISPLAY="${DISPLAY_IP}")
+  RUN_FLAGS+=(-e DISPLAY=host.docker.internal:0)
 else
   xhost +
   RUN_FLAGS+=(-e DISPLAY="${DISPLAY}")

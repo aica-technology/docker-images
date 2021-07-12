@@ -24,9 +24,8 @@ while [ "$#" -gt 0 ]; do
     -u|--user) USERNAME=$2; shift 2;;
     -h|--help) echo "${HELP_MESSAGE}"; exit 0;;
     -*) echo "Unknown option: $1" >&2; echo "${HELP_MESSAGE}"; exit 1;;
+    *) CONTAINER_NAME=$1; shift 1;;
   esac
-  CONTAINER_NAME=$1
-  shift 1
 done
 
 if [ -z "$CONTAINER_NAME" ]; then
@@ -38,8 +37,7 @@ fi
 EXEC_FLAGS=()
 EXEC_FLAGS+=(-u "${USERNAME}")
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  DISPLAY_IP=$(ifconfig en0 | grep "inet" | cut -d\  -f2)
-  EXEC_FLAGS+=(-e DISPLAY="${DISPLAY_IP}")
+  EXEC_FLAGS+=(-e DISPLAY=host.docker.internal:0)
 else
   xhost +
   EXEC_FLAGS+=(-e DISPLAY="${DISPLAY}")
