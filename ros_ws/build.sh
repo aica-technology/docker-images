@@ -1,8 +1,8 @@
 #!/bin/bash
-ROS_DISTRO=foxy
+ROS_DISTRO=noetic
 docker pull "ros:${ROS_DISTRO}"
 
-IMAGE_NAME=aica-technology/ros2-ws:"${ROS_DISTRO}"
+IMAGE_NAME=aica-technology/ros-ws:"${ROS_DISTRO}"
 
 BUILD_FLAGS=()
 while getopts 'r' opt; do

@@ -1,9 +1,6 @@
-ARG ROS_DISTRO=foxy
+ARG ROS_DISTRO=noetic
 FROM ros:${ROS_DISTRO} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
-
-COPY config/apt-key /tmp/apt-key
-RUN apt-key add /tmp/apt-key
 
 RUN apt update && apt install -y \
   autoconf \
@@ -21,13 +18,19 @@ RUN apt update && apt install -y \
   mesa-utils \
   python3-setuptools \
   python3-pip \
-  ros-${ROS_DISTRO}-rviz2 \
+  python3-rosdep \
+  python3-rosinstall \
+  python3-rosinstall-generator \
+  python3-wstool \
+  ros-${ROS_DISTRO}-rviz \
   rsync \
   software-properties-common \
   ssh \
   sudo \
   unzip \
   && rm -rf /var/lib/apt/lists/*
+
+RUN sudo rosdep update
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
@@ -41,10 +44,10 @@ RUN ( \
 
 
 FROM base-dependencies as base-workspace
-ENV USER ros2
+ENV USER ros
 ENV HOME /home/${USER}
 
-# create amd configure a new user
+# create and configure a new user
 ARG UID=1000
 ARG GID=1000
 RUN addgroup --gid ${GID} ${USER}
@@ -60,21 +63,20 @@ RUN chmod 744 /sshd_entrypoint.sh
 
 # build ROS workspace
 USER ${USER}
-WORKDIR ${HOME}/ros2_ws/
+WORKDIR ${HOME}/ros_ws/
 RUN mkdir -p src
-RUN rosdep update
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make"
 
 # set up environment
 USER root
 
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
-source /home/${USER}/ros2_ws/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
+source /home/${USER}/ros_ws/devel/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
 RUN echo "session required pam_limits.so" | sudo tee --append /etc/pam.d/common-session > /dev/null
 
-WORKDIR ${HOME}/ros2_ws
+WORKDIR ${HOME}/ros_ws
 
 # Clean image
 RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*

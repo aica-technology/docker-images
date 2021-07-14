@@ -2,11 +2,11 @@
 
 SSH_PORT=3333
 SSH_KEY_FILE="$HOME/.ssh/id_rsa.pub"
-IMAGE_NAME=aica-technology/ros2-ws:foxy
-USERNAME=ros2
+IMAGE_NAME=""
+USERNAME=root
 
 HELP_MESSAGE="
-Usage: ./server.sh [-i <image>] [-p <port>] [-k <file>] [-n <name>] [-u <user>]
+Usage: ./server.sh <image> [-p <port>] [-k <file>] [-n <name>] [-u <user>]
 
 Run a docker container as an SSH server for remote development
 from a docker image based on the ros2_ws image.
@@ -23,7 +23,7 @@ Options:
                            This must be based on the ros2_ws
                            image with the /sshd_entrypoint.sh
                            file and configurations intact.
-                           (default: ${IMAGE_NAME})
+                           (required)
 
   -p, --port <XXXX>        Specify the port to bind for SSH
                            connection.
@@ -38,13 +38,15 @@ Options:
                            the image name, replacing all
                            '/' and ':' with '-' and appending
                            '-ssh'. For example, the image
-                           aica-technology/ros2-ws:foxy would yield the name
+                           aica-technology/ros2-ws:foxy would
                            aica-technology-ros2-ws-foxy-ssh
 
   -u, --user <user>        Specify the name of the remote user.
                            (default: ${USERNAME})
 
   -h, --help               Show this help message."
+
+CONTAINER_NAME=""
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -54,12 +56,21 @@ while [ "$#" -gt 0 ]; do
     -n|--name) CONTAINER_NAME=$2; shift 2;;
     -u|--user) USERNAME=$2; shift 2;;
     -h|--help) echo "${HELP_MESSAGE}"; exit 0;;
-    *) echo "Unknown option: $1" >&2; echo "${HELP_MESSAGE}"; exit 1;;
+    -*) echo "Unknown option: $1" >&2; echo "${HELP_MESSAGE}"; exit 1;;
+    *) IMAGE_NAME=$1; shift 1;;
   esac
 done
 
-CONTAINER_NAME="${IMAGE_NAME/\//-}"
-CONTAINER_NAME="${CONTAINER_NAME/:/-}-ssh"
+if [ -z "$IMAGE_NAME" ]; then
+  echo "No image name provided!"
+  echo "${HELP_MESSAGE}"
+  exit 1
+fi
+
+if [ -z "$CONTAINER_NAME" ]; then
+  CONTAINER_NAME="${IMAGE_NAME/\//-}"
+  CONTAINER_NAME="${CONTAINER_NAME/:/-}-ssh"
+fi
 
 PUBLIC_KEY=$(cat "${SSH_KEY_FILE}")
 
@@ -75,7 +86,6 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
   COMMAND_FLAGS+=(--gid "${GROUP_ID}")
 
   RUN_FLAGS+=(--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw)
-  RUN_FLAGS+=(--volume="${XAUTH}:${XAUTH}")
 fi
 
 docker container stop "$CONTAINER_NAME" >/dev/null 2>&1
