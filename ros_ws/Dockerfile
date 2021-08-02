@@ -2,7 +2,7 @@ ARG ROS_DISTRO=noetic
 FROM ros:${ROS_DISTRO} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
   autoconf \
   automake \
   build-essential \
@@ -29,8 +29,6 @@ RUN apt update && apt install -y \
   sudo \
   unzip \
   && rm -rf /var/lib/apt/lists/*
-
-RUN sudo rosdep update
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
@@ -63,8 +61,9 @@ RUN chmod 744 /sshd_entrypoint.sh
 
 # build ROS workspace
 USER ${USER}
+RUN mkdir -p ${HOME}/ros_ws/src
 WORKDIR ${HOME}/ros_ws/
-RUN mkdir -p src
+RUN rosdep update
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make"
 

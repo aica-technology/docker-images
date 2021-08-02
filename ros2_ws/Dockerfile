@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 COPY config/apt-key /tmp/apt-key
 RUN apt-key add /tmp/apt-key
 
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
   autoconf \
   automake \
   build-essential \
@@ -48,7 +48,7 @@ ENV HOME /home/${USER}
 ARG UID=1000
 ARG GID=1000
 RUN addgroup --gid ${GID} ${USER}
-RUN adduser --gecos "ROS User" --uid ${UID} --gid ${GID} ${USER} && yes | passwd ${USER}
+RUN adduser --gecos "ROS2 User" --uid ${UID} --gid ${GID} ${USER} && yes | passwd ${USER}
 RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
 RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
@@ -60,8 +60,8 @@ RUN chmod 744 /sshd_entrypoint.sh
 
 # build ROS workspace
 USER ${USER}
+RUN mkdir -p ${HOME}/ros2_ws/src
 WORKDIR ${HOME}/ros2_ws/
-RUN mkdir -p src
 RUN rosdep update
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
