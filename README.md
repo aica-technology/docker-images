@@ -1,5 +1,7 @@
 # docker_images
 
+![Build and Push ROS and ROS2 images](https://github.com/aica-technology/docker-images/actions/workflows/build-push.yml/badge.svg)
+
 ## Images
 
 ### ROS workspace

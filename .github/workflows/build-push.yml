@@ -1,0 +1,36 @@
+name: Build and Push
+
+# Run workflow on pushes to master branch or by manual dispatch
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+
+  build-publish-noetic:
+    runs-on: ubuntu-latest
+    name: Build and publish ROS noetic image
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push
+        uses: ./.github/actions/build-push
+        with:
+          image: aica-technology/ros-ws:noetic
+          secret: ${{ secrets.CR_PAT }}
+
+  build-publish-foxy:
+    runs-on: ubuntu-latest
+    name: Build and publish ROS2 foxy image
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push
+        uses: ./.github/actions/build-push
+        with:
+          image: aica-technology/ros2-ws:foxy
+          secret: ${{ secrets.CR_PAT }}

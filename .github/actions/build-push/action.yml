@@ -1,0 +1,35 @@
+name: 'Build and Push'
+description: 'Build the Docker image and push to GitHub Container Registry'
+inputs:
+  image:
+    description: 'The desired image'
+    required: false
+    default: 'aica-technology/ros2-ws:foxy'
+  secret:
+    description: 'GitHub Container Registry secret'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build image
+      run: |
+        IMAGE_NAME=${{ inputs.image }}
+        IMAGE_ID=${IMAGE_NAME%:*}
+        ROS_DISTRO=${IMAGE_NAME#*:}
+        WORKSPACE=${IMAGE_ID#*/}
+        WORKSPACE=${WORKSPACE/-/_}
+        docker build ${WORKSPACE} --file ${WORKSPACE}/Dockerfile  --build-arg ROS_DISTRO=${ROS_DISTRO} --tag ${IMAGE_ID} --label "runnumber=${GITHUB_RUN_ID}"
+      shell: bash
+
+    - name: Login to GitHub Container Registry
+      run: echo "${{ inputs.secret }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      shell: bash
+
+    - name: Push image
+      run: |
+        IMAGE_NAME=${{ inputs.image }}
+        IMAGE_ID=${IMAGE_NAME%:*}
+        docker tag ${IMAGE_ID} ghcr.io/${IMAGE_NAME}
+        docker push ghcr.io/${IMAGE_NAME}
+      shell: bash
