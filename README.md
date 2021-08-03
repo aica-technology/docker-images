@@ -7,7 +7,7 @@
 ### ROS workspace
 
 The ros_ws image provides a ROS workspace.
-Build it by running the [build script](ros_ws/build.sh) script while
+Build it by running the [build script](ros_ws/build.sh) while
 in the [ros_ws](ros_ws) directory. Modify the ROS distribution in
 the script as desired.
 
@@ -16,7 +16,7 @@ The username that should be supplied at login is `ros`.
 ### ROS2 workspace
 
 Similar to the ROS workspace, the ros2_ws image provides a ROS2 workspace.
-Build it by running the [build script](ros2_ws/build.sh) script while
+Build it by running the [build script](ros2_ws/build.sh) while
 in the [ros2_ws](ros2_ws) directory. Modify the ROS2 distribution
 in the script as desired.
 
