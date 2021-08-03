@@ -19,7 +19,7 @@ runs:
         ROS_DISTRO=${IMAGE_NAME#*:}
         WORKSPACE=${IMAGE_ID#*/}
         WORKSPACE=${WORKSPACE/-/_}
-        docker build ${WORKSPACE} --file ${WORKSPACE}/Dockerfile  --build-arg ROS_DISTRO=${ROS_DISTRO} --tag ${IMAGE_ID} --label "runnumber=${GITHUB_RUN_ID}"
+        docker build ${WORKSPACE} --file ${WORKSPACE}/Dockerfile  --build-arg ROS_DISTRO=${ROS_DISTRO} --tag ${IMAGE_ID}
       shell: bash
 
     - name: Login to GitHub Container Registry
