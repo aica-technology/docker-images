@@ -20,4 +20,4 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           image: ${{ github.event.inputs.image }}
-          secret: ${{ secrets.CR_PAT }}
+          secret: ${{ secrets.GITHUB_TOKEN }}
