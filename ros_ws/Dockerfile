@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
   curl \
   g++ \
   gdb \
+  git \
   iputils-ping \
   libboost-all-dev \
   libeigen3-dev \
