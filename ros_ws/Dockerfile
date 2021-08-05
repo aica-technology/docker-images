@@ -3,31 +3,20 @@ FROM ros:${ROS_DISTRO} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-  autoconf \
-  automake \
-  build-essential \
   curl \
-  g++ \
   gdb \
+  git \
   iputils-ping \
-  libboost-all-dev \
   libeigen3-dev \
   libtool \
-  libssl-dev \
-  make \
   mesa-utils \
   nano \
-  python3-setuptools \
   python3-pip \
-  python3-rosdep \
-  python3-rosinstall \
   python3-rosinstall-generator \
-  python3-wstool \
   ros-${ROS_DISTRO}-rviz \
   rsync \
   software-properties-common \
   ssh \
-  sudo \
   unzip \
   && rm -rf /var/lib/apt/lists/*
 

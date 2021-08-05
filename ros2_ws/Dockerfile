@@ -8,25 +8,19 @@ RUN apt-key add /tmp/apt-key
 RUN apt-get update && apt-get install -y \
   autoconf \
   automake \
-  build-essential \
   curl \
-  g++ \
   gdb \
+  git \
   iputils-ping \
   libboost-all-dev \
-  libeigen3-dev \
   libtool \
-  libssl-dev \
-  make \
   mesa-utils \
   nano \
-  python3-setuptools \
   python3-pip \
   ros-${ROS_DISTRO}-rviz2 \
   rsync \
   software-properties-common \
   ssh \
-  sudo \
   unzip \
   && rm -rf /var/lib/apt/lists/*
 
