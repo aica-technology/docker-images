@@ -66,6 +66,7 @@ else
   RUN_FLAGS+=(-e DISPLAY="${DISPLAY}")
   RUN_FLAGS+=(-e XAUTHORITY="${XAUTHORITY}")
   RUN_FLAGS+=(-v /tmp/.X11-unix:/tmp/.X11-unix:rw)
+  RUN_FLAGS+=(--device=/dev/dri:/dev/dri)
 fi
 
 docker run -it --rm \

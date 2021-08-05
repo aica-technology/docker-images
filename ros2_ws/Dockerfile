@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
   libssl-dev \
   make \
   mesa-utils \
+  nano \
   python3-setuptools \
   python3-pip \
   ros-${ROS_DISTRO}-rviz2 \
