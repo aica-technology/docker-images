@@ -86,6 +86,7 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
   COMMAND_FLAGS+=(--gid "${GROUP_ID}")
 
   RUN_FLAGS+=(--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw)
+  RUN_FLAGS+=(--device=/dev/dri:/dev/dri)
 fi
 
 docker container stop "$CONTAINER_NAME" >/dev/null 2>&1
