@@ -45,9 +45,9 @@ Options:
   -u, --user <user>        Specify the name of the remote user.
                            (default: ${USERNAME})
 
-  --gpus <gpus_options>    Add GPU access for applications that
+  --gpus <gpu_options>     Add GPU access for applications that
                            require hardware acceleration (e.g. Gazebo)
-                           For the list of gpus_options parameters
+                           For the list of gpu_options parameters
                            see https://docs.docker.com/config/containers/resource_constraints/
 
   -h, --help               Show this help message."

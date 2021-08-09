@@ -29,9 +29,9 @@ Options:
                            mount between the host and container
                            as two full paths separated by a ':'.
 
-  --gpus <gpus_options>    Add GPU access for applications that
+  --gpus <gpu_options>     Add GPU access for applications that
                            require hardware acceleration (e.g. Gazebo)
-                           For the list of gpus_options parameters
+                           For the list of gpu_options parameters
                            see https://docs.docker.com/config/containers/resource_constraints/
 
   -h, --help               Show this help message."
