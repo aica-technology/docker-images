@@ -4,6 +4,7 @@ SSH_PORT=3333
 SSH_KEY_FILE="$HOME/.ssh/id_rsa.pub"
 IMAGE_NAME=""
 USERNAME=root
+GPUS=""
 
 HELP_MESSAGE="
 Usage: ./server.sh <image> [-p <port>] [-k <file>] [-n <name>] [-u <user>]
@@ -44,6 +45,11 @@ Options:
   -u, --user <user>        Specify the name of the remote user.
                            (default: ${USERNAME})
 
+  --gpus <gpu_options>     Add GPU access for applications that
+                           require hardware acceleration (e.g. Gazebo)
+                           For the list of gpu_options parameters
+                           see https://docs.docker.com/config/containers/resource_constraints/
+
   -h, --help               Show this help message."
 
 CONTAINER_NAME=""
@@ -55,6 +61,7 @@ while [ "$#" -gt 0 ]; do
     -i|--image) IMAGE_NAME=$2; shift 2;;
     -n|--name) CONTAINER_NAME=$2; shift 2;;
     -u|--user) USERNAME=$2; shift 2;;
+    --gpus) GPUS=$2; shift 2;;
     -h|--help) echo "${HELP_MESSAGE}"; exit 0;;
     -*) echo "Unknown option: $1" >&2; echo "${HELP_MESSAGE}"; exit 1;;
     *) IMAGE_NAME=$1; shift 1;;
@@ -87,6 +94,13 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
 
   RUN_FLAGS+=(--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw)
   RUN_FLAGS+=(--device=/dev/dri:/dev/dri)
+fi
+
+if [ -n "${GPUS}" ]; then
+  RUN_FLAGS+=(--gpus "${GPUS}")
+  RUN_FLAGS+=(--env DISPLAY="${DISPLAY}")
+  RUN_FLAGS+=(--env NVIDIA_VISIBLE_DEVICES="${NVIDIA_VISIBLE_DEVICES:-all}")
+  RUN_FLAGS+=(--env NVIDIA_DRIVER_CAPABILITIES="${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics")
 fi
 
 docker container stop "$CONTAINER_NAME" >/dev/null 2>&1

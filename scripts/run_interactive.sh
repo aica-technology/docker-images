@@ -3,6 +3,7 @@
 IMAGE_NAME=""
 CONTAINER_NAME=""
 USERNAME=""
+GPUS=""
 
 HELP_MESSAGE="
 Usage: ./run_interactive.sh <image> [-n <name>] [-u <user>]
@@ -28,6 +29,11 @@ Options:
                            mount between the host and container
                            as two full paths separated by a ':'.
 
+  --gpus <gpu_options>     Add GPU access for applications that
+                           require hardware acceleration (e.g. Gazebo)
+                           For the list of gpu_options parameters
+                           see https://docs.docker.com/config/containers/resource_constraints/
+
   -h, --help               Show this help message."
 
 
@@ -38,28 +44,36 @@ while [ "$#" -gt 0 ]; do
     -n|--name) CONTAINER_NAME=$2; shift 2;;
     -u|--user) USERNAME=$2; shift 2;;
     -v|--volume) RUN_FLAGS+=(-v "$2"); shift 2;;
+    --gpus) GPUS=$2; shift 2;;
     -h|--help) echo "${HELP_MESSAGE}"; exit 0;;
     -*) echo "Unknown option: $1" >&2; echo "${HELP_MESSAGE}"; exit 1;;
     *) IMAGE_NAME=$1; shift 1;;
   esac
 done
 
-if [ -z "$IMAGE_NAME" ]; then
+if [ -z "${IMAGE_NAME}" ]; then
   echo "No image name provided!"
   echo "${HELP_MESSAGE}"
   exit 1
 fi
 
-if [ -z "$CONTAINER_NAME" ]; then
+if [ -z "${CONTAINER_NAME}" ]; then
   CONTAINER_NAME="${IMAGE_NAME/\//-}"
   CONTAINER_NAME="${CONTAINER_NAME/:/-}-runtime"
 fi
 
-if [ -n "$USERNAME" ]; then
+if [ -n "${USERNAME}" ]; then
   RUN_FLAGS+=(-u "${USERNAME}")
 fi
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [ -n "${GPUS}" ]; then
+  RUN_FLAGS+=(--gpus "${GPUS}")
+  RUN_FLAGS+=(--env DISPLAY="${DISPLAY}")
+  RUN_FLAGS+=(--env NVIDIA_VISIBLE_DEVICES="${NVIDIA_VISIBLE_DEVICES:-all}")
+  RUN_FLAGS+=(--env NVIDIA_DRIVER_CAPABILITIES="${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics")
+fi
+
+if [[ "${OSTYPE}" == "darwin"* ]]; then
   RUN_FLAGS+=(-e DISPLAY=host.docker.internal:0)
 else
   xhost +
