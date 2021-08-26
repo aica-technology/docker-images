@@ -7,7 +7,7 @@ USERNAME=root
 GPUS=""
 
 HELP_MESSAGE="
-Usage: ./server.sh <image> [-p <port>] [-k <file>] [-n <name>] [-u <user>]
+Usage: aica-docker server <image> [-p <port>] [-k <file>] [-n <name>] [-u <user>]
 
 Run a docker container as an SSH server for remote development
 from a docker image based on the ros2_ws image.
@@ -39,7 +39,7 @@ Options:
                            the image name, replacing all
                            '/' and ':' with '-' and appending
                            '-ssh'. For example, the image
-                           aica-technology/ros2-ws:foxy would
+                           aica-technology/ros2-ws:foxy would yield
                            aica-technology-ros2-ws-foxy-ssh
 
   -u, --user <user>        Specify the name of the remote user.
@@ -47,24 +47,61 @@ Options:
 
   --gpus <gpu_options>     Add GPU access for applications that
                            require hardware acceleration (e.g. Gazebo)
-                           For the list of gpu_options parameters
-                           see https://docs.docker.com/config/containers/resource_constraints/
+                           For the list of gpu_options parameters see:
+    >>> https://docs.docker.com/config/containers/resource_constraints/
 
-  -h, --help               Show this help message."
+  -h, --help               Show this help message.
+
+Any additional arguments passed to this script are forwarded to
+the 'docker run' command.
+"
 
 CONTAINER_NAME=""
 
+FWD_ARGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -p|--port) SSH_PORT=$2; shift 2;;
-    -k|--key-file) SSH_KEY_FILE=$2; shift 2;;
-    -i|--image) IMAGE_NAME=$2; shift 2;;
-    -n|--name) CONTAINER_NAME=$2; shift 2;;
-    -u|--user) USERNAME=$2; shift 2;;
-    --gpus) GPUS=$2; shift 2;;
-    -h|--help) echo "${HELP_MESSAGE}"; exit 0;;
-    -*) echo "Unknown option: $1" >&2; echo "${HELP_MESSAGE}"; exit 1;;
-    *) IMAGE_NAME=$1; shift 1;;
+  -p | --port)
+    SSH_PORT=$2
+    shift 2
+    ;;
+  -k | --key-file)
+    SSH_KEY_FILE=$2
+    shift 2
+    ;;
+  -i | --image)
+    IMAGE_NAME=$2
+    shift 2
+    ;;
+  -n | --name)
+    CONTAINER_NAME=$2
+    shift 2
+    ;;
+  -u | --user)
+    USERNAME=$2
+    shift 2
+    ;;
+  --gpus)
+    GPUS=$2
+    shift 2
+    ;;
+  -h | --help)
+    echo "${HELP_MESSAGE}"
+    exit 0
+    ;;
+  -*)
+    echo "Unknown option: $1" >&2
+    echo "${HELP_MESSAGE}"
+    exit 1
+    ;;
+  *)
+    if [ -z "${IMAGE_NAME}" ]; then
+      IMAGE_NAME=$1
+    else
+      FWD_ARGS+=("$1")
+    fi
+    shift 1
+    ;;
   esac
 done
 
@@ -105,6 +142,11 @@ fi
 
 docker container stop "$CONTAINER_NAME" >/dev/null 2>&1
 docker rm --force "$CONTAINER_NAME" >/dev/null 2>&1
+
+if [ ${#FWD_ARGS[@]} -gt 0 ]; then
+  echo "Forwarding additional arguments to docker run command:"
+  echo "${FWD_ARGS[@]}"
+fi
 
 echo "Starting background container with access port ${SSH_PORT} for user ${USERNAME}"
 docker run -d --rm --cap-add sys_ptrace \
