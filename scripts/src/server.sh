@@ -89,11 +89,6 @@ while [ "$#" -gt 0 ]; do
     echo "${HELP_MESSAGE}"
     exit 0
     ;;
-  -*)
-    echo "Unknown option: $1" >&2
-    echo "${HELP_MESSAGE}"
-    exit 1
-    ;;
   *)
     if [ -z "${IMAGE_NAME}" ]; then
       IMAGE_NAME=$1
@@ -154,6 +149,7 @@ docker run -d --rm --cap-add sys_ptrace \
   --name "${CONTAINER_NAME}" \
   --hostname "${CONTAINER_NAME}" \
   "${RUN_FLAGS[@]}" \
+  "${FWD_ARGS[@]}" \
   "${IMAGE_NAME}" /sshd_entrypoint.sh "${COMMAND_FLAGS[@]}"
 
 echo "${CONTAINER_NAME}"
