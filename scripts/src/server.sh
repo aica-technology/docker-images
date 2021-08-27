@@ -57,12 +57,19 @@ the 'docker run' command.
 "
 
 CONTAINER_NAME=""
+CUSTOM_SSH_PORT=""
 
 FWD_ARGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -p | --port)
-    SSH_PORT=$2
+    # only capture the port argument for SSH
+    # the first time, otherwise forward it
+    if [ -z "${CUSTOM_SSH_PORT}" ]; then
+      CUSTOM_SSH_PORT=$2
+    else
+      FWD_ARGS+=("$1 $2")
+    fi
     shift 2
     ;;
   -k | --key-file)
@@ -99,6 +106,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   esac
 done
+
+if [ -n "$CUSTOM_SSH_PORT" ]; then
+  SSH_PORT="${CUSTOM_SSH_PORT}"
+fi
 
 if [ -z "$IMAGE_NAME" ]; then
   echo "No image name provided!"
