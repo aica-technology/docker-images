@@ -27,26 +27,54 @@ The username that should be supplied at login is `ros2`.
 The provided scripts simplify launching and connecting to docker containers based
 on the provided images.
 
-### run_interactive
+- `aica-docker server`
+- `aica-docker connect`
+- `aica-docker interactive`
 
-The [run_interactive.sh script](scripts/run_interactive.sh) is a wrapper for `docker run`
+### Installation of `aica-docker`
+
+The [aica-docker.sh script](scripts/aica-docker.sh) is a simple wrapper for all
+scripts in this repository, and is designed to be run with the `aica-docker` command.
+
+Install the `aica-docker` command using the [install-aica-docker.sh script](scripts/install-aica-docker.sh).
+This will create a symbolic link in `/usr/local/lib` to the scripts in this repository.
+
+```shell
+cd scripts
+sudo ./install-aica-docker.sh
+```
+
+To remove the `aica-docker` symbolic link and command,
+simply run the [uninstall-aica-docker.sh script](scripts/install-aica-docker.sh)
+
+```shell
+cd scripts
+sudo ./uninstall-aica-docker.sh
+```
+
+Note: if the path of this repository is ever changed, the symbolic link will fail to find the scripts.
+Fix this by uninstalling and then re-installing the link.
+
+### interactive
+
+The [interactive.sh script](scripts/src/interactive.sh) is a wrapper for `docker run`
 and starts an interactive container that is removed on exit. It takes a pre-built image
-as an argument. Run `./run_interactive.sh -h` for more info.
+as an argument. Run `aica-docker interactive -h` for more info.
 
 ### server
 
-The [server.sh script](scripts/server.sh) is a wrapper for `docker run` that is
+The [server.sh script](scripts/src/server.sh) is a wrapper for `docker run` that is
 configured specifically for the images in this repository, which have
 a custom `sshd_entrypoint.sh` script built in. It spins up a background container
 running an SSH server, authenticated with the host RSA key pair for the specified user.
-Run `./server.sh -h` for more info.
+Run `aica-docker server -h` for more info.
 
 ### connect
 
-The [connect.sh script](scripts/connect.sh) is a wrapper for `docker exec` that
+The [connect.sh script](scripts/src/connect.sh) is a wrapper for `docker exec` that
 connects an interactive shell to a running container instance. It sets
 the corresponding environment variables for display forwarding.
-Run `./connect.sh -h` for more info.
+Run `aica-docker connect -h` for more info.
 
 
 ## Notes on X11 display forwarding for Mac

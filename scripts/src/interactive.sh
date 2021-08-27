@@ -6,7 +6,7 @@ USERNAME=""
 GPUS=""
 
 HELP_MESSAGE="
-Usage: ./run_interactive.sh <image> [-n <name>] [-u <user>]
+Usage: aica-docker interactive <image> [-n <name>] [-u <user>]
 
 Run a docker container as an interactive shell.
 
@@ -25,29 +25,49 @@ Options:
   -u, --user <user>        Specify the name of the login user.
                            (optional)
 
-  -v, --volume </local/path:/remote/path>   Specify a volume to
-                           mount between the host and container
-                           as two full paths separated by a ':'.
-
   --gpus <gpu_options>     Add GPU access for applications that
                            require hardware acceleration (e.g. Gazebo)
-                           For the list of gpu_options parameters
-                           see https://docs.docker.com/config/containers/resource_constraints/
+                           For the list of gpu_options parameters see:
+    >>> https://docs.docker.com/config/containers/resource_constraints
 
-  -h, --help               Show this help message."
+  -h, --help               Show this help message.
 
+Any additional arguments passed to this script are forwarded to
+the 'docker run' command.
+"
 
 RUN_FLAGS=()
+FWD_ARGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    -i|--image) IMAGE_NAME=$2; shift 2;;
-    -n|--name) CONTAINER_NAME=$2; shift 2;;
-    -u|--user) USERNAME=$2; shift 2;;
-    -v|--volume) RUN_FLAGS+=(-v "$2"); shift 2;;
-    --gpus) GPUS=$2; shift 2;;
-    -h|--help) echo "${HELP_MESSAGE}"; exit 0;;
-    -*) echo "Unknown option: $1" >&2; echo "${HELP_MESSAGE}"; exit 1;;
-    *) IMAGE_NAME=$1; shift 1;;
+  -i | --image)
+    IMAGE_NAME=$2
+    shift 2
+    ;;
+  -n | --name)
+    CONTAINER_NAME=$2
+    shift 2
+    ;;
+  -u | --user)
+    USERNAME=$2
+    shift 2
+    ;;
+  --gpus)
+    GPUS=$2
+    shift 2
+    ;;
+  -h | --help)
+    echo "${HELP_MESSAGE}"
+    exit 0
+    ;;
+  *)
+    if [ -z "${IMAGE_NAME}" ]; then
+      IMAGE_NAME=$1
+    else
+      FWD_ARGS+=("$1")
+    fi
+    shift 1
+    ;;
   esac
 done
 
@@ -83,8 +103,14 @@ else
   RUN_FLAGS+=(--device=/dev/dri:/dev/dri)
 fi
 
+if [ ${#FWD_ARGS[@]} -gt 0 ]; then
+  echo "Forwarding additional arguments to docker run command:"
+  echo "${FWD_ARGS[@]}"
+fi
+
 docker run -it --rm \
   "${RUN_FLAGS[@]}" \
   --name "${CONTAINER_NAME}" \
   --hostname "${CONTAINER_NAME}" \
+  "${FWD_ARGS[@]}" \
   "${IMAGE_NAME}" /bin/bash
