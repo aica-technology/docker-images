@@ -4,6 +4,7 @@ IMAGE_NAME=""
 CONTAINER_NAME=""
 USERNAME=""
 GPUS=""
+GENERATE_HOST_NAME=true
 
 HELP_MESSAGE="
 Usage: aica-docker interactive <image> [-n <name>] [-u <user>]
@@ -24,6 +25,11 @@ Options:
 
   -u, --user <user>        Specify the name of the login user.
                            (optional)
+
+  --no-hostname            Suppress the automatic generation of a
+                           hostname for the container. By default,
+                           the container hostname is set to be
+                           the same as the container name.
 
   --gpus <gpu_options>     Add GPU access for applications that
                            require hardware acceleration (e.g. Gazebo)
@@ -47,6 +53,10 @@ while [ "$#" -gt 0 ]; do
   -n | --name)
     CONTAINER_NAME=$2
     shift 2
+    ;;
+  --no-hostname)
+    GENERATE_HOST_NAME=false
+    shift 1
     ;;
   -u | --user)
     USERNAME=$2
@@ -86,6 +96,10 @@ if [ -n "${USERNAME}" ]; then
   RUN_FLAGS+=(-u "${USERNAME}")
 fi
 
+if [ $GENERATE_HOST_NAME == true ]; then
+  RUN_FLAGS+=(--hostname "${CONTAINER_NAME}")
+fi
+
 if [ -n "${GPUS}" ]; then
   RUN_FLAGS+=(--gpus "${GPUS}")
   RUN_FLAGS+=(--env DISPLAY="${DISPLAY}")
@@ -111,6 +125,5 @@ fi
 docker run -it --rm \
   "${RUN_FLAGS[@]}" \
   --name "${CONTAINER_NAME}" \
-  --hostname "${CONTAINER_NAME}" \
   "${FWD_ARGS[@]}" \
   "${IMAGE_NAME}" /bin/bash
