@@ -57,12 +57,19 @@ the 'docker run' command.
 "
 
 CONTAINER_NAME=""
+CUSTOM_SSH_PORT=""
 
 FWD_ARGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -p | --port)
-    SSH_PORT=$2
+    # only capture the port argument for SSH
+    # the first time, otherwise forward it
+    if [ -z "${CUSTOM_SSH_PORT}" ]; then
+      CUSTOM_SSH_PORT=$2
+    else
+      FWD_ARGS+=("$1 $2")
+    fi
     shift 2
     ;;
   -k | --key-file)
@@ -89,11 +96,6 @@ while [ "$#" -gt 0 ]; do
     echo "${HELP_MESSAGE}"
     exit 0
     ;;
-  -*)
-    echo "Unknown option: $1" >&2
-    echo "${HELP_MESSAGE}"
-    exit 1
-    ;;
   *)
     if [ -z "${IMAGE_NAME}" ]; then
       IMAGE_NAME=$1
@@ -104,6 +106,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   esac
 done
+
+if [ -n "$CUSTOM_SSH_PORT" ]; then
+  SSH_PORT="${CUSTOM_SSH_PORT}"
+fi
 
 if [ -z "$IMAGE_NAME" ]; then
   echo "No image name provided!"
@@ -154,6 +160,7 @@ docker run -d --rm --cap-add sys_ptrace \
   --name "${CONTAINER_NAME}" \
   --hostname "${CONTAINER_NAME}" \
   "${RUN_FLAGS[@]}" \
+  "${FWD_ARGS[@]}" \
   "${IMAGE_NAME}" /sshd_entrypoint.sh "${COMMAND_FLAGS[@]}"
 
 echo "${CONTAINER_NAME}"
