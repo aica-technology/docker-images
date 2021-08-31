@@ -70,8 +70,8 @@ if [ -z "$CONTAINER_NAME" ]; then
 
   read -r INPUT
   if [[ -n ${INPUT//[0-9]/} || "$INPUT" -le 0 || "$INPUT" -gt "$INDEX" ]]; then
-      echo "Invalid input!"
-      exit 1
+    echo "Invalid input!"
+    exit 1
   fi
 
   CONTAINER_NAME=${CONTAINERS[$((INPUT - 1))]}
