@@ -156,6 +156,7 @@ fi
 
 echo "Starting background container with access port ${SSH_PORT} for user ${USERNAME}"
 docker run -d --rm --cap-add sys_ptrace \
+  --user root \
   --publish 127.0.0.1:"${SSH_PORT}":22 \
   --name "${CONTAINER_NAME}" \
   --hostname "${CONTAINER_NAME}" \
