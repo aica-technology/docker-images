@@ -88,7 +88,7 @@ if [ -z "${IMAGE_NAME}" ]; then
 fi
 
 if [ -z "${CONTAINER_NAME}" ]; then
-  CONTAINER_NAME="${IMAGE_NAME/\//-}"
+  CONTAINER_NAME="${IMAGE_NAME//[\/.]/-}"
   CONTAINER_NAME="${CONTAINER_NAME/:/-}-runtime"
 fi
 
