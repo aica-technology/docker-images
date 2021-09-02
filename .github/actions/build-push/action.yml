@@ -19,6 +19,8 @@ runs:
         ROS_DISTRO=${IMAGE_NAME#*:}
         WORKSPACE=${IMAGE_ID#*/}
         WORKSPACE=${WORKSPACE/-/_}
+        mkdir -p ${WORKSPACE}/config
+        cp common/sshd_entrypoint.sh ${WORKSPACE}/config/
         docker build ${WORKSPACE} --file ${WORKSPACE}/Dockerfile  --build-arg ROS_DISTRO=${ROS_DISTRO} --tag ${IMAGE_ID}
       shell: bash
 
