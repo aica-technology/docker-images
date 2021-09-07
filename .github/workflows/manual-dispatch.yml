@@ -5,13 +5,18 @@ on:
   workflow_dispatch:
     inputs:
       image:
-        description: 'The desired image (aica-technology/<ros_workspace>:<ros_distro>)'
+        description: 'The desired image (aica-technology/<cl>-<ros_workspace>:<ros_distro>)'
         required: true
+      cl_branch:
+        description: 'If set, the desired branch of control_libraries for the combined image'
+        required: false
+        default: ''
 
 jobs:
   build-publish:
+    if: ${{ github.event.inputs.cl_branch == '' }}
     runs-on: ubuntu-latest
-    name: Build and publish ROS image
+    name: Build and publish desired image
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -20,4 +25,5 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           image: ${{ github.event.inputs.image }}
+          cl_branch: ${{ github.event.inputs.cl_branch }}
           secret: ${{ secrets.GITHUB_TOKEN }}
