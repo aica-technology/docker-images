@@ -13,9 +13,9 @@ WORKDIR ${HOME}
 RUN git clone -b ${CL_BRANCH} --single-branch https://github.com/epfl-lasa/control_libraries.git
 
 # install source
-RUN sudo ./control_libraries/source/install.sh -y && sudo ldconfig
+RUN sudo ./control_libraries/source/install.sh -y
 # install protocol
-RUN sudo ./control_libraries/protocol/install.sh -y && sudo ldconfig
+RUN sudo ./control_libraries/protocol/install.sh -y
 # install python bindings
 RUN sudo pip3 install ./control_libraries/python
 # remove files except protocol

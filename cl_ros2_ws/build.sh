@@ -5,7 +5,7 @@ IMAGE_NAME=aica-technology/cl-ros2-ws
 LOCAL_BASE_IMAGE=0
 BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 ROS_VERSION=foxy
-CL_BRANCH=main
+CL_BRANCH=develop
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
