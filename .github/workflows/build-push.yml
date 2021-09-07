@@ -9,9 +9,9 @@ on:
 
 jobs:
 
-  build-publish-noetic:
+  build-publish-noetic-workspace:
     runs-on: ubuntu-latest
-    name: Build and publish ROS noetic image
+    name: Build and publish ROS noetic workspace image
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -19,12 +19,26 @@ jobs:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
-          image: aica-technology/ros-ws:noetic
+          image: domire8/ros-ws:noetic
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-  build-publish-foxy:
+  build-publish-noetic-cl:
     runs-on: ubuntu-latest
-    name: Build and publish ROS2 foxy image
+    name: Build and publish ROS noetic workspace image with control libraries installed
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push Combined
+        uses: ./.github/actions/build-push-combined
+        with:
+          image: aica-technology/cl-ros-ws:noetic
+          cl_branch: fix/revise-install
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+  build-publish-foxy-workspace:
+    runs-on: ubuntu-latest
+    name: Build and publish ROS2 foxy workspace image
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -32,5 +46,20 @@ jobs:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
-          image: aica-technology/ros2-ws:foxy
+          image: domire8/ros2-ws:foxy
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+
+  build-publish-foxy-cl:
+    runs-on: ubuntu-latest
+    name: Build and publish ROS2 foxy workspace image with control libraries installed
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push Combined
+        uses: ./.github/actions/build-push-combined
+        with:
+          image: aica-technology/cl-ros2-ws:foxy
+          cl_branch: fix/revise-install
           secret: ${{ secrets.GITHUB_TOKEN }}
