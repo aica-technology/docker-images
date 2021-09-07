@@ -1,5 +1,5 @@
-ARG ROS_DISTRO=foxy
-FROM ros:${ROS_DISTRO} as base-dependencies
+ARG ROS_VERSION=foxy
+FROM ros:${ROS_VERSION} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY config/apt-key /tmp/apt-key
