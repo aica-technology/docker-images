@@ -18,7 +18,9 @@ RUN sudo ./control-libraries/source/install.sh -y
 RUN sudo ./control-libraries/protocol/install.sh -y
 # install python bindings
 RUN sudo pip3 install ./control-libraries/python
-# remove files except protocol
-RUN mv ./control-libraries/protocol ./protocol && rm -rf ./control-libraries/* && mv ./protocol ./control-libraries/protocol
+RUN rm -rf ./control-libraries
 
 RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+
+# Restore the key for robotpkg
+RUN sudo curl http://robotpkg.openrobots.org/packages/debian/robotpkg.key | sudo apt-key add -
