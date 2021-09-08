@@ -1,10 +1,10 @@
 #!/bin/bash
 
-IMAGE_NAME=aica-technology/cl-ros2-ws
+IMAGE_NAME=aica-technology/ros-control-libraries
 
 LOCAL_BASE_IMAGE=0
-BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
-ROS_VERSION=foxy
+BASE_IMAGE=ghcr.io/aica-technology/ros-ws
+ROS_VERSION=noetic
 CL_BRANCH=develop
 
 BUILD_FLAGS=()
@@ -23,14 +23,14 @@ while [ "$#" -gt 0 ]; do
     shift 2
     ;;
   *)
-    echo 'Error in command line parsing' >&2
+    echo "Unknown option: $1" >&2
     exit 1
     ;;
   esac
 done
 
 if [ "${LOCAL_BASE_IMAGE}" ]; then
-  BASE_IMAGE=aica-technology:ros2-ws
+  BASE_IMAGE=aica-technology:ros-control-libraries
 else
   docker pull "${BASE_IMAGE}:${ROS_VERSION}"
 fi
