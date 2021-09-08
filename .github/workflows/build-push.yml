@@ -35,7 +35,7 @@ jobs:
           image: aica-technology/ros2-ws:foxy
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-  build-publish-noetic-cl:
+  build-publish-noetic-control-libraries:
     needs: build-publish-noetic-workspace
     runs-on: ubuntu-latest
     name: Build and publish ROS noetic workspace image with control libraries installed
@@ -46,11 +46,11 @@ jobs:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
-          image: aica-technology/cl-ros-ws:noetic
+          image: aica-technology/ros-control-libraries:noetic
           cl_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-  build-publish-foxy-cl:
+  build-publish-foxy-control-libraries:
     needs: build-publish-foxy-workspace
     runs-on: ubuntu-latest
     name: Build and publish ROS2 foxy workspace image with control libraries installed
@@ -61,6 +61,6 @@ jobs:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
-          image: aica-technology/cl-ros2-ws:foxy
+          image: aica-technology/ros2-control-libraries:foxy
           cl_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
