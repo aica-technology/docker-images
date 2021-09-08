@@ -1,5 +1,5 @@
-ARG ROS_DISTRO=noetic
-FROM ros:${ROS_DISTRO} as base-dependencies
+ARG ROS_VERSION=noetic
+FROM ros:${ROS_VERSION} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \

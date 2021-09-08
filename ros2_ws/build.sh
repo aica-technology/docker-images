@@ -1,8 +1,8 @@
 #!/bin/bash
-ROS_DISTRO=foxy
-docker pull "ros:${ROS_DISTRO}"
+ROS_VERSION=foxy
+docker pull "ros:${ROS_VERSION}"
 
-IMAGE_NAME=aica-technology/ros2-ws:"${ROS_DISTRO}"
+IMAGE_NAME=aica-technology/ros2-ws:"${ROS_VERSION}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
@@ -22,7 +22,7 @@ while getopts 'r' opt; do
 done
 shift "$((OPTIND - 1))"
 
-BUILD_FLAGS+=(--build-arg ROS_DISTRO="${ROS_DISTRO}")
+BUILD_FLAGS+=(--build-arg ROS_VERSION="${ROS_VERSION}")
 
 if [[ "$OSTYPE" != "darwin"* ]]; then
   USER_ID="$(id -u "${USER}")"
