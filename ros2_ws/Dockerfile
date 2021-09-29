@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
   mesa-utils \
   nano \
   python3-pip \
+  ros-${ROS_DISTRO}-xacro \
   ros-${ROS_DISTRO}-rviz2 \
   rsync \
   software-properties-common \
