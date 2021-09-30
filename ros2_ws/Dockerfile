@@ -2,9 +2,6 @@ ARG ROS_VERSION=foxy
 FROM ros:${ROS_VERSION} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 
-COPY config/apt-key /tmp/apt-key
-RUN apt-key add /tmp/apt-key
-
 RUN apt-get update && apt-get install -y \
   autoconf \
   automake \
