@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
   nano \
   python3-pip \
   python3-rosinstall-generator \
+  ros-${ROS_DISTRO}-xacro \
+  ros-${ROS_DISTRO}-robot-state-publisher \
   ros-${ROS_DISTRO}-rviz \
   rsync \
   software-properties-common \
