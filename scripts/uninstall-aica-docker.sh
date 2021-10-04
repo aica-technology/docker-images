@@ -1,16 +1,20 @@
 #!/bin/bash
 
-function remove_source_completion_script () {
-  ACTUAL_USER=$(logname)
-  HOME_DIR=$(eval echo "~${ACTUAL_USER}")
+function get_shell_rc_path () {
+  local user home_dir
+  user=$(logname)
+  home_dir=$(eval echo "~${user}")
   if [[ "${SHELL##*|}" == *"zsh"* ]]; then
-    su - "${ACTUAL_USER}" -c "grep -v /src/aica-docker-completion.sh ${HOME_DIR}/.zshrc > tmpfile && mv tmpfile ${HOME_DIR}/.zshrc"
+    echo "${home_dir}/.zshrc"
   elif [[ "${SHELL##*|}" == *"bash"* ]]; then
     if [[ "$OSTYPE" != "darwin"* ]]; then
-      su - "${ACTUAL_USER}" -c "grep -v /src/aica-docker-completion.sh ${HOME_DIR}/.bashrc > tmpfile && mv tmpfile ${HOME_DIR}/.bashrc"
+      echo "${home_dir}/.bashrc"
     else
-      su - "${ACTUAL_USER}" -c "grep -v /src/aica-docker-completion.sh ${HOME_DIR}/.bashrc > tmpfile && mv tmpfile ${HOME_DIR}/.bashrc"
+      echo "${home_dir}/.bashrc"
     fi
+  else
+    echo "Currently, only zsh and bash shells are supported for autocompletion with aica-docker."
+    exit 1
   fi
 }
 
@@ -18,4 +22,9 @@ SYMLINK=/usr/local/bin/aica-docker
 echo "Removing symbolic link ${SYMLINK}"
 rm -f "${SYMLINK}"
 
-remove_source_completion_script
+SHELL_RC_PATH=$(get_shell_rc_path)
+if grep -Rq "/src/aica-docker-completion.sh" "${SHELL_RC_PATH}"; then
+  echo "Removing auto completion from ${SHELL_RC_PATH}"
+  grep -v /src/aica-docker-completion.sh "${SHELL_RC_PATH}" > tmpfile && mv tmpfile "${SHELL_RC_PATH}"
+fi
+
