@@ -6,6 +6,9 @@ on:
    - cron: '20 3,13 * * MON-FRI'
   workflow_dispatch:
 
+env:
+  CI_BRANCH: 'ci'
+
 jobs:
 
   check-hash:
@@ -15,10 +18,10 @@ jobs:
       rebuild: ${{ steps.check.outputs.rebuild }}
       id: ${{ steps.check.outputs.id }}
     steps:
-      - name: Checkout 'ci' branch
+      - name: Checkout CI branch
         uses: actions/checkout@v2
         with:
-          ref: ci
+          ref: ${{ env.CI_BRANCH }}
 
       - name: Check lastest hash on develop branch
         id: check
@@ -55,10 +58,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Write new hash to file
     steps:
-      - name: Checkout 'ci' branch
+      - name: Checkout CI branch
         uses: actions/checkout@v2
         with:
-          ref: ci
+          ref: ${{ env.CI_BRANCH }}
 
       - name: Write new hash to file and push to 'ci' branch
         run: |
