@@ -10,7 +10,8 @@ function get_shell_rc_path () {
     if [[ "$OSTYPE" != "darwin"* ]]; then
       echo "${home_dir}/.bashrc"
     else
-      echo "${home_dir}/.bashrc"
+      echo "Currently, bash shells on Mac are not supported, please contact the maintainers."
+      exit 1
     fi
   else
     echo "Currently, only zsh and bash shells are supported for autocompletion with aica-docker."
@@ -20,7 +21,11 @@ function get_shell_rc_path () {
 
 function source_completion_script () {
   grep -v /src/aica-docker-completion.sh "$1" > tmpfile && mv tmpfile "$1"
-  echo "source ${SCRIPT_DIR}/src/aica-docker-completion.sh" >> "$1"
+  if [[ "$OSTYPE" != "darwin"* ]]; then
+    echo "autoload bashcompinit; bashcompinit; source ${SCRIPT_DIR}/src/aica-docker-completion.sh" >> "$1"
+  else
+    echo "source ${SCRIPT_DIR}/src/aica-docker-completion.sh" >> "$1"
+  fi
 }
 
 if [[ "$OSTYPE" != "darwin"* ]]; then
