@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       image:
-        description: 'The desired image (aica-technology/<image>:<ros_distro>)'
+        description: 'The desired image (<workspace>:<ros_distro>)'
         required: true
       cl_branch:
         description: 'If set, the desired branch of control libraries for the combined image'
