@@ -41,7 +41,7 @@ This will create a symbolic link in `/usr/local/lib` to the scripts in this repo
 
 ```shell
 cd scripts
-sudo ./install-aica-docker.sh
+./install-aica-docker.sh
 ```
 
 To remove the `aica-docker` symbolic link and command,
@@ -49,7 +49,7 @@ simply run the [uninstall-aica-docker.sh script](scripts/install-aica-docker.sh)
 
 ```shell
 cd scripts
-sudo ./uninstall-aica-docker.sh
+./uninstall-aica-docker.sh
 ```
 
 Note: if the path of this repository is ever changed, the symbolic link will fail to find the scripts.
