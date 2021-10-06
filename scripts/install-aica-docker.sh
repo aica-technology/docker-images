@@ -23,9 +23,9 @@ function source_completion_script () {
   echo "Writing the auto completion option to $1."
   grep -v /src/aica-docker-completion.sh "$1" > tmpfile && mv tmpfile "$1"
   if [[ "$OSTYPE" != "darwin"* ]]; then
-    echo "autoload bashcompinit; bashcompinit; source ${SCRIPT_DIR}/src/aica-docker-completion.sh" >> "$1"
-  else
     echo "source ${SCRIPT_DIR}/src/aica-docker-completion.sh" >> "$1"
+  else
+    echo "autoload bashcompinit; bashcompinit; source ${SCRIPT_DIR}/src/aica-docker-completion.sh" >> "$1"
   fi
 }
 
