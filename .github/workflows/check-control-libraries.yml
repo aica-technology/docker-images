@@ -27,7 +27,7 @@ jobs:
         id: check
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
-          OLD_HASH=$(cat ./control-libraries-hash) || echo '')
+          OLD_HASH=$(cat ./control-libraries-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
             echo "The ros2-control-libraries image is up to date."
             echo "::set-output name=rebuild::false"
