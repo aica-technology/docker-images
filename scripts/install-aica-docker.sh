@@ -20,7 +20,7 @@ function get_shell_rc_path () {
 }
 
 function source_completion_script () {
-  echo "Writing the auto completion option to &1."
+  echo "Writing the auto completion option to $1."
   grep -v /src/aica-docker-completion.sh "$1" > tmpfile && mv tmpfile "$1"
   if [[ "$OSTYPE" != "darwin"* ]]; then
     echo "autoload bashcompinit; bashcompinit; source ${SCRIPT_DIR}/src/aica-docker-completion.sh" >> "$1"
@@ -47,7 +47,7 @@ sudo ln -s "${SCRIPT_DIR}/aica-docker.sh" ${SYMLINK}
 SHELL_RC_PATH=$(get_shell_rc_path)
 while true; do
   read -r -p "Do you with to install auto completion for aica-docker to '${SHELL_RC_PATH}'? [yes|no]
-[yes] >>>" yn
+>>>" yn
   case $yn in
     "" | yes) source_completion_script "${SHELL_RC_PATH}"; break;;
     no) exit;;
