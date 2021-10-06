@@ -21,7 +21,7 @@ function get_shell_rc_path () {
 
 SYMLINK=/usr/local/bin/aica-docker
 echo "Removing symbolic link ${SYMLINK}"
-rm -f "${SYMLINK}"
+sudo rm -f "${SYMLINK}"
 
 SHELL_RC_PATH=$(get_shell_rc_path)
 if grep -Rq "/src/aica-docker-completion.sh" "${SHELL_RC_PATH}"; then
