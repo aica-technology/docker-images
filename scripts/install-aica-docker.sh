@@ -46,7 +46,7 @@ sudo ln -s "${SCRIPT_DIR}/aica-docker.sh" ${SYMLINK}
 
 SHELL_RC_PATH=$(get_shell_rc_path)
 while true; do
-  read -r -p "Do you with to install auto completion for aica-docker to '${SHELL_RC_PATH}'? [yes|no]
+  read -r -p "Do you with to install auto completion for aica-docker to '${SHELL_RC_PATH}'? [YES|no]
 >>>" yn
   case $yn in
     "" | yes) source_completion_script "${SHELL_RC_PATH}"; break;;
