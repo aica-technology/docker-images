@@ -92,5 +92,4 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           image: ros2-modulo-control:foxy
-          modulo_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
