@@ -7,7 +7,7 @@ WORKDIR /tmp
 RUN git clone -b ${MODULO_BRANCH} --single-branch https://github.com/epfl-lasa/modulo.git
 
 # copy sources and build ROS workspace with user permissions
-RUN cp /tmp/modulo/source ${HOME}/ros2_ws/src
+RUN cp -r /tmp/modulo/source/ ${HOME}/ros2_ws/src
 
 WORKDIR ${HOME}/ros2_ws
 RUN su ${USER} -c /bin/bash -c "source /opt/ros/${ROS_VERSION}/setup.bash; colcon build"
