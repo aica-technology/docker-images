@@ -64,3 +64,33 @@ jobs:
           image: ros2-control-libraries:foxy
           cl_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
+
+  build-publish-foxy-modulo:
+    needs: build-publish-foxy-control-libraries
+    runs-on: ubuntu-latest
+    name: Build and publish ROS2 foxy workspace image with modulo installed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push
+        uses: ./.github/actions/build-push
+        with:
+          image: ros2-modulo:foxy
+          modulo_branch: develop
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+  build-publish-foxy-modulo-control:
+    needs: build-publish-foxy-modulo
+    runs-on: ubuntu-latest
+    name: Build and publish ROS2 foxy workspace image with modulo and ros2 control installed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push
+        uses: ./.github/actions/build-push
+        with:
+          image: ros2-modulo-control:foxy
+          modulo_branch: develop
+          secret: ${{ secrets.GITHUB_TOKEN }}
