@@ -4,7 +4,7 @@ FROM ${BASE_IMAGE}:${ROS_VERSION}
 
 ARG MODULO_BRANCH=main
 WORKDIR /tmp
-RUN git clone -b ${CL_BRANCH} --single-branch https://github.com/epfl-lasa/modulo.git
+RUN git clone -b ${MODULO_BRANCH} --single-branch https://github.com/epfl-lasa/modulo.git
 
 # copy sources and build ROS workspace with user permissions
 RUN cp /tmp/modulo/source ${HOME}/ros2_ws/src

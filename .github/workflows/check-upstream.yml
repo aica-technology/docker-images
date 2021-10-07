@@ -70,10 +70,12 @@ jobs:
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   rebuild-modulo-images:
-    needs: check-hash
+    needs: [check-hash, rebuild-cl-image]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo and ros2-modulo-control images
-    if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+    if: |
+      ${{ needs.check-hash.outputs.cl_rebuild == 'true' }} ||
+      ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
