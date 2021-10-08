@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Check latest hash on control libraries
     outputs:
-      cl_id: ${{ steps.check.outputs.cl_id }}
-      cl_rebuild: ${{ steps.check.outputs.cl_rebuild }}
-      modulo_id: ${{ steps.check.outputs.modulo_id }}
-      modulo_rebuild: ${{ steps.check.outputs.modulo_rebuild }}
+      cl_id: ${{ steps.check_cl.outputs.id }}
+      cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
+      modulo_id: ${{ steps.check_modulo.outputs.id }}
+      modulo_rebuild: ${{ steps.check_modulo.outputs.rebuild }}
     steps:
       - name: Checkout CI branch
         uses: actions/checkout@v2
@@ -26,31 +26,31 @@ jobs:
           ref: ${{ env.CI_BRANCH }}
 
       - name: Check lastest hash on control libraries develop branch
-        id: check
+        id: check_cl
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
           OLD_HASH=$(cat ./control-libraries-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
             echo "The ros2-control-libraries image is up to date."
-            echo "::set-output name=cl_rebuild::false"
+            echo "::set-output name=rebuild::false"
           else
             echo "Control libraries have new commits, rebuilding image now..."
-            echo "::set-output name=cl_rebuild::true"
-            echo "::set-output name=cl_id::${NEW_HASH}"
+            echo "::set-output name=rebuild::true"
+            echo "::set-output name=id::${NEW_HASH}"
           fi
 
       - name: Check lastest hash on modulo develop branch
-        id: check
+        id: check_modulo
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
           OLD_HASH=$(cat ./modulo-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
             echo "The ros2-modulo image is up to date."
-            echo "::set-output name=modulo_rebuild::false"
+            echo "::set-output name=rebuild::false"
           else
             echo "Modulo has new commits, rebuilding image now..."
-            echo "::set-output name=modulo_rebuild::true"
-            echo "::set-output name=modulo_id::${NEW_HASH}"
+            echo "::set-output name=rebuild::true"
+            echo "::set-output name=id::${NEW_HASH}"
           fi
 
   rebuild-cl-image:
