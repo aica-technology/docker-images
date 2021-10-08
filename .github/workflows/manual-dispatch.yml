@@ -11,6 +11,10 @@ on:
         description: 'If set, the desired branch of control libraries for the combined image'
         required: false
         default: 'develop'
+      modulo_branch:
+        description: 'If set, the desired branch of modulo for the combined image'
+        required: false
+        default: 'develop'
 
 jobs:
   build-publish:
@@ -25,4 +29,5 @@ jobs:
         with:
           image: ${{ github.event.inputs.image }}
           cl_branch: ${{ github.event.inputs.cl_branch }}
+          modulo_branch: ${{ github.event.inputs.modulo_branch }}
           secret: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,114 @@
+name: Check for updated upstream libraries
+
+# Run scheduled workflow
+on:
+  schedule:
+   - cron: '20 3,13 * * MON-FRI'
+  workflow_dispatch:
+
+env:
+  CI_BRANCH: 'ci'
+
+jobs:
+
+  check-hash:
+    runs-on: ubuntu-latest
+    name: Check latest hash on control libraries
+    outputs:
+      cl_id: ${{ steps.check_cl.outputs.id }}
+      cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
+      modulo_id: ${{ steps.check_modulo.outputs.id }}
+      modulo_rebuild: ${{ steps.check_modulo.outputs.rebuild }}
+    steps:
+      - name: Checkout CI branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.CI_BRANCH }}
+
+      - name: Check lastest hash on control libraries develop branch
+        id: check_cl
+        run: |
+          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
+          OLD_HASH=$(cat ./control-libraries-hash || echo '')
+          if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
+            echo "The ros2-control-libraries image is up to date."
+            echo "::set-output name=rebuild::false"
+          else
+            echo "Control libraries have new commits, rebuilding image now..."
+            echo "::set-output name=rebuild::true"
+            echo "::set-output name=id::${NEW_HASH}"
+          fi
+
+      - name: Check lastest hash on modulo develop branch
+        id: check_modulo
+        run: |
+          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
+          OLD_HASH=$(cat ./modulo-hash || echo '')
+          if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
+            echo "The ros2-modulo image is up to date."
+            echo "::set-output name=rebuild::false"
+          else
+            echo "Modulo has new commits, rebuilding image now..."
+            echo "::set-output name=rebuild::true"
+            echo "::set-output name=id::${NEW_HASH}"
+          fi
+
+  rebuild-cl-image:
+    needs: check-hash
+    runs-on: ubuntu-latest
+    name: Rebuild ros2-control-libraries image
+    if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build new ros2-control-libraries image
+        uses: ./.github/actions/build-push
+        with:
+          image: ros2-control-libraries:foxy
+          cl_branch: develop
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+  rebuild-modulo-images:
+    needs: [check-hash, rebuild-cl-image]
+    runs-on: ubuntu-latest
+    name: Rebuild ros2-modulo and ros2-modulo-control images
+    if: |
+      ${{ needs.check-hash.outputs.cl_rebuild == 'true' }} ||
+      ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build new ros2-modulo image
+        uses: ./.github/actions/build-push
+        with:
+          image: ros2-modulo:foxy
+          modulo_branch: develop
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build new ros2-modulo-control image
+        uses: ./.github/actions/build-push
+        with:
+          image: ros2-modulo-control:foxy
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+  write-hash:
+    needs: [check-hash, rebuild-cl-image, rebuild-modulo-images]
+    runs-on: ubuntu-latest
+    name: Write new hashes to file
+    steps:
+      - name: Checkout CI branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.CI_BRANCH }}
+
+      - name: Write new hash to file and push to 'ci' branch
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch && git checkout main && git pull && git checkout ci && git rebase
+          echo ${{ needs.check-hash.outputs.cl_id }} > ./control-libraries-hash
+          echo ${{ needs.check-hash.outputs.modulo_id }} > ./modulo-hash
+          git add ./control-libraries-hash ./modulo-hash
+          git commit -m "Update upstream hashes" && git push
