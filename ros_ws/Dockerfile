@@ -63,17 +63,17 @@ RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin_make"
 USER root
 
 # create the credentials to be able to pull private repos using ssh
-RUN mkdir /root/.ssh/ && ssh-keyscan github.com | sudo tee -a /root/.ssh/known_hosts
+RUN mkdir /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
 
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
 source /home/${USER}/ros_ws/devel/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
-RUN echo "session required pam_limits.so" | sudo tee --append /etc/pam.d/common-session > /dev/null
+RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
 WORKDIR ${HOME}/ros_ws
 
 # Clean image
-RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # start as the user on default login unless the CMD is overridden.
 CMD su --login ${USER}
