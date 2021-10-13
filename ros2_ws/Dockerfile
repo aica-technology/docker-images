@@ -63,6 +63,9 @@ RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symli
 # set up environment
 USER root
 
+# create the credentials to be able to pull private repos using ssh
+RUN mkdir /root/.ssh/ && ssh-keyscan github.com | sudo tee -a /root/.ssh/known_hosts
+
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
 source /home/${USER}/ros2_ws/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
