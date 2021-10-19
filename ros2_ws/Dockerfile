@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
   autoconf \
   automake \
   curl \
+  featherpad \
   gdb \
   git \
   iputils-ping \
