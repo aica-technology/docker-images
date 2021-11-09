@@ -29,8 +29,8 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ "${LOCAL_BASE_IMAGE}" ]; then
-  BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology:ros-ws)
+if [ "${LOCAL_BASE_IMAGE}" == 1 ]; then
+  BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros-ws)
 else
   docker pull "${BASE_IMAGE}:${ROS_VERSION}"
 fi
