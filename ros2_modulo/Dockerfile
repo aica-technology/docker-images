@@ -4,12 +4,12 @@ FROM ${BASE_IMAGE}:${ROS_VERSION}
 
 ARG MODULO_BRANCH=main
 WORKDIR /tmp
-RUN git clone -b ${MODULO_BRANCH} --single-branch https://github.com/epfl-lasa/modulo.git
+RUN git clone -b ${MODULO_BRANCH} --depth 1 https://github.com/epfl-lasa/modulo.git
 
 # copy sources and build ROS workspace with user permissions
-RUN cp -r /tmp/modulo/source/ ${HOME}/ros2_ws/src
+RUN cp -r /tmp/modulo/source/ ${ROS2_WORKSPACE}/src
 
-WORKDIR ${HOME}/ros2_ws
-RUN su ${USER} -c /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
+WORKDIR ${ROS2_WORKSPACE}
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 
 RUN rm -rf /tmp/*
