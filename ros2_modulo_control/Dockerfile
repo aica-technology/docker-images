@@ -1,4 +1,5 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
+ARG ROS_VERSION=foxy
 
 FROM ${BASE_IMAGE}:foxy as ros2-control-version-foxy
 USER ${USER}

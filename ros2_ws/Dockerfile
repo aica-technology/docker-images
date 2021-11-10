@@ -76,4 +76,4 @@ USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
 
 # Clean image
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
