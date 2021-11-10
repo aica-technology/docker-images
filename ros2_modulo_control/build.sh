@@ -33,4 +33,4 @@ fi
 BUILD_FLAGS+=(--build-arg ROS_VERSION="${ROS_VERSION}")
 BUILD_FLAGS+=(-t "${IMAGE_NAME}:${ROS_VERSION}")
 
-DOCKER_BUILDKIT=0 docker build "${BUILD_FLAGS[@]}" .
+DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .
