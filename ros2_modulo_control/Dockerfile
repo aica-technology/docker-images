@@ -42,6 +42,6 @@ ros-galactic-ros2-controllers "
 #  && sudo rm -rf /var/lib/apt/lists/*
 
 ARG ROS_VERSION=foxy
-FROM ros2-control-version-foxy AS final
+FROM ros2-control-version-${ROS_VERSION} AS final
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
