@@ -1,11 +1,7 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
-ARG ROS_VERSION=foxy
-FROM ${BASE_IMAGE}:${ROS_VERSION} as base
+
+FROM ${BASE_IMAGE}:foxy as ros2-control-version-foxy
 USER ${USER}
-ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
-
-
-FROM base as ros2-control-version-foxy
 
 RUN sudo apt-get update && sudo apt-get install -y \
   ros-${ROS_DISTRO}-ros2-control \
@@ -14,9 +10,11 @@ RUN sudo apt-get update && sudo apt-get install -y \
   && sudo rm -rf /var/lib/apt/lists/*
 
 
-FROM base as ros2-control-version-galactic
+FROM ${BASE_IMAGE}:galactic as ros2-control-version-galactic
+USER ${USER}
 ARG ROS2_CONTROL_TAG=1.0.0
-WORKDIR ${ROS2_WORKSPACE}/src
+
+WORKDIR /home/${USER}/ros2_ws/src
 RUN git clone -b ${ROS2_CONTROL_TAG} --depth 1 https://github.com/ros-controls/ros2_control.git
 RUN git clone -b ${ROS2_CONTROL_TAG} --depth 1 https://github.com/ros-controls/ros2_controllers.git
 
@@ -28,20 +26,9 @@ RUN git clone -b galactic --depth 1 https://github.com/ros2/rcl_interfaces.git
 RUN git clone -b galactic --depth 1 https://github.com/ros2/test_interface_files.git
 RUN git clone -b ros2 --depth 1 https://github.com/ros/angles.git
 
-ENV ROSDEP_SKIP_KEYS="\
-ros2_control \
-ros-galactic-controller-interface \
-ros-galactic-controller-manager \
-ros-galactic-hardware-interface \
-ros-galactic-ros2-controllers "
-
-
-#WORKDIR ${ROS2_WORKSPACE}
-#RUN rosdep update \
-#  && rosdep install --from-paths src/rcl_interfaces --ignore-src -r -y \
-#  && sudo rm -rf /var/lib/apt/lists/*
 
 ARG ROS_VERSION=foxy
 FROM ros2-control-version-${ROS_VERSION} AS final
+ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
