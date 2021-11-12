@@ -18,7 +18,7 @@ RUN sudo ./control-libraries/source/install.sh -y
 RUN sudo ./control-libraries/protocol/install.sh -y
 # install python bindings
 RUN sudo pip3 install ./control-libraries/python
-RUN rm -rf ./control-libraries
+RUN sudo rm -rf ./control-libraries
 
 RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
