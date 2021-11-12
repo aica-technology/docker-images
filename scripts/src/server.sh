@@ -52,7 +52,7 @@ Options:
     >>> https://docs.docker.com/config/containers/resource_constraints/
 
   --ros-domain-id <id>     Set the ROS_DOMAIN_ID environment variable
-                           to avoid conflicts when doing network discovery
+                           to avoid conflicts when doing network discovery.
 
   -h, --help               Show this help message.
 
