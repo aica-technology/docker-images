@@ -4,14 +4,17 @@
 
 ## Images
 
-### ROS workspace
+### ROS workspace (noetic)
 
-The ros_ws image provides a ROS workspace.
-Build it by running the [build script](ros_ws/build.sh) while
-in the [ros_ws](ros_ws) directory. Modify the ROS distribution in
-the script as desired.
+The ros_ws image provides a ROS workspace (noetic). Build it by running the 
+[build script](ros_ws/build.sh) while in the [ros_ws](ros_ws) directory.
 
 The username that should be supplied at login is `ros`.
+
+### ROS workspace with pre-installed control libraries
+
+The ros_control_libraries image provides the same ROS workspace as ros_ws but
+comes with the pre-installed [control libraries](https://github.com/epfl-lasa/control-libraries).
 
 ### ROS2 workspace
 
@@ -21,6 +24,22 @@ in the [ros2_ws](ros2_ws) directory. Modify the ROS2 distribution
 in the script as desired.
 
 The username that should be supplied at login is `ros2`.
+
+### ROS2 workspace with pre-installed control libraries
+
+The ros2_control_libraries image provides the same ROS2 workspace as ros2_ws but
+comes with the pre-installed [control libraries](https://github.com/epfl-lasa/control-libraries).
+
+### ROS2 workspace with pre-installed control libraries and modulo
+
+The ros2_modulo image provides a ROS2 workspace with [modulo](https://github.com/epfl-lasa/modulo)
+already built and comes with pre-installed [control libraries](https://github.com/epfl-lasa/control-libraries).
+
+### ROS2 workspace with pre-installed control libraries, modulo, and ROS2 control
+
+The ros2_modulo_control image provides a ROS2 workspace with [modulo](https://github.com/epfl-lasa/modulo)
+already built and comes with pre-installed [control libraries](https://github.com/epfl-lasa/control-libraries)
+and ROS2 control packages.
 
 ## Scripts
 
