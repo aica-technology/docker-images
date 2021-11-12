@@ -5,6 +5,7 @@ SSH_KEY_FILE="$HOME/.ssh/id_rsa.pub"
 IMAGE_NAME=""
 USERNAME=root
 GPUS=""
+ROS_DOMAIN_ID=14
 
 HELP_MESSAGE="
 Usage: aica-docker server <image> [-p <port>] [-k <file>] [-n <name>] [-u <user>]
@@ -50,6 +51,9 @@ Options:
                            For the list of gpu_options parameters see:
     >>> https://docs.docker.com/config/containers/resource_constraints/
 
+  --ros-domain-id <id>     Set the ROS_DOMAIN_ID environment variable
+                           to avoid conflicts when doing network discovery.
+
   -h, --help               Show this help message.
 
 Any additional arguments passed to this script are forwarded to
@@ -90,6 +94,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   --gpus)
     GPUS=$2
+    shift 2
+    ;;
+  --ros-domain-id)
+    ROS_DOMAIN_ID=$2
     shift 2
     ;;
   -h | --help)
@@ -144,6 +152,10 @@ if [ -n "${GPUS}" ]; then
   RUN_FLAGS+=(--env DISPLAY="${DISPLAY}")
   RUN_FLAGS+=(--env NVIDIA_VISIBLE_DEVICES="${NVIDIA_VISIBLE_DEVICES:-all}")
   RUN_FLAGS+=(--env NVIDIA_DRIVER_CAPABILITIES="${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics")
+fi
+
+if [ -n "${ROS_DOMAIN_ID}" ]; then
+  RUN_FLAGS+=(--env ROS_DOMAIN_ID="${ROS_DOMAIN_ID}")
 fi
 
 docker container stop "$CONTAINER_NAME" >/dev/null 2>&1

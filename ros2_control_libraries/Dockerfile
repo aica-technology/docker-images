@@ -10,7 +10,7 @@ RUN sudo ldconfig
 
 ARG CL_BRANCH=main
 WORKDIR ${HOME}
-RUN git clone -b ${CL_BRANCH} --single-branch https://github.com/epfl-lasa/control-libraries.git
+RUN git clone -b ${CL_BRANCH} --depth 1 https://github.com/epfl-lasa/control-libraries.git
 
 # install source
 RUN sudo ./control-libraries/source/install.sh -y
