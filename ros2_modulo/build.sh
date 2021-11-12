@@ -30,7 +30,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 if [ "${LOCAL_BASE_IMAGE}" = true ]; then
-  BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology:ros2-control-libraries)
+  BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-control-libraries)
 else
   docker pull "${BASE_IMAGE}:${ROS_VERSION}"
 fi
