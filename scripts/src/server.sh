@@ -5,7 +5,7 @@ SSH_KEY_FILE="$HOME/.ssh/id_rsa.pub"
 IMAGE_NAME=""
 USERNAME=root
 GPUS=""
-ROS_DOMAIN_ID=""
+ROS_DOMAIN_ID=14
 
 HELP_MESSAGE="
 Usage: aica-docker server <image> [-p <port>] [-k <file>] [-n <name>] [-u <user>]
