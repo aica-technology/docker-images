@@ -1,4 +1,4 @@
-ARG ROS_VERSION=foxy
+ARG ROS_VERSION=galactic
 FROM ros:${ROS_VERSION} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 

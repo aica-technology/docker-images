@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
-ARG ROS_VERSION=foxy
+ARG ROS_VERSION=galactic
 
 FROM ${BASE_IMAGE}:foxy as ros2-control-version-foxy
 USER ${USER}
@@ -28,7 +28,7 @@ RUN git clone -b galactic --depth 1 https://github.com/ros2/test_interface_files
 RUN git clone -b ros2 --depth 1 https://github.com/ros/angles.git
 
 
-ARG ROS_VERSION=foxy
+ARG ROS_VERSION=galactic
 FROM ros2-control-version-${ROS_VERSION} AS final
 ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
 WORKDIR ${ROS2_WORKSPACE}

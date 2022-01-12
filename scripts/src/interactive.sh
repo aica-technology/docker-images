@@ -21,8 +21,8 @@ Options:
                            the image name, replacing all
                            '/' and ':' with '-' and appending
                            '-runtime'. For example, the image
-                           aica-technology/ros2-ws:foxy would yield
-                           aica-technology-ros2-ws-foxy-runtime
+                           aica-technology/ros2-ws:galactic would yield
+                           aica-technology-ros2-ws-galactic-runtime
 
   -u, --user <user>        Specify the name of the login user.
                            (optional)
