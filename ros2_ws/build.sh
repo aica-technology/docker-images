@@ -1,5 +1,5 @@
 #!/bin/bash
-ROS_VERSION=foxy
+ROS_VERSION=galactic
 docker pull "ros:${ROS_VERSION}"
 
 IMAGE_NAME=aica-technology/ros2-ws:"${ROS_VERSION}"

@@ -4,7 +4,7 @@ IMAGE_NAME=aica-technology/ros2-modulo-control
 
 LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
-ROS_VERSION=foxy
+ROS_VERSION=galactic
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do

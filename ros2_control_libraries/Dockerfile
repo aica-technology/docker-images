@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
-ARG ROS_VERSION=foxy
+ARG ROS_VERSION=galactic
 FROM ${BASE_IMAGE}:${ROS_VERSION}
 
 # install google dependencies

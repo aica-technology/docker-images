@@ -4,7 +4,7 @@ IMAGE_NAME=aica-technology/ros2-control-libraries
 
 LOCAL_BASE_IMAGE=0
 BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
-ROS_VERSION=foxy
+ROS_VERSION=galactic
 CL_BRANCH=develop
 
 BUILD_FLAGS=()
