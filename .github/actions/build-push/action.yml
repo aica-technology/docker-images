@@ -4,7 +4,7 @@ inputs:
   image:
     description: 'The desired image'
     required: false
-    default: 'ros2-ws:foxy'
+    default: 'ros2-ws:galactic'
   cl_branch:
     description: 'The branch of control libraries'
     required: false

@@ -62,13 +62,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Build new ros2-control-libraries foxy image
-        uses: ./.github/actions/build-push
-        with:
-          image: ros2-control-libraries:foxy
-          cl_branch: develop
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build new ros2-control-libraries galactic image
         uses: ./.github/actions/build-push
         with:
@@ -87,24 +80,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Build new ros2-modulo foxy image
-        uses: ./.github/actions/build-push
-        with:
-          image: ros2-modulo:foxy
-          modulo_branch: develop
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build new ros2-modulo galactic image
         uses: ./.github/actions/build-push
         with:
           image: ros2-modulo:galactic
           modulo_branch: develop
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build new ros2-modulo-control foxy image
-        uses: ./.github/actions/build-push
-        with:
-          image: ros2-modulo-control:foxy
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build new ros2-modulo-control galactic image
