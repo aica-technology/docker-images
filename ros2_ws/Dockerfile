@@ -52,11 +52,11 @@ ARG PYTHON_VER=3.10.2
 WORKDIR /tmp
 
 RUN wget https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tar.xz
-RUN sudo tar -xf Python-${PYTHON_VER}.tar.xz
+RUN tar -xf Python-${PYTHON_VER}.tar.xz
 WORKDIR Python-${PYTHON_VER}
-RUN sudo ./configure --enable-optimizations --with-ensurepip=install \
-  && sudo make -j8 \
-  && sudo make install
+RUN ./configure --enable-optimizations --with-ensurepip=install \
+  && make -j8 \
+  && make install
 
 RUN python3 -m pip install catkin_pkg
 
