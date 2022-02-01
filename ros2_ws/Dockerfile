@@ -54,7 +54,7 @@ WORKDIR /tmp
 RUN wget https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tar.xz
 RUN tar -xf Python-${PYTHON_VER}.tar.xz
 WORKDIR Python-${PYTHON_VER}
-RUN ./configure --enable-optimizations --with-ensurepip=install \
+RUN ./configure --enable-optimizations --with-ensurepip=install --enable-shared \
   && make -j8 \
   && make install
 RUN ldconfig
