@@ -58,6 +58,8 @@ RUN sudo ./configure --enable-optimizations --with-ensurepip=install \
   && sudo make -j8 \
   && sudo make install
 
+RUN python3 -m pip install catkin_pkg
+
 
 FROM python3-install as base-workspace
 ENV USER ros2
