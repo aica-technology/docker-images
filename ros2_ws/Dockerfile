@@ -48,7 +48,7 @@ RUN ( \
 
 
 FROM base-dependencies as python3-install
-ARG PYTHON_VER=3.10.2
+ARG PYTHON_VER=3.9.10
 WORKDIR /tmp
 
 RUN wget https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tar.xz
