@@ -59,6 +59,7 @@ RUN ./configure --enable-optimizations --with-ensurepip=install \
   && make install
 RUN ldconfig
 
+ENV PIP_NO_CACHE_DIR=1
 RUN python3 -m pip install --upgrade pip catkin_pkg empy numpy lark
 
 
