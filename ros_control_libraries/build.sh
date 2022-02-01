@@ -2,7 +2,7 @@
 
 IMAGE_NAME=aica-technology/ros-control-libraries
 
-LOCAL_BASE_IMAGE=0
+LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros-ws
 ROS_VERSION=noetic
 CL_BRANCH=develop
@@ -11,7 +11,7 @@ BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
   --local-base)
-    LOCAL_BASE_IMAGE=1
+    LOCAL_BASE_IMAGE=true
     shift 1
     ;;
   --ros-version)
@@ -29,7 +29,7 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ "${LOCAL_BASE_IMAGE}" == 1 ]; then
+if [ "${LOCAL_BASE_IMAGE}" == true ]; then
   BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros-ws)
 else
   docker pull "${BASE_IMAGE}:${ROS_VERSION}"
