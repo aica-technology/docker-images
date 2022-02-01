@@ -57,8 +57,9 @@ WORKDIR Python-${PYTHON_VER}
 RUN ./configure --enable-optimizations --with-ensurepip=install \
   && make -j8 \
   && make install
+RUN ldconfig
 
-RUN python3 -m pip install catkin_pkg
+RUN python3 -m pip install --upgrade pip catkin_pkg empy numpy lark
 
 
 FROM python3-install as base-workspace
