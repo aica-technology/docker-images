@@ -5,35 +5,23 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
   autoconf \
   automake \
-  build-essential \
   curl \
   featherpad \
   gdb \
   git \
   iputils-ping \
   libboost-all-dev \
-  libbz2-dev \
-  libncurses5-dev \
-  libncursesw5-dev \
-  libreadline-dev \
-  libsqlite3-dev \
-  libssl-dev \
   libtool \
-  llvm \
-  make \
   mesa-utils \
   nano \
+  python3-pip \
   ros-${ROS_DISTRO}-xacro \
   ros-${ROS_DISTRO}-robot-state-publisher \
   ros-${ROS_DISTRO}-rviz2 \
   rsync \
   software-properties-common \
   ssh \
-  tk-dev \
   unzip \
-  wget \
-  xz-utils \
-  zlib1g-dev \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
@@ -47,19 +35,7 @@ RUN ( \
   && mkdir /run/sshd
 
 
-FROM base-dependencies as python3-install
-ARG PYTHON_VER=3.10.2
-WORKDIR /tmp
-
-RUN wget https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tar.xz
-RUN sudo tar -xf Python-${PYTHON_VER}.tar.xz
-WORKDIR Python-${PYTHON_VER}
-RUN sudo ./configure --enable-optimizations --with-ensurepip=install \
-  && sudo make -j8 \
-  && sudo make install
-
-
-FROM python3-install as base-workspace
+FROM base-dependencies as base-workspace
 ENV USER ros2
 ENV HOME /home/${USER}
 ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
@@ -100,4 +76,4 @@ USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
 
 # Clean image
-RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/* && sudo rm -rf /tmp/*
+RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
