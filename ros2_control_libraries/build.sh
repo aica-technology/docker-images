@@ -2,7 +2,7 @@
 
 IMAGE_NAME=aica-technology/ros2-control-libraries
 
-LOCAL_BASE_IMAGE=0
+LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 ROS_VERSION=galactic
 CL_BRANCH=develop
@@ -11,7 +11,7 @@ BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
   --local-base)
-    LOCAL_BASE_IMAGE=1
+    LOCAL_BASE_IMAGE=true
     shift 1
     ;;
   --ros-version)
