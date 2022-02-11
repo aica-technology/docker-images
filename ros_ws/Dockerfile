@@ -25,6 +25,13 @@ RUN apt-get update && apt-get install -y \
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
+# disable suggested and recommended install
+RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
+  | sudo tee /etc/apt/apt.conf.d/999norecommend
+
+# disable pip caching
+ENV PIP_NO_CACHE_DIR=1
+
 # Configure sshd server settings
 RUN ( \
     echo 'LogLevel DEBUG2'; \
