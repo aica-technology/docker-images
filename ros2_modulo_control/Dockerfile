@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
-ARG ROS_VERSION=galactic
+ARG BASE_TAG=galactic
 
 FROM ${BASE_IMAGE}:foxy as ros2-control-version-foxy
 USER ${USER}
@@ -28,8 +28,14 @@ RUN git clone -b galactic --depth 1 https://github.com/ros2/test_interface_files
 RUN git clone -b ros2 --depth 1 https://github.com/ros/angles.git
 
 
-ARG ROS_VERSION=galactic
-FROM ros2-control-version-${ROS_VERSION} AS final
+FROM ${BASE_IMAGE}:galactic-devel as ros2-control-version-galactic-devel
+USER ${USER}
+WORKDIR /home/${USER}/ros2_ws/src
+COPY --from=ros2-control-version-galactic /home/${USER}/ros2_ws/src /home/${USER}/ros2_ws/src
+
+
+ARG BASE_TAG=galactic
+FROM ros2-control-version-${BASE_TAG} AS final
 ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"

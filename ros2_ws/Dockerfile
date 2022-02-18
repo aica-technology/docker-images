@@ -1,5 +1,5 @@
-ARG ROS_VERSION=galactic
-FROM ros:${ROS_VERSION} as base-dependencies
+ARG BASE_TAG=galactic
+FROM ros:${BASE_TAG} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 
 

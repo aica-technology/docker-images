@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
-ARG ROS_VERSION=galactic
-FROM ${BASE_IMAGE}:${ROS_VERSION}
+ARG BASE_TAG=galactic
+FROM ${BASE_IMAGE}:${BASE_TAG}
 
 # install google dependencies
 COPY --from=ghcr.io/epfl-lasa/control-libraries/proto-dependencies:latest /usr/local/include/google /usr/local/include/google

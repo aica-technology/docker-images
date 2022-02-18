@@ -65,8 +65,10 @@ jobs:
       - name: Build new ros2-control-libraries galactic image
         uses: ./.github/actions/build-push
         with:
-          image: ros2-control-libraries:galactic
+          workspace: ros2-control-libraries
+          ros_version: galactic
           cl_branch: develop
+          output_tag: galactic-devel
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   rebuild-modulo-images:
@@ -83,14 +85,16 @@ jobs:
       - name: Build new ros2-modulo galactic image
         uses: ./.github/actions/build-push
         with:
-          image: ros2-modulo:galactic
+          workspace: ros2-modulo
+          base_tag: galactic-devel
           modulo_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build new ros2-modulo-control galactic image
         uses: ./.github/actions/build-push
         with:
-          image: ros2-modulo-control:galactic
+          workspace: ros2-modulo-control
+          base_tag: galactic-devel
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   write-hash:
