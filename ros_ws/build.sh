@@ -2,7 +2,10 @@
 ROS_VERSION=noetic
 docker pull "ros:${ROS_VERSION}"
 
-IMAGE_NAME=aica-technology/ros-ws:"${ROS_VERSION}"
+BASE_IMAGE=aica-technology/ros-ws
+BASE_TAG="${ROS_VERSION}"
+
+IMAGE_NAME="${BASE_IMAGE}:${BASE_TAG}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
@@ -22,7 +25,7 @@ while getopts 'r' opt; do
 done
 shift "$((OPTIND - 1))"
 
-BUILD_FLAGS+=(--build-arg ROS_VERSION="${ROS_VERSION}")
+BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
 
 if [[ "$OSTYPE" != "darwin"* ]]; then
   USER_ID="$(id -u "${USER}")"

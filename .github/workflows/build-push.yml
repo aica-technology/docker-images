@@ -19,7 +19,25 @@ jobs:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
-          image: ros2-ws:galactic
+          workspace: ros2-ws
+          ros_version: galactic
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+  build-publish-galactic-control-libraries-devel:
+    needs: build-publish-galactic-workspace
+    runs-on: ubuntu-latest
+    name: Build and publish development ROS2 galactic workspace image with control libraries installed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push
+        uses: ./.github/actions/build-push
+        with:
+          workspace: ros2-control-libraries
+          ros_version: galactic
+          cl_branch: develop
+          output_tag: galactic-devel
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-galactic-control-libraries:
@@ -33,8 +51,25 @@ jobs:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
-          image: ros2-control-libraries:galactic
-          cl_branch: develop
+          workspace: ros2-control-libraries
+          ros_version: galactic
+          cl_branch: main
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+  build-publish-galactic-modulo-devel:
+    needs: build-publish-galactic-control-libraries-devel
+    runs-on: ubuntu-latest
+    name: Build and publish development ROS2 galactic workspace image with modulo installed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push
+        uses: ./.github/actions/build-push
+        with:
+          workspace: ros2-modulo
+          base_tag: galactic-devel
+          modulo_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-galactic-modulo:
@@ -48,8 +83,24 @@ jobs:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
-          image: ros2-modulo:galactic
-          modulo_branch: develop
+          workspace: ros2-modulo
+          ros_version: galactic
+          modulo_branch: main
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+  build-publish-galactic-modulo-control-devel:
+    needs: build-publish-galactic-modulo-devel
+    runs-on: ubuntu-latest
+    name: Build and publish ROS2 galactic workspace image with modulo and ros2 control installed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build and Push
+        uses: ./.github/actions/build-push
+        with:
+          workspace: ros2-modulo-control
+          base_tag: galactic-devel
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-galactic-modulo-control:
@@ -63,5 +114,6 @@ jobs:
       - name: Build and Push
         uses: ./.github/actions/build-push
         with:
-          image: ros2-modulo-control:galactic
+          workspace: ros2-modulo-control
+          ros_version: galactic
           secret: ${{ secrets.GITHUB_TOKEN }}

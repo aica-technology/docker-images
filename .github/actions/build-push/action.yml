@@ -1,10 +1,14 @@
 name: 'Build and Push'
 description: 'Build the Docker image and push to GitHub Container Registry'
 inputs:
-  image:
-    description: 'The desired image'
+  workspace:
+    description: 'The desired workspace'
+    required: true
+    default: 'ros2-ws'
+  ros_version:
+    description: 'The ROS distribution to use'
     required: false
-    default: 'ros2-ws:galactic'
+    default: 'galactic'
   cl_branch:
     description: 'The branch of control libraries'
     required: false
@@ -13,6 +17,14 @@ inputs:
     description: 'The branch of modulo'
     required: false
     default: 'main'
+  base_tag:
+    description: 'The tag of the base image to use (if left empty, the tag is the ROS version)'
+    required: false
+    default: ''
+  output_tag:
+    description: 'The tag for the output image (if left empty, the base tag is used)'
+    required: false
+    default: ''
   secret:
     description: 'GitHub Container Registry secret'
     required: true
@@ -20,16 +32,38 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Parse inputs
+      run: |
+        WORKSPACE_IMAGE=${{ inputs.workspace }}
+        WORKSPACE_IMAGE=${WORKSPACE_IMAGE//[_]/-}
+
+        BASE_TAG=${{ inputs.base_tag }}
+        OUTPUT_TAG=${{ inputs.output_tag }}
+        if [ -z ${BASE_TAG} ]; then
+          BASE_TAG=${{ inputs.ros_version }}
+        fi
+        echo "::debug::Using base image tag ${BASE_TAG}"
+        echo "BASE_TAG=${BASE_TAG}" >> $GITHUB_ENV
+
+        if [ -z ${OUTPUT_TAG} ]; then
+          OUTPUT_TAG=${BASE_TAG}
+        fi
+        IMAGE_NAME=${WORKSPACE_IMAGE}:${OUTPUT_TAG}
+        echo "::debug::Generated image name will be ${IMAGE_NAME}"
+        echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+      shell: bash
+
     - name: Build image
       run: |
-        IMAGE_NAME=${{ inputs.image }}
-        ROS_VERSION=${IMAGE_NAME#*:}
-        WORKSPACE=${IMAGE_NAME%:*}
-        WORKSPACE=${WORKSPACE//[-]/_}
-        mkdir -p ${WORKSPACE}/config
-        cp common/sshd_entrypoint.sh ${WORKSPACE}/config/
-        docker build ${WORKSPACE} --file ${WORKSPACE}/Dockerfile \
-          --build-arg ROS_VERSION=${ROS_VERSION} \
+        WORKSPACE_PATH=${{ inputs.workspace}}
+        WORKSPACE_PATH=${WORKSPACE_PATH//[-]/_}
+        BASE_TAG=${{ env.BASE_TAG }}
+        IMAGE_NAME=${{ env.IMAGE_NAME }}
+
+        mkdir -p ${WORKSPACE_PATH}/config
+        cp common/sshd_entrypoint.sh ${WORKSPACE_PATH}/config/
+        docker build ${WORKSPACE_PATH} --file ${WORKSPACE_PATH}/Dockerfile \
+          --build-arg BASE_TAG=${BASE_TAG} \
           --build-arg CL_BRANCH=${{ inputs.cl_branch }} \
           --build-arg MODULO_BRANCH=${{ inputs.modulo_branch }} \
           --tag ${IMAGE_NAME}
@@ -41,7 +75,7 @@ runs:
 
     - name: Push image
       run: |
-        IMAGE_NAME=${{ inputs.image }}
+        IMAGE_NAME=${{ env.IMAGE_NAME }}
         docker tag ${IMAGE_NAME} ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}
         docker push ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}
       shell: bash

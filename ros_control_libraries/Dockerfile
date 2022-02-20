@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros-ws
-ARG ROS_VERSION=noetic
-FROM ${BASE_IMAGE}:${ROS_VERSION}
+ARG BASE_TAG=noetic
+FROM ${BASE_IMAGE}:${BASE_TAG}
 
 # install google dependencies
 COPY --from=ghcr.io/epfl-lasa/control-libraries/proto-dependencies:latest /usr/local/include/google /usr/local/include/google

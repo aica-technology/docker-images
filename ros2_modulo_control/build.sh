@@ -4,7 +4,7 @@ IMAGE_NAME=aica-technology/ros2-modulo-control
 
 LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
-ROS_VERSION=galactic
+BASE_TAG=galactic
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
@@ -13,8 +13,8 @@ while [ "$#" -gt 0 ]; do
     LOCAL_BASE_IMAGE=true
     shift 1
     ;;
-  --ros-version)
-    ROS_VERSION=$2
+  --ros-version | --base-tag)
+    BASE_TAG=$2
     shift 2
     ;;
   *)
@@ -27,10 +27,10 @@ done
 if [ "${LOCAL_BASE_IMAGE}" = true ]; then
   BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-modulo)
 else
-  docker pull "${BASE_IMAGE}:${ROS_VERSION}"
+  docker pull "${BASE_IMAGE}:${BASE_TAG}"
 fi
 
-BUILD_FLAGS+=(--build-arg ROS_VERSION="${ROS_VERSION}")
-BUILD_FLAGS+=(-t "${IMAGE_NAME}:${ROS_VERSION}")
+BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
+BUILD_FLAGS+=(-t "${IMAGE_NAME}:${BASE_TAG}")
 
 DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .

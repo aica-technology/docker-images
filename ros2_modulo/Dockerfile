@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-control-libraries
-ARG ROS_VERSION=galactic
-FROM ${BASE_IMAGE}:${ROS_VERSION}
+ARG BASE_TAG=galactic
+FROM ${BASE_IMAGE}:${BASE_TAG}
 
 ARG MODULO_BRANCH=main
 WORKDIR /tmp
