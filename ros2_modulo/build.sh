@@ -5,6 +5,7 @@ IMAGE_NAME=aica-technology/ros2-modulo
 LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-control-libraries
 BASE_TAG=galactic
+EXPORT_TAG=galactic
 MODULO_BRANCH=develop
 
 BUILD_FLAGS=()
@@ -14,7 +15,7 @@ while [ "$#" -gt 0 ]; do
     LOCAL_BASE_IMAGE=true
     shift 1
     ;;
-  --ros-version | --base-tag)
+  --base-tag)
     BASE_TAG=$2
     shift 2
     ;;
@@ -22,8 +23,20 @@ while [ "$#" -gt 0 ]; do
     MODULO_BRANCH=$2
     shift 2
     ;;
+  --export-tag)
+    EXPORT_TAG=$2
+    shift 2
+    ;;
+  -r | --rebuild)
+    BUILD_FLAGS+=(--no-cache)
+    shift 1
+    ;;
+  -v | --verbose)
+    BUILD_FLAGS+=(--progress=plain)
+    shift 1
+    ;;
   *)
-    echo 'Error in command line parsing' >&2
+    echo "Unknown option: $1" >&2
     exit 1
     ;;
   esac
@@ -37,6 +50,6 @@ fi
 
 BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
 BUILD_FLAGS+=(--build-arg MODULO_BRANCH="${MODULO_BRANCH}")
-BUILD_FLAGS+=(-t "${IMAGE_NAME}:${BASE_TAG}")
+BUILD_FLAGS+=(-t "${IMAGE_NAME}:${EXPORT_TAG}")
 
 DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .
