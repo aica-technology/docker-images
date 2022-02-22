@@ -1,17 +1,7 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
 ARG BASE_TAG=galactic
 
-FROM ${BASE_IMAGE}:foxy as ros2-control-version-foxy
-USER ${USER}
-
-RUN sudo apt-get update && sudo apt-get install -y \
-  ros-${ROS_DISTRO}-ros2-control \
-  ros-${ROS_DISTRO}-ros2-controllers \
-  && sudo ldconfig \
-  && sudo rm -rf /var/lib/apt/lists/*
-
-
-FROM ${BASE_IMAGE}:galactic as ros2-control-version-galactic
+FROM ${BASE_IMAGE}:${BASE_TAG}
 USER ${USER}
 ARG ROS2_CONTROL_TAG=1.0.0
 
@@ -27,15 +17,6 @@ RUN git clone -b galactic --depth 1 https://github.com/ros2/rcl_interfaces.git
 RUN git clone -b galactic --depth 1 https://github.com/ros2/test_interface_files.git
 RUN git clone -b ros2 --depth 1 https://github.com/ros/angles.git
 
-
-FROM ${BASE_IMAGE}:galactic-devel as ros2-control-version-galactic-devel
-USER ${USER}
-WORKDIR /home/${USER}/ros2_ws/src
-COPY --from=ros2-control-version-galactic /home/${USER}/ros2_ws/src /home/${USER}/ros2_ws/src
-
-
-ARG BASE_TAG=galactic
-FROM ros2-control-version-${BASE_TAG} AS final
 ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
