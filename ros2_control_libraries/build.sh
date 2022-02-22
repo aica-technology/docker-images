@@ -5,7 +5,7 @@ IMAGE_NAME=aica-technology/ros2-control-libraries
 LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 BASE_TAG=galactic
-EXPORT_TAG=galactic
+OUTPUT_TAG=galactic
 CL_BRANCH=develop
 
 BUILD_FLAGS=()
@@ -23,8 +23,8 @@ while [ "$#" -gt 0 ]; do
     CL_BRANCH=$2
     shift 2
     ;;
-  --export-tag)
-    EXPORT_TAG=$2
+  --output-tag)
+    OUTPUT_TAG=$2
     shift 2
     ;;
   -r | --rebuild)
@@ -50,6 +50,6 @@ fi
 
 BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
 BUILD_FLAGS+=(--build-arg CL_BRANCH="${CL_BRANCH}")
-BUILD_FLAGS+=(-t "${IMAGE_NAME}:${EXPORT_TAG}")
+BUILD_FLAGS+=(-t "${IMAGE_NAME}:${OUTPUT_TAG}")
 
 DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .
