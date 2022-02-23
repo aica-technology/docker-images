@@ -1,11 +1,7 @@
 #!/bin/bash
+
+IMAGE_NAME=aica-technology/ros-ws
 ROS_VERSION=noetic
-docker pull "ros:${ROS_VERSION}"
-
-BASE_IMAGE=aica-technology/ros-ws
-BASE_TAG="${ROS_VERSION}"
-
-IMAGE_NAME="${BASE_IMAGE}:${BASE_TAG}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
@@ -14,18 +10,29 @@ if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
 fi
 
 BUILD_FLAGS=()
-while getopts 'r' opt; do
-  case $opt in
-  r) BUILD_FLAGS+=(--no-cache) ;;
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+  --ros-version)
+    ROS_VERSION=$2
+    shift 2
+    ;;
+  -r | --rebuild)
+    BUILD_FLAGS+=(--no-cache)
+    shift 1
+    ;;
+  -v | --verbose)
+    BUILD_FLAGS+=(--progress=plain)
+    shift 1
+    ;;
   *)
-    echo 'Error in command line parsing' >&2
+    echo "Unknown option: $1" >&2
     exit 1
     ;;
   esac
 done
-shift "$((OPTIND - 1))"
 
-BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
+docker pull "ros:${ROS_VERSION}"
+BUILD_FLAGS+=(--build-arg ROS_VERSION="${ROS_VERSION}")
 
 if [[ "$OSTYPE" != "darwin"* ]]; then
   USER_ID="$(id -u "${USER}")"
@@ -34,6 +41,6 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
   BUILD_FLAGS+=(--build-arg GID="${GROUP_ID}")
 fi
 
-BUILD_FLAGS+=(-t "${IMAGE_NAME}")
+BUILD_FLAGS+=(-t "${IMAGE_NAME}":"${ROS_VERSION}")
 
 DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .
