@@ -27,6 +27,10 @@ on:
         description: 'The tag for the output image (if left empty, the base tag is used)'
         required: false
         default: ''
+      write_image_hash:
+        description: 'Write image SHA256 hash to file (set to false for temporary or test images)'
+        required: false
+        default: 'true'
 
 jobs:
   build-publish:
@@ -45,4 +49,5 @@ jobs:
           modulo_branch: ${{ github.event.inputs.modulo_branch }}
           base_tag: ${{ github.event.inputs.base_tag }}
           output_tag: ${{ github.event.inputs.output_tag }}
+          write_image_hash: ${{ github.event.inputs.write_image_hash }}
           secret: ${{ secrets.GITHUB_TOKEN }}
