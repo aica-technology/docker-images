@@ -71,10 +71,10 @@ jobs:
           output_tag: galactic-devel
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-  rebuild-modulo-images:
+  rebuild-modulo-image:
     needs: [check-hash, rebuild-cl-image]
     runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo and ros2-modulo-control images
+    name: Rebuild ros2-modulo image
     if: |
       ${{ needs.check-hash.outputs.cl_rebuild == 'true' }} ||
       ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
@@ -82,7 +82,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Build new ros2-modulo galactic image
+      - name: Build new ros2-modulo galactic-devel image
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo
@@ -90,7 +90,18 @@ jobs:
           modulo_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build new ros2-modulo-control galactic image
+  rebuild-modulo-control-image:
+    needs: [ check-hash, rebuild-cl-image, rebuild-modulo-image ]
+    runs-on: ubuntu-latest
+    name: Rebuild ros2-modulo-control image
+    if: |
+      ${{ needs.check-hash.outputs.cl_rebuild == 'true' }} ||
+      ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build new ros2-modulo-control galactic-devel image
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo-control
@@ -98,7 +109,7 @@ jobs:
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   write-hash:
-    needs: [check-hash, rebuild-cl-image, rebuild-modulo-images]
+    needs: [check-hash, rebuild-cl-image, rebuild-modulo-image, rebuild-modulo-control-image]
     runs-on: ubuntu-latest
     name: Write new hashes to file
     steps:
