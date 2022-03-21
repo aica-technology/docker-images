@@ -7,9 +7,26 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  CI_BRANCH: 'ci'
+
 jobs:
 
+  create-new-ci-branch:
+    runs-on: ubuntu-latest
+    name: Create new ci branch from main
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Recreate ci branch
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git checkout -b ${{ env.CI_BRANCH }} && git push -f -u origin ${{ env.CI_BRANCH }}
+
   build-publish-galactic-workspace:
+    needs: create-new-ci-branch
     runs-on: ubuntu-latest
     name: Build and publish ROS2 galactic workspace image
     steps:
