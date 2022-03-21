@@ -98,6 +98,7 @@ jobs:
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write hash to file and push to ci branch
+        if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
         uses: ./.github/actions/write-hash
         with:
           hash: ${{ needs.check-hash.outputs.modulo_id }}
