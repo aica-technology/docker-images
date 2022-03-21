@@ -31,7 +31,7 @@ jobs:
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
           OLD_HASH=$(cat ./control-libraries-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
-            echo "The ros2-control-libraries image is up to date."
+            echo "Control libraries doesn't have new commits."
             echo "::set-output name=rebuild::false"
           else
             echo "Control libraries have new commits, rebuilding image now..."
@@ -45,7 +45,7 @@ jobs:
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
           OLD_HASH=$(cat ./modulo-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
-            echo "The ros2-modulo image is up to date."
+            echo "Modulo doesn't have new commits."
             echo "::set-output name=rebuild::false"
           else
             echo "Modulo has new commits, rebuilding image now..."
