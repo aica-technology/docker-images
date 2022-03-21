@@ -13,7 +13,7 @@ jobs:
 
   check-hash:
     runs-on: ubuntu-latest
-    name: Check latest hash on control libraries
+    name: Check latest hashes on control libraries and modulo
     outputs:
       cl_id: ${{ steps.check_cl.outputs.id }}
       cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
@@ -31,7 +31,7 @@ jobs:
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
           OLD_HASH=$(cat ./control-libraries-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
-            echo "The ros2-control-libraries image is up to date."
+            echo "Control libraries doesn't have new commits."
             echo "::set-output name=rebuild::false"
           else
             echo "Control libraries have new commits, rebuilding image now..."
@@ -45,7 +45,7 @@ jobs:
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
           OLD_HASH=$(cat ./modulo-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
-            echo "The ros2-modulo image is up to date."
+            echo "Modulo doesn't have new commits."
             echo "::set-output name=rebuild::false"
           else
             echo "Modulo has new commits, rebuilding image now..."
@@ -57,12 +57,13 @@ jobs:
     needs: check-hash
     runs-on: ubuntu-latest
     name: Rebuild ros2-control-libraries image
-    if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
     steps:
       - name: Checkout repository
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Build new ros2-control-libraries galactic image
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-control-libraries
@@ -71,13 +72,19 @@ jobs:
           output_tag: galactic-devel
           secret: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Write hash to file and push to ci branch
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ needs.check-hash.outputs.cl_id }}
+          file: './control-libraries-hash'
+          ci_branch: ${{ env.CI_BRANCH }}
+
   rebuild-modulo-image:
     needs: [check-hash, rebuild-cl-image]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo image
-    if: |
-      ${{ needs.check-hash.outputs.cl_rebuild == 'true' }} ||
-      ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -90,13 +97,19 @@ jobs:
           modulo_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Write hash to file and push to ci branch
+        if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ needs.check-hash.outputs.modulo_id }}
+          file: './modulo-hash'
+          ci_branch: ${{ env.CI_BRANCH }}
+
   rebuild-modulo-control-image:
     needs: [ check-hash, rebuild-cl-image, rebuild-modulo-image ]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo-control image
-    if: |
-      ${{ needs.check-hash.outputs.cl_rebuild == 'true' }} ||
-      ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -107,23 +120,3 @@ jobs:
           workspace: ros2-modulo-control
           base_tag: galactic-devel
           secret: ${{ secrets.GITHUB_TOKEN }}
-
-  write-hash:
-    needs: [check-hash, rebuild-cl-image, rebuild-modulo-image, rebuild-modulo-control-image]
-    runs-on: ubuntu-latest
-    name: Write new hashes to file
-    steps:
-      - name: Checkout CI branch
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ env.CI_BRANCH }}
-
-      - name: Write new hash to file and push to 'ci' branch
-        run: |
-          git config user.name github-actions
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git fetch && git checkout main && git pull && git checkout ci && git rebase
-          echo ${{ needs.check-hash.outputs.cl_id }} > ./control-libraries-hash
-          echo ${{ needs.check-hash.outputs.modulo_id }} > ./modulo-hash
-          git add ./control-libraries-hash ./modulo-hash
-          git commit -m "Update upstream hashes" && git push

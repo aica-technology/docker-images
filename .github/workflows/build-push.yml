@@ -7,9 +7,26 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  CI_BRANCH: 'ci'
+
 jobs:
 
+  create-new-ci-branch:
+    runs-on: ubuntu-latest
+    name: Create new ci branch from main
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Recreate ci branch
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git checkout -b ${{ env.CI_BRANCH }} origin/main && git push -f -u origin ${{ env.CI_BRANCH }}
+
   build-publish-galactic-workspace:
+    needs: create-new-ci-branch
     runs-on: ubuntu-latest
     name: Build and publish ROS2 galactic workspace image
     steps:
@@ -39,6 +56,18 @@ jobs:
           cl_branch: develop
           output_tag: galactic-devel
           secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get control libraries hash
+        run: |
+          HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
+          echo "CL_HASH=${HASH}" >> $GITHUB_ENV
+
+      - name: Write hash
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ env.CL_HASH }}
+          file: ./control-libraries-hash
+          ci_branch: ci
 
   build-publish-galactic-control-libraries:
     needs: build-publish-galactic-workspace
@@ -71,6 +100,18 @@ jobs:
           base_tag: galactic-devel
           modulo_branch: develop
           secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get modulo hash
+        run: |
+          HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
+          echo "MODULO_HASH=${HASH}" >> $GITHUB_ENV
+
+      - name: Write hash
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ env.MODULO_HASH }}
+          file: ./modulo-hash
+          ci_branch: ci
 
   build-publish-galactic-modulo:
     needs: build-publish-galactic-control-libraries
