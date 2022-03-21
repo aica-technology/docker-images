@@ -57,12 +57,13 @@ jobs:
     needs: check-hash
     runs-on: ubuntu-latest
     name: Rebuild ros2-control-libraries image
-    if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
     steps:
       - name: Checkout repository
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
         uses: actions/checkout@v2
 
       - name: Build new ros2-control-libraries galactic image
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-control-libraries
@@ -83,9 +84,7 @@ jobs:
     needs: [check-hash, rebuild-cl-image]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo image
-    if: |
-      ${{ needs.check-hash.outputs.cl_rebuild == 'true' }} ||
-      ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -109,9 +108,7 @@ jobs:
     needs: [ check-hash, rebuild-cl-image, rebuild-modulo-image ]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo-control image
-    if: |
-      ${{ needs.check-hash.outputs.cl_rebuild == 'true' }} ||
-      ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
