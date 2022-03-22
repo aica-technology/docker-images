@@ -70,6 +70,7 @@ jobs:
           ros_version: galactic
           cl_branch: develop
           output_tag: galactic-devel
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write hash to file and push to ci branch
@@ -95,6 +96,7 @@ jobs:
           workspace: ros2-modulo
           base_tag: galactic-devel
           modulo_branch: develop
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write hash to file and push to ci branch
@@ -119,4 +121,5 @@ jobs:
         with:
           workspace: ros2-modulo-control
           base_tag: galactic-devel
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}

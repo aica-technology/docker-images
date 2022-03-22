@@ -29,6 +29,10 @@ inputs:
     description: 'Write image SHA256 hash to file'
     required: false
     default: 'true'
+  ci_branch:
+    description: 'The name of the CI branch'
+    required: false
+    default: 'ci'
   secret:
     description: 'GitHub Container Registry secret'
     required: true

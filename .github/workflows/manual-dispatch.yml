@@ -32,6 +32,9 @@ on:
         required: false
         default: 'true'
 
+env:
+  CI_BRANCH: 'ci'
+
 jobs:
   build-publish:
     runs-on: ubuntu-latest
@@ -50,4 +53,5 @@ jobs:
           base_tag: ${{ github.event.inputs.base_tag }}
           output_tag: ${{ github.event.inputs.output_tag }}
           write_image_hash: ${{ github.event.inputs.write_image_hash }}
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
