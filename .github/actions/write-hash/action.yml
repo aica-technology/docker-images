@@ -21,7 +21,7 @@ runs:
       run: |
         git config user.name github-actions
         git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-        git fetch origin ${{ inputs.ci_branch }}:${{ inputs.ci_branch }} && git checkout ${{ inputs.ci_branch }} && git rebase origin/main
+        git fetch origin ${{ inputs.ci_branch }} && git checkout ${{ inputs.ci_branch }} && git rebase origin/main
         echo ${{ inputs.hash }} > ${{ inputs.file }}
         git add ${{ inputs.file }}
         git commit -m "Update hash in ${{ inputs.file }}" && git push -f
