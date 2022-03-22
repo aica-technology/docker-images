@@ -38,6 +38,7 @@ jobs:
         with:
           workspace: ros2-ws
           ros_version: galactic
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-galactic-control-libraries-devel:
@@ -55,6 +56,7 @@ jobs:
           ros_version: galactic
           cl_branch: develop
           output_tag: galactic-devel
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get control libraries hash
@@ -83,6 +85,7 @@ jobs:
           workspace: ros2-control-libraries
           ros_version: galactic
           cl_branch: main
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-galactic-modulo-devel:
@@ -99,6 +102,7 @@ jobs:
           workspace: ros2-modulo
           base_tag: galactic-devel
           modulo_branch: develop
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get modulo hash
@@ -127,6 +131,7 @@ jobs:
           workspace: ros2-modulo
           ros_version: galactic
           modulo_branch: main
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-galactic-modulo-control-devel:
@@ -142,6 +147,7 @@ jobs:
         with:
           workspace: ros2-modulo-control
           base_tag: galactic-devel
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-galactic-modulo-control:
@@ -157,4 +163,5 @@ jobs:
         with:
           workspace: ros2-modulo-control
           ros_version: galactic
+          ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}

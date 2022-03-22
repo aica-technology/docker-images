@@ -25,6 +25,14 @@ inputs:
     description: 'The tag for the output image (if left empty, the base tag is used)'
     required: false
     default: ''
+  write_image_hash:
+    description: 'Write image SHA256 hash to file'
+    required: false
+    default: 'true'
+  ci_branch:
+    description: 'The name of the CI branch'
+    required: false
+    default: 'ci'
   secret:
     description: 'GitHub Container Registry secret'
     required: true
@@ -48,6 +56,7 @@ runs:
         if [ -z ${OUTPUT_TAG} ]; then
           OUTPUT_TAG=${BASE_TAG}
         fi
+        echo "OUTPUT_TAG=${OUTPUT_TAG}" >> $GITHUB_ENV
         IMAGE_NAME=${WORKSPACE_IMAGE}:${OUTPUT_TAG}
         echo "::debug::Generated image name will be ${IMAGE_NAME}"
         echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
@@ -55,8 +64,9 @@ runs:
 
     - name: Build image
       run: |
-        WORKSPACE_PATH=${{ inputs.workspace}}
+        WORKSPACE_PATH=${{ inputs.workspace }}
         WORKSPACE_PATH=${WORKSPACE_PATH//[-]/_}
+        echo "WORKSPACE_PATH=${WORKSPACE_PATH}" >> $GITHUB_ENV
         BASE_TAG=${{ env.BASE_TAG }}
         IMAGE_NAME=${{ env.IMAGE_NAME }}
 
@@ -78,4 +88,16 @@ runs:
         IMAGE_NAME=${{ env.IMAGE_NAME }}
         docker tag ${IMAGE_NAME} ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}
         docker push ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}
+      shell: bash
+
+    - name: Write new image hash to file
+      if: ${{ inputs.write_image_hash == 'true' }}
+      run: |
+        git config user.name github-actions
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+        git fetch origin ${{ inputs.ci_branch }} && git checkout ${{ inputs.ci_branch }} && git rebase origin/main
+        SHA=$(docker images --no-trunc --quiet ${IMAGE_NAME})
+        echo ${SHA} > ./${{ env.WORKSPACE_PATH }}/${{ env.OUTPUT_TAG }}-hash
+        git add ./${{ env.WORKSPACE_PATH }}/${{ env.OUTPUT_TAG }}-hash
+        git commit -m "Update ${{ env.IMAGE_NAME }} image hash" && git push -f
       shell: bash
