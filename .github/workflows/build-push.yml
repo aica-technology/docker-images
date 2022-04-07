@@ -59,16 +59,16 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get control libraries hash
+      - name: Get control libraries develop hash
         run: |
           HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
-          echo "CL_HASH=${HASH}" >> $GITHUB_ENV
+          echo "CL_DEVELOP_HASH=${HASH}" >> $GITHUB_ENV
 
       - name: Write hash
         uses: ./.github/actions/write-hash
         with:
-          hash: ${{ env.CL_HASH }}
-          file: ./control-libraries-hash
+          hash: ${{ env.CL_DEVELOP_HASH }}
+          file: ./control-libraries-develop-hash
           ci_branch: ci
 
   build-publish-galactic-control-libraries:
@@ -88,6 +88,18 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get control libraries main hash
+        run: |
+          HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git main | awk '{ print $1 }')
+          echo "CL_MAIN_HASH=${HASH}" >> $GITHUB_ENV
+
+      - name: Write hash
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ env.CL_MAIN_HASH }}
+          file: ./control-libraries-main-hash
+          ci_branch: ci
+
   build-publish-galactic-modulo-devel:
     needs: build-publish-galactic-control-libraries-devel
     runs-on: ubuntu-latest
@@ -105,16 +117,16 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get modulo hash
+      - name: Get modulo develop hash
         run: |
           HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
-          echo "MODULO_HASH=${HASH}" >> $GITHUB_ENV
+          echo "MODULO_DEVELOP_HASH=${HASH}" >> $GITHUB_ENV
 
       - name: Write hash
         uses: ./.github/actions/write-hash
         with:
-          hash: ${{ env.MODULO_HASH }}
-          file: ./modulo-hash
+          hash: ${{ env.MODULO_DEVELOP_HASH }}
+          file: ./modulo-develop-hash
           ci_branch: ci
 
   build-publish-galactic-modulo:
@@ -133,6 +145,18 @@ jobs:
           modulo_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get modulo main hash
+        run: |
+          HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git main | awk '{ print $1 }')
+          echo "MODULO_MAIN_HASH=${HASH}" >> $GITHUB_ENV
+
+      - name: Write hash
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ env.MODULO_MAIN_HASH }}
+          file: ./modulo-main-hash
+          ci_branch: ci
 
   build-publish-galactic-modulo-control-devel:
     needs: build-publish-galactic-modulo-devel
