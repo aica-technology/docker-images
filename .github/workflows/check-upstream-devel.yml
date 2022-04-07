@@ -1,0 +1,124 @@
+name: Check for updated upstream libraries (develop branches)
+
+# Run scheduled workflow
+on:
+  schedule:
+   - cron: '20 3,13 * * MON-FRI'
+  workflow_dispatch:
+
+env:
+  CI_BRANCH: 'ci'
+
+jobs:
+
+  check-hash:
+    runs-on: ubuntu-latest
+    name: Check latest hashes on control libraries and modulo
+    outputs:
+      cl_id: ${{ steps.check_cl.outputs.id }}
+      cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
+      modulo_id: ${{ steps.check_modulo.outputs.id }}
+      modulo_rebuild: ${{ steps.check_modulo.outputs.rebuild }}
+    steps:
+      - name: Checkout CI branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.CI_BRANCH }}
+
+      - name: Check lastest hash on control libraries develop branch
+        id: check_cl
+        run: |
+          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
+          OLD_HASH=$(cat ./control-libraries-develop-hash || echo '')
+          if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
+            echo "Control libraries doesn't have new commits."
+            echo "::set-output name=rebuild::false"
+          else
+            echo "Control libraries have new commits, rebuilding image now..."
+            echo "::set-output name=rebuild::true"
+            echo "::set-output name=id::${NEW_HASH}"
+          fi
+
+      - name: Check lastest hash on modulo develop branch
+        id: check_modulo
+        run: |
+          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
+          OLD_HASH=$(cat ./modulo-develop-hash || echo '')
+          if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
+            echo "Modulo doesn't have new commits."
+            echo "::set-output name=rebuild::false"
+          else
+            echo "Modulo has new commits, rebuilding image now..."
+            echo "::set-output name=rebuild::true"
+            echo "::set-output name=id::${NEW_HASH}"
+          fi
+
+  rebuild-cl-image:
+    needs: check-hash
+    runs-on: ubuntu-latest
+    name: Rebuild ros2-control-libraries image
+    steps:
+      - name: Checkout repository
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
+        uses: actions/checkout@v2
+
+      - name: Build new ros2-control-libraries galactic image
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
+        uses: ./.github/actions/build-push
+        with:
+          workspace: ros2-control-libraries
+          ros_version: galactic
+          cl_branch: develop
+          output_tag: galactic-devel
+          ci_branch: ${{ env.CI_BRANCH }}
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write hash to file and push to ci branch
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ needs.check-hash.outputs.cl_id }}
+          file: './control-libraries-develop-hash'
+          ci_branch: ${{ env.CI_BRANCH }}
+
+  rebuild-modulo-image:
+    needs: [check-hash, rebuild-cl-image]
+    runs-on: ubuntu-latest
+    name: Rebuild ros2-modulo image
+    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build new ros2-modulo galactic-devel image
+        uses: ./.github/actions/build-push
+        with:
+          workspace: ros2-modulo
+          base_tag: galactic-devel
+          modulo_branch: develop
+          ci_branch: ${{ env.CI_BRANCH }}
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write hash to file and push to ci branch
+        if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ needs.check-hash.outputs.modulo_id }}
+          file: './modulo-develop-hash'
+          ci_branch: ${{ env.CI_BRANCH }}
+
+  rebuild-modulo-control-image:
+    needs: [ check-hash, rebuild-cl-image, rebuild-modulo-image ]
+    runs-on: ubuntu-latest
+    name: Rebuild ros2-modulo-control image
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Build new ros2-modulo-control galactic-devel image
+        uses: ./.github/actions/build-push
+        with:
+          workspace: ros2-modulo-control
+          base_tag: galactic-devel
+          ci_branch: ${{ env.CI_BRANCH }}
+          secret: ${{ secrets.GITHUB_TOKEN }}
