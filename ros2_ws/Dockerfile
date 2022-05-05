@@ -2,7 +2,14 @@ ARG ROS_VERSION=galactic
 FROM ros:${ROS_VERSION} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 
+# disable suggested and recommended install
+RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
+  | sudo tee /etc/apt/apt.conf.d/999norecommend
 
+# disable pip caching
+ENV PIP_NO_CACHE_DIR 1
+
+# install base dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
   autoconf \
   automake \
@@ -28,14 +35,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
-# disable suggested and recommended install
-RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
-  | sudo tee /etc/apt/apt.conf.d/999norecommend
-
-# disable pip caching
-ENV PIP_NO_CACHE_DIR=1
-
-# Configure sshd server settings
+# configure sshd server settings
 RUN ( \
     echo 'LogLevel DEBUG2'; \
     echo 'PubkeyAuthentication yes'; \
@@ -58,13 +58,20 @@ RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
 RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
 
-# Configure sshd entrypoint to authorise the new user for ssh access and
+# configure sshd entrypoint to authorise the new user for ssh access and
 # optionally update UID and GID when invoking the container with the entrypoint script
 COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
 RUN chmod 744 /sshd_entrypoint.sh
 
-# build ROS workspace
+# configure colcon defaults
 USER ${USER}
+WORKDIR ${HOME}
+RUN mkdir -p ${HOME}/.colcon
+COPY --chown=${USER}:${USER} ./config/colcon_defaults.yaml ${HOME}/.colcon/defaults.yaml
+ENV COLCON_HOME ${HOME}/.colcon
+ENV COLCON_DEFAULTS_FILE ${COLCON_HOME}/defaults.yaml
+
+# build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src
 WORKDIR ${ROS2_WORKSPACE}
 RUN rosdep update
