@@ -6,7 +6,7 @@ LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-control-libraries
 BASE_TAG=galactic
 OUTPUT_TAG=galactic
-MODULO_BRANCH=develop
+MODULO_BRANCH=main
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do

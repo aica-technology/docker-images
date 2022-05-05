@@ -6,7 +6,7 @@ LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros-ws
 BASE_TAG=noetic
 OUTPUT_TAG=noetic
-CL_BRANCH=develop
+CL_BRANCH=main
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
