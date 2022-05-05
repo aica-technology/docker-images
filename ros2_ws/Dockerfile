@@ -71,6 +71,10 @@ COPY --chown=${USER}:${USER} ./config/colcon_defaults.yaml ${HOME}/.colcon/defau
 ENV COLCON_HOME ${HOME}/.colcon
 ENV COLCON_DEFAULTS_FILE ${COLCON_HOME}/defaults.yaml
 
+# add colcon build helper script
+COPY --chown=${USER}:${USER} ./config/colcon-build.sh ${HOME}/.colcon/colcon-build.sh
+RUN echo "alias cb='bash ${HOME}/.colcon/colcon-build.sh'" >> ${HOME}/.bash_aliases
+
 # build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src
 WORKDIR ${ROS2_WORKSPACE}
