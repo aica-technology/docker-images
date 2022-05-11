@@ -91,6 +91,9 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
 source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
+# enable colorized output from ros logging
+RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
+
 # start as ROS user
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
