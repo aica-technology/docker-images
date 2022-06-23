@@ -133,11 +133,14 @@ if [ -z "$CONTAINER_NAME" ]; then
 fi
 
 if [[ ! -f "${SSH_KEY_FILE}" ]]; then
+  if [[ "${SSH_KEY_FILE}" != "${DEFAULT_SSH_ED25519}" ]]; then
+    echo "Provided SSH key file ${SSH_KEY_FILE} does not exist."
+    exit 1
+  fi
   if [[ ! -f "${DEFAULT_SSH_RSA}" ]]; then
     echo "SSH not set up! Configure SSH on your system."
     exit 1
   fi
-  echo "Provided SSH key file ${SSH_KEY_FILE} does not exist. Using default ${DEFAULT_SSH_RSA}"
   SSH_KEY_FILE="${DEFAULT_SSH_RSA}"
 fi
 PUBLIC_KEY=$(cat "${SSH_KEY_FILE}")
