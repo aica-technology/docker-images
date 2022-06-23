@@ -137,8 +137,8 @@ if [[ ! -f "${SSH_KEY_FILE}" ]]; then
     echo "SSH not set up! Configure SSH on your system."
     exit 1
   fi
-  echo "Provided SSH key file ${SSH_KEY_FILE} does not exist."
-  exit 1
+  echo "Provided SSH key file ${SSH_KEY_FILE} does not exist. Using default ${DEFAULT_SSH_RSA}"
+  SSH_KEY_FILE="${DEFAULT_SSH_RSA}"
 fi
 PUBLIC_KEY=$(cat "${SSH_KEY_FILE}")
 
