@@ -3,7 +3,7 @@
 SSH_PORT=3333
 DEFAULT_SSH_RSA="$HOME/.ssh/id_rsa.pub"
 DEFAULT_SSH_ED25519="$HOME/.ssh/id_ed25519.pub"
-SSH_KEY_FILE="${DEFAULT_SSH_ED25519}"
+SSH_KEY_FILE="${DEFAULT_SSH_RSA}"
 IMAGE_NAME=""
 USERNAME=root
 GPUS=""
@@ -133,11 +133,11 @@ if [ -z "$CONTAINER_NAME" ]; then
 fi
 
 if [[ ! -f "${SSH_KEY_FILE}" ]]; then
-  if [[ "${SSH_KEY_FILE}" != "${DEFAULT_SSH_ED25519}" ]]; then
+  if [[ "${SSH_KEY_FILE}" != "${DEFAULT_SSH_RSA}" ]]; then
     echo "Provided SSH key file ${SSH_KEY_FILE} does not exist."
     exit 1
   fi
-  if [[ ! -f "${DEFAULT_SSH_RSA}" ]]; then
+  if [[ ! -f "${DEFAULT_SSH_ED25519}" ]]; then
     echo "SSH not set up! Configure SSH on your system."
     exit 1
   fi
