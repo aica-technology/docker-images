@@ -1,7 +1,7 @@
 #!/bin/bash
 
 IMAGE_NAME=aica-technology/ros-ws
-ROS_VERSION=noetic
+BASE_TAG=noetic
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
@@ -12,8 +12,8 @@ fi
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
-  --ros-version)
-    ROS_VERSION=$2
+  --base-tag)
+    BASE_TAG=$2
     shift 2
     ;;
   -r | --rebuild)
@@ -31,8 +31,8 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-docker pull "ros:${ROS_VERSION}"
-BUILD_FLAGS+=(--build-arg ROS_VERSION="${ROS_VERSION}")
+docker pull "ros:${BASE_TAG}"
+BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
 
 if [[ "$OSTYPE" != "darwin"* ]]; then
   USER_ID="$(id -u "${USER}")"
@@ -41,6 +41,6 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
   BUILD_FLAGS+=(--build-arg GID="${GROUP_ID}")
 fi
 
-BUILD_FLAGS+=(-t "${IMAGE_NAME}":"${ROS_VERSION}")
+BUILD_FLAGS+=(-t "${IMAGE_NAME}":"${BASE_TAG}")
 
 DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .
