@@ -37,7 +37,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-ws
-          ros_version: galactic
+          base_tag: galactic
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
@@ -53,7 +53,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-control-libraries
-          ros_version: galactic
+          base_tag: galactic
           cl_branch: develop
           output_tag: galactic-devel
           ci_branch: ${{ env.CI_BRANCH }}
@@ -83,7 +83,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-control-libraries
-          ros_version: galactic
+          base_tag: galactic
           cl_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -141,7 +141,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo
-          ros_version: galactic
+          base_tag: galactic
           modulo_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -186,6 +186,6 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo-control
-          ros_version: galactic
+          base_tag: galactic
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}

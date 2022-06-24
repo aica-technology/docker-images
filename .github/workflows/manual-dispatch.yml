@@ -7,8 +7,8 @@ on:
       workspace:
         description: 'The desired workspace (e.g. ros2-control-libraries)'
         required: true
-      ros_version:
-        description: 'The ROS distribution to use'
+      base_tag:
+        description: 'The tag of the base image to use'
         required: false
         default: 'galactic'
       cl_branch:
@@ -19,10 +19,6 @@ on:
         description: 'The branch of modulo'
         required: false
         default: 'main'
-      base_tag:
-        description: 'The tag of the base image to use (if left empty, the tag is the ROS version)'
-        required: false
-        default: ''
       output_tag:
         description: 'The tag for the output image (if left empty, the base tag is used)'
         required: false
@@ -47,10 +43,9 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ${{ github.event.inputs.workspace }}
-          ros_version: ${{ github.event.inputs.ros_version }}
+          base_tag: ${{ github.event.inputs.base_tag }}
           cl_branch: ${{ github.event.inputs.cl_branch }}
           modulo_branch: ${{ github.event.inputs.modulo_branch }}
-          base_tag: ${{ github.event.inputs.base_tag }}
           output_tag: ${{ github.event.inputs.output_tag }}
           write_image_hash: ${{ github.event.inputs.write_image_hash }}
           ci_branch: ${{ env.CI_BRANCH }}
