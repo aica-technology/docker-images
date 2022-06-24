@@ -5,8 +5,8 @@ inputs:
     description: 'The desired workspace'
     required: true
     default: 'ros2-ws'
-  ros_version:
-    description: 'The ROS distribution to use'
+  base_tag:
+    description: 'The tag of the base image to use'
     required: false
     default: 'galactic'
   cl_branch:
@@ -17,10 +17,6 @@ inputs:
     description: 'The branch of modulo'
     required: false
     default: 'main'
-  base_tag:
-    description: 'The tag of the base image to use (if left empty, the tag is the ROS version)'
-    required: false
-    default: ''
   output_tag:
     description: 'The tag for the output image (if left empty, the base tag is used)'
     required: false
@@ -47,9 +43,6 @@ runs:
 
         BASE_TAG=${{ inputs.base_tag }}
         OUTPUT_TAG=${{ inputs.output_tag }}
-        if [ -z ${BASE_TAG} ]; then
-          BASE_TAG=${{ inputs.ros_version }}
-        fi
         echo "::debug::Using base image tag ${BASE_TAG}"
         echo "BASE_TAG=${BASE_TAG}" >> $GITHUB_ENV
 

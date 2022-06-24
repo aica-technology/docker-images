@@ -67,7 +67,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-control-libraries
-          ros_version: galactic
+          base_tag: galactic
           cl_branch: develop
           output_tag: galactic-devel
           ci_branch: ${{ env.CI_BRANCH }}
