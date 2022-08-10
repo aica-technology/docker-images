@@ -14,6 +14,7 @@ RUN git clone -b ${CL_BRANCH} --depth 1 https://github.com/epfl-lasa/control-lib
 
 # install source
 RUN sudo ./control-libraries/source/install.sh -y
+ENV CMAKE_PREFIX_PATH=/opt/openrobots:${CMAKE_PREFIX_PATH}
 # install protocol
 RUN sudo ./control-libraries/protocol/install.sh -y
 # install python bindings
