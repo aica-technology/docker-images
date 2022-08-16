@@ -63,17 +63,14 @@ RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_apt
 COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
 RUN chmod 744 /sshd_entrypoint.sh
 
-# configure colcon defaults
+# configure colcon defaults and utilities
 USER ${USER}
 WORKDIR ${HOME}
-RUN mkdir -p ${HOME}/.colcon
-COPY --chown=${USER}:${USER} ./config/colcon_defaults.yaml ${HOME}/.colcon/defaults.yaml
 ENV COLCON_HOME ${HOME}/.colcon
+RUN mkdir -p ${COLCON_HOME}
+COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
+RUN /bin/bash ${COLCON_HOME}/setup.sh
 ENV COLCON_DEFAULTS_FILE ${COLCON_HOME}/defaults.yaml
-
-# add colcon build helper script
-COPY --chown=${USER}:${USER} ./config/colcon-build.sh ${HOME}/.colcon/colcon-build.sh
-RUN echo "alias cb='bash ${HOME}/.colcon/colcon-build.sh'" >> ${HOME}/.bash_aliases
 
 # build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src

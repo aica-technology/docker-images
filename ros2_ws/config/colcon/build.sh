@@ -41,12 +41,19 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-# build selected packages only if they are supplied, otherwise do a generic build
-if [ ${#PACKAGES[@]} -gt 0 ]; then
-  if [ "${OVERRIDE}" == true ]; then
-    BUILD_ARGS+=(--allow-overriding "${PACKAGES[@]}")
+CURRENT_DIR=$(pwd)
+
+colcon_build_packages () {
+  cd "${ROS2_WORKSPACE}"
+  if [ ${#PACKAGES[@]} -gt 0 ]; then
+    if [ "${OVERRIDE}" == true ]; then
+      BUILD_ARGS+=(--allow-overriding "${PACKAGES[@]}")
+    fi
+    colcon build --packages-select "${PACKAGES[@]}" "${BUILD_ARGS[@]}"
+  else
+    colcon build "${BUILD_ARGS[@]}"
   fi
-  colcon build --packages-select "${PACKAGES[@]}" "${BUILD_ARGS[@]}"
-else
-  colcon build "${BUILD_ARGS[@]}"
-fi
+  cd "${CURRENT_DIR}"
+}
+
+colcon_build_packages || cd "${CURRENT_DIR}"
