@@ -49,7 +49,7 @@ fi
 
 # save all environment variables to a file (except those listed below) and source it when the specified user logs in
 env | egrep -v "^(HOME=|USER=|MAIL=|LC_ALL=|LS_COLORS=|LANG=|HOSTNAME=|PWD=|TERM=|SHLVL=|LANGUAGE=|_=)" >> /etc/environment
-echo "source /etc/environment" >> "${HOME}/.bashrc"
+echo "source /etc/environment" | cat - "${HOME}/.bashrc" > tmp && mv tmp "${HOME}/.bashrc"
 
 # start the ssh server
 /usr/sbin/sshd -D -e -f /etc/ssh/sshd_config_development
