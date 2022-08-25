@@ -3,19 +3,20 @@ ARG BASE_TAG=galactic
 
 FROM ${BASE_IMAGE}:${BASE_TAG}
 USER ${USER}
-ARG ROS2_CONTROL_TAG=1.0.0
+ARG ROS2_CONTROL_TAG=2.11.0
 
 WORKDIR /home/${USER}/ros2_ws/src
 RUN git clone -b ${ROS2_CONTROL_TAG} --depth 1 https://github.com/ros-controls/ros2_control.git
 RUN git clone -b ${ROS2_CONTROL_TAG} --depth 1 https://github.com/ros-controls/ros2_controllers.git
 
 # get additional interface dependencies manually
-RUN git clone -b galactic-devel --depth 1 https://github.com/ros-controls/control_msgs.git
+RUN git clone -b humble --depth 1 https://github.com/ros-controls/control_msgs.git
 RUN git clone -b ros2-master --depth 1 https://github.com/ros-controls/control_toolbox.git
-RUN git clone -b 2.1.1 --depth 1 https://github.com/ros-controls/realtime_tools.git
-RUN git clone -b galactic --depth 1 https://github.com/ros2/rcl_interfaces.git
-RUN git clone -b galactic --depth 1 https://github.com/ros2/test_interface_files.git
+RUN git clone -b 2.2.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
+RUN git clone -b humble --depth 1 https://github.com/ros2/rcl_interfaces.git
+RUN git clone -b humble --depth 1 https://github.com/ros2/test_interface_files.git
 RUN git clone -b ros2 --depth 1 https://github.com/ros/angles.git
+RUN git clone -b ros2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.git
 
 ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
 WORKDIR ${ROS2_WORKSPACE}
