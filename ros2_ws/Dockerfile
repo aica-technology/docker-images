@@ -72,6 +72,9 @@ COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
 ENV COLCON_DEFAULTS_FILE ${COLCON_HOME}/defaults.yaml
 
+# set the default colcon workspace path
+ENV COLCON_WORKSPACE=${ROS2_WORKSPACE}
+
 # build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src
 WORKDIR ${ROS2_WORKSPACE}
