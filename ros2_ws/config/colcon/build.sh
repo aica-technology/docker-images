@@ -44,7 +44,7 @@ done
 CURRENT_DIR=$(pwd)
 
 colcon_build_packages () {
-  cd "${ROS2_WORKSPACE}"
+  cd "${COLCON_WORKSPACE}"
   if [ ${#PACKAGES[@]} -gt 0 ]; then
     if [ "${OVERRIDE}" == true ]; then
       BUILD_ARGS+=(--allow-overriding "${PACKAGES[@]}")

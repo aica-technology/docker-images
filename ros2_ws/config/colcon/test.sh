@@ -33,7 +33,7 @@ done
 CURRENT_DIR=$(pwd)
 
 colcon_test_packages () {
-  cd "${ROS2_WORKSPACE}"
+  cd "${COLCON_WORKSPACE}"
   if [ ${#PACKAGES[@]} -gt 0 ]; then
     colcon test --packages-select "${PACKAGES[@]}" "${TEST_ARGS[@]}"
   else
