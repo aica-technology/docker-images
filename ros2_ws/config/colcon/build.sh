@@ -9,10 +9,17 @@ whole workspace. Supply the following flags to modify the build.
 Any additional flags are forwarded to colcon build.
 
 -d | --debug            Set CMAKE_BUILD_TYPE to Debug.
+
 -o | --override         Add --allow-overriding for listed packages
+
+-c | --cd               Temporarily change into the COLCON_WORKSPACE
+                        directory when building
+                        (workspace path: ${COLCON_WORKSPACE})
+
 -h | --help             Show this help message.
 "
 
+CHANGE_DIR=false
 OVERRIDE=false
 PACKAGES=()
 BUILD_ARGS=()
@@ -24,6 +31,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   -o | --override)
     OVERRIDE=true
+    shift 1
+    ;;
+  -c | --cd)
+    CHANGE_DIR=true
     shift 1
     ;;
   -h | --help)
@@ -44,7 +55,9 @@ done
 CURRENT_DIR=$(pwd)
 
 colcon_build_packages () {
-  cd "${COLCON_WORKSPACE}"
+  if [ "${CHANGE_DIR}" == true ]; then
+    cd "${COLCON_WORKSPACE}"
+  fi
   if [ ${#PACKAGES[@]} -gt 0 ]; then
     if [ "${OVERRIDE}" == true ]; then
       BUILD_ARGS+=(--allow-overriding "${PACKAGES[@]}")
