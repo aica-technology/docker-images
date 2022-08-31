@@ -48,7 +48,7 @@ RUN git clone -b ros2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.gi
 
 
 ARG BASE_TAG=galactic
-FROM ros2-control-version-${BASE_TAG} AS final
+FROM ros2-control-version-${BASE_TAG} as final
 ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
