@@ -24,6 +24,9 @@ Options:
                            aica-technology/ros2-ws:galactic would yield
                            aica-technology-ros2-ws-galactic-runtime
 
+  -c, --command <cmd>      Pass a command to execute in the container.
+                           (optional, default: ${COMMAND})
+
   -u, --user <user>        Specify the name of the login user.
                            (optional)
 
@@ -48,6 +51,7 @@ the 'docker run' command.
 
 RUN_FLAGS=()
 FWD_ARGS=()
+COMMAND=/bin/bash
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -i | --image)
@@ -56,6 +60,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   -n | --name)
     CONTAINER_NAME=$2
+    shift 2
+    ;;
+  -c | --command)
+    COMMAND=$2
     shift 2
     ;;
   --no-hostname)
@@ -138,4 +146,4 @@ docker run -it --rm \
   "${RUN_FLAGS[@]}" \
   --name "${CONTAINER_NAME}" \
   "${FWD_ARGS[@]}" \
-  "${IMAGE_NAME}" /bin/bash
+  "${IMAGE_NAME}" "${COMMAND}"
