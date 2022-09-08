@@ -55,7 +55,20 @@ runs:
         echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
       shell: bash
 
-    - name: Build image
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Login to GitHub Package Registry
+      run: echo "${{ inputs.secret }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      shell: bash
+
+    - name: Build and push image
       run: |
         WORKSPACE_PATH=${{ inputs.workspace }}
         WORKSPACE_PATH=${WORKSPACE_PATH//[-]/_}
@@ -65,22 +78,13 @@ runs:
 
         mkdir -p ${WORKSPACE_PATH}/config
         cp common/sshd_entrypoint.sh ${WORKSPACE_PATH}/config/
-        docker build ${WORKSPACE_PATH} --file ${WORKSPACE_PATH}/Dockerfile \
+        docker buildx build --file ${WORKSPACE_PATH}/Dockerfile \
+          --platform=linux/arm64,linux/amd64 \
+          --push --tag ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME} \
           --build-arg BASE_TAG=${BASE_TAG} \
           --build-arg CL_BRANCH=${{ inputs.cl_branch }} \
           --build-arg MODULO_BRANCH=${{ inputs.modulo_branch }} \
-          --tag ${IMAGE_NAME}
-      shell: bash
-
-    - name: Login to GitHub Container Registry
-      run: echo "${{ inputs.secret }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      shell: bash
-
-    - name: Push image
-      run: |
-        IMAGE_NAME=${{ env.IMAGE_NAME }}
-        docker tag ${IMAGE_NAME} ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}
-        docker push ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}
+          ${WORKSPACE_PATH}
       shell: bash
 
     - name: Write new image hash to file
