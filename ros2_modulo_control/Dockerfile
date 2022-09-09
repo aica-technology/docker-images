@@ -1,9 +1,3 @@
-ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
-ARG BASE_TAG=galactic
-
-FROM ${BASE_IMAGE}:galactic as ros2-control-version-galactic
-USER ${USER}
-
 FROM ghcr.io/aica-technology/ros2-ws:galactic as ros2-control-sources-galactic
 USER ${USER}
 
@@ -22,15 +16,18 @@ RUN git clone -b galactic --depth 1 https://github.com/ros2/test_interface_files
 RUN git clone -b ros2 --depth 1 https://github.com/ros/angles.git
 
 
+ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
 FROM ${BASE_IMAGE}:galactic as ros2-control-version-galactic
 COPY --from=ros2-control-sources-galactic ${ROS2_WORKSPACE}/src/ros2_control/ ${ROS2_WORKSPACE}/src/
 
 
+ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
 FROM ${BASE_IMAGE}:galactic-devel as ros2-control-version-galactic-devel
 COPY --from=ros2-control-sources-galactic ${ROS2_WORKSPACE}/src/ros2_control/ ${ROS2_WORKSPACE}/src/
 
 
-FROM ${BASE_IMAGE}:humble as ros2-control-version-humble-devel
+ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
+FROM ${BASE_IMAGE}:humble-devel as ros2-control-version-humble-devel
 USER ${USER}
 
 WORKDIR /home/${USER}/ros2_ws/src
