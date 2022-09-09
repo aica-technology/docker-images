@@ -1,11 +1,11 @@
-ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
+ARG BASE_IMAGE=ghcr.io/eeberhard/ros2-ws
 ARG BASE_TAG=galactic
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 # install google dependencies
-COPY --from=ghcr.io/epfl-lasa/control-libraries/proto-dependencies:latest /usr/local/include/google /usr/local/include/google
-COPY --from=ghcr.io/epfl-lasa/control-libraries/proto-dependencies:latest /usr/local/lib/libproto* /usr/local/lib/
-COPY --from=ghcr.io/epfl-lasa/control-libraries/proto-dependencies:latest /usr/local/bin/protoc /usr/local/bin
+COPY --from=ghcr.io/eeberhard/control-libraries/proto-dependencies:latest /usr/local/include/google /usr/local/include/google
+COPY --from=ghcr.io/eeberhard/control-libraries/proto-dependencies:latest /usr/local/lib/libproto* /usr/local/lib/
+COPY --from=ghcr.io/eeberhard/control-libraries/proto-dependencies:latest /usr/local/bin/protoc /usr/local/bin
 RUN sudo ldconfig
 
 ARG CL_BRANCH=main
