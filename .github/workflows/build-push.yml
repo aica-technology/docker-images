@@ -236,7 +236,7 @@ jobs:
   build-publish-galactic-modulo-control-devel:
     needs: build-publish-galactic-modulo-devel
     runs-on: ubuntu-latest
-    name: Build and publish ROS2 galactic workspace image with modulo and ros2 control installed
+    name: Build and publish development ROS2 galactic workspace image with modulo and ros2 control installed
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
