@@ -70,7 +70,7 @@ jobs:
         with:
           workspace: ros2-control-libraries
           base_tag: galactic
-          cl_branch: develop
+          cl_branch: feature/arm64
           output_tag: galactic-devel
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -100,7 +100,7 @@ jobs:
         with:
           workspace: ros2-control-libraries
           base_tag: humble
-          cl_branch: develop
+          cl_branch: feature/arm64
           output_tag: humble-devel
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
