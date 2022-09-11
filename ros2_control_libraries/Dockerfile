@@ -15,7 +15,7 @@ COPY --from=ghcr.io/eeberhard/control-libraries/proto-dependencies:latest /usr/l
 RUN sudo ldconfig
 
 ARG CL_BRANCH=main
-RUN git clone -b ${CL_BRANCH} --depth 1 https://github.com/epfl-lasa/control-libraries.git
+RUN git clone -b ${CL_BRANCH} --depth 1 https://github.com/eeberhard/control-libraries.git
 
 # install source
 RUN sudo ./control-libraries/source/install.sh -y
