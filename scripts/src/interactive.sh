@@ -6,6 +6,7 @@ USERNAME=""
 GPUS=""
 ROS_DOMAIN_ID=14
 GENERATE_HOST_NAME=true
+COMMAND=/bin/bash
 
 HELP_MESSAGE="
 Usage: aica-docker interactive <image> [-n <name>] [-u <user>]
@@ -51,7 +52,6 @@ the 'docker run' command.
 
 RUN_FLAGS=()
 FWD_ARGS=()
-COMMAND=/bin/bash
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -i | --image)
