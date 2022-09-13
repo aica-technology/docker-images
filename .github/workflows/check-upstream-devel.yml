@@ -17,15 +17,17 @@ jobs:
     outputs:
       cl_id: ${{ steps.check_cl.outputs.id }}
       cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
-      modulo_id: ${{ steps.check_modulo.outputs.id }}
-      modulo_rebuild: ${{ steps.check_modulo.outputs.rebuild }}
+      modulo_develop_id: ${{ steps.check_modulo_develop.outputs.id }}
+      modulo_develop_rebuild: ${{ steps.check_modulo_develop.outputs.rebuild }}
+      modulo_humble_id: ${{ steps.check_modulo_humble.outputs.id }}
+      modulo_humble_rebuild: ${{ steps.check_modulo_humble.outputs.rebuild }}
     steps:
       - name: Checkout CI branch
         uses: actions/checkout@v2
         with:
           ref: ${{ env.CI_BRANCH }}
 
-      - name: Check lastest hash on control libraries develop branch
+      - name: Check latest hash on control libraries develop branch
         id: check_cl
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
@@ -40,10 +42,24 @@ jobs:
           fi
 
       - name: Check latest hash on modulo develop branch
-        id: check_modulo
+        id: check_modulo_develop
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
           OLD_HASH=$(cat ./modulo-develop-hash || echo '')
+          if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
+            echo "Modulo doesn't have new commits."
+            echo "::set-output name=rebuild::false"
+          else
+            echo "Modulo has new commits, rebuilding image now..."
+            echo "::set-output name=rebuild::true"
+            echo "::set-output name=id::${NEW_HASH}"
+          fi
+
+      - name: Check latest hash on modulo humble branch
+        id: check_modulo_humble
+        run: |
+          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git humble | awk '{ print $1 }')
+          OLD_HASH=$(cat ./modulo-humble-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
             echo "Modulo doesn't have new commits."
             echo "::set-output name=rebuild::false"
@@ -85,7 +101,7 @@ jobs:
     needs: [check-hash, rebuild-cl-image]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo image
-    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
+    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_develop_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -100,10 +116,10 @@ jobs:
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+        if: ${{ needs.check-hash.outputs.modulo_develop_rebuild == 'true' }}
         uses: ./.github/actions/write-hash
         with:
-          hash: ${{ needs.check-hash.outputs.modulo_id }}
+          hash: ${{ needs.check-hash.outputs.modulo_develop_id }}
           file: './modulo-develop-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
@@ -155,7 +171,7 @@ jobs:
     needs: [ check-hash, rebuild-cl-humble-image ]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo image
-    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
+    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_humble_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -165,16 +181,16 @@ jobs:
         with:
           workspace: ros2-modulo
           base_tag: humble-devel
-          modulo_branch: develop
+          modulo_branch: humble
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
+        if: ${{ needs.check-hash.outputs.modulo_humble_rebuild == 'true' }}
         uses: ./.github/actions/write-hash
         with:
-          hash: ${{ needs.check-hash.outputs.modulo_id }}
-          file: './modulo-humble-develop-hash'
+          hash: ${{ needs.check-hash.outputs.modulo_humble_id }}
+          file: './modulo-humble-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
   rebuild-modulo-control-humble-image:
