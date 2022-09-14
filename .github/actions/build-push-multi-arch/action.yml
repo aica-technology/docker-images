@@ -1,0 +1,100 @@
+name: 'Build and Push (Multi-Arch)'
+description: 'Build the Docker image for amd64 and arm64 and push to GitHub Container Registry'
+inputs:
+  workspace:
+    description: 'The desired workspace'
+    required: true
+    default: 'ros2-ws'
+  base_tag:
+    description: 'The tag of the base image to use'
+    required: false
+    default: 'humble'
+  cl_branch:
+    description: 'The branch of control libraries'
+    required: false
+    default: 'main'
+  modulo_branch:
+    description: 'The branch of modulo'
+    required: false
+    default: 'main'
+  output_tag:
+    description: 'The tag for the output image (if left empty, the base tag is used)'
+    required: false
+    default: ''
+  write_image_hash:
+    description: 'Write image SHA256 hash to file'
+    required: false
+    default: 'true'
+  ci_branch:
+    description: 'The name of the CI branch'
+    required: false
+    default: 'ci'
+  secret:
+    description: 'GitHub Container Registry secret'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Parse inputs
+      run: |
+        WORKSPACE_IMAGE=${{ inputs.workspace }}
+        WORKSPACE_IMAGE=${WORKSPACE_IMAGE//[_]/-}
+
+        BASE_TAG=${{ inputs.base_tag }}
+        OUTPUT_TAG=${{ inputs.output_tag }}
+        echo "::debug::Using base image tag ${BASE_TAG}"
+        echo "BASE_TAG=${BASE_TAG}" >> $GITHUB_ENV
+
+        if [ -z ${OUTPUT_TAG} ]; then
+          OUTPUT_TAG=${BASE_TAG}
+        fi
+        echo "OUTPUT_TAG=${OUTPUT_TAG}" >> $GITHUB_ENV
+        IMAGE_NAME=${WORKSPACE_IMAGE}:${OUTPUT_TAG}
+        echo "::debug::Generated image name will be ${IMAGE_NAME}"
+        echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Login to GitHub Package Registry
+      run: echo "${{ inputs.secret }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      shell: bash
+
+    - name: Build and push image
+      run: |
+        WORKSPACE_PATH=${{ inputs.workspace }}
+        WORKSPACE_PATH=${WORKSPACE_PATH//[-]/_}
+        echo "WORKSPACE_PATH=${WORKSPACE_PATH}" >> $GITHUB_ENV
+        BASE_TAG=${{ env.BASE_TAG }}
+        IMAGE_NAME=${{ env.IMAGE_NAME }}
+
+        mkdir -p ${WORKSPACE_PATH}/config
+        cp common/sshd_entrypoint.sh ${WORKSPACE_PATH}/config/
+        docker buildx build --file ${WORKSPACE_PATH}/Dockerfile \
+          --platform=linux/arm64,linux/amd64 \
+          --push --tag ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME} \
+          --build-arg BASE_TAG=${BASE_TAG} \
+          --build-arg CL_BRANCH=${{ inputs.cl_branch }} \
+          --build-arg MODULO_BRANCH=${{ inputs.modulo_branch }} \
+          ${WORKSPACE_PATH}
+      shell: bash
+
+    - name: Write new image hash to file
+      if: ${{ inputs.write_image_hash == 'true' }}
+      run: |
+        git config user.name github-actions
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+        git fetch origin ${{ inputs.ci_branch }} && git checkout ${{ inputs.ci_branch }} && git rebase origin/main
+        SHA=$(docker images --no-trunc --quiet ${IMAGE_NAME})
+        echo ${SHA} > ./${{ env.WORKSPACE_PATH }}/${{ env.OUTPUT_TAG }}-hash
+        git add ./${{ env.WORKSPACE_PATH }}/${{ env.OUTPUT_TAG }}-hash
+        git commit -m "Update ${{ env.IMAGE_NAME }} image hash" && git push -f
+      shell: bash
