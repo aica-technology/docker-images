@@ -1,6 +1,6 @@
-ARG BASE_IMAGE=ghcr.io/eeberhard/ros2-modulo
+ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
 ARG BASE_TAG=galactic
-FROM ghcr.io/eeberhard/ros2-ws:galactic as ros2-control-sources-galactic
+FROM ghcr.io/aica-technology/ros2-ws:galactic as ros2-control-sources-galactic
 USER ${USER}
 
 RUN mkdir -p ${ROS2_WORKSPACE}/src/ros2_control

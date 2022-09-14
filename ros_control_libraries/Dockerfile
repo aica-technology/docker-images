@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/eeberhard/ros-ws
+ARG BASE_IMAGE=ghcr.io/aica-technology/ros-ws
 ARG BASE_TAG=noetic
 FROM ${BASE_IMAGE}:${BASE_TAG}
 

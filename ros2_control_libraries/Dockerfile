@@ -1,21 +1,16 @@
-ARG BASE_IMAGE=ghcr.io/eeberhard/ros2-ws
+ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 ARG BASE_TAG=galactic
 FROM ${BASE_IMAGE}:${BASE_TAG}
 WORKDIR ${HOME}
 
 # install development dependencies
-COPY --from=ghcr.io/eeberhard/control-libraries/development-dependencies:latest /usr/local /tmp/local
+COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:latest /usr/local /tmp/local
 RUN sudo cp -R /tmp/local/* /usr/local && sudo rm -r /tmp/local
-
-# install google dependencies
-COPY --from=ghcr.io/eeberhard/control-libraries/proto-dependencies:latest /usr/local/include/google /usr/local/include/google
-COPY --from=ghcr.io/eeberhard/control-libraries/proto-dependencies:latest /usr/local/lib/libproto* /usr/local/lib/
-COPY --from=ghcr.io/eeberhard/control-libraries/proto-dependencies:latest /usr/local/bin/protoc /usr/local/bin
 
 RUN sudo ldconfig
 
 ARG CL_BRANCH=main
-RUN git clone -b ${CL_BRANCH} --depth 1 https://github.com/eeberhard/control-libraries.git
+RUN git clone -b ${CL_BRANCH} --depth 1 https://github.com/epfl-lasa/control-libraries.git
 
 # install source
 RUN sudo ./control-libraries/source/install.sh -y
