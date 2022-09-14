@@ -3,7 +3,7 @@
 IMAGE_NAME=aica-technology/ros2-modulo-control
 
 LOCAL_BASE_IMAGE=false
-BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
+BASE_IMAGE=ghcr.io/eeberhard/ros2-modulo
 BASE_TAG=galactic
 OUTPUT_TAG=galactic
 
