@@ -7,6 +7,18 @@ on:
       workspace:
         description: 'The desired workspace (e.g. ros2-control-libraries)'
         required: true
+        options:
+          - 'ros2-ws'
+          - 'ros2-control-libraries'
+          - 'ros2-modulo'
+          - 'ros2-modulo-control'
+      architecture:
+        description: ''
+        required: true
+        default: 'amd64'
+        options:
+          - 'amd64'
+          - 'amd64 & arm64'
       base_tag:
         description: 'The tag of the base image to use'
         required: false
@@ -27,6 +39,9 @@ on:
         description: 'Write image SHA256 hash to file (set to false for temporary or test images)'
         required: false
         default: 'true'
+        options:
+          - 'true'
+          - 'false'
 
 env:
   CI_BRANCH: 'ci'
@@ -40,7 +55,21 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build and Push
+        if: ${{ github.event.inputs.architecture == 'amd64' }}
         uses: ./.github/actions/build-push
+        with:
+          workspace: ${{ github.event.inputs.workspace }}
+          base_tag: ${{ github.event.inputs.base_tag }}
+          cl_branch: ${{ github.event.inputs.cl_branch }}
+          modulo_branch: ${{ github.event.inputs.modulo_branch }}
+          output_tag: ${{ github.event.inputs.output_tag }}
+          write_image_hash: ${{ github.event.inputs.write_image_hash }}
+          ci_branch: ${{ env.CI_BRANCH }}
+          secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push (Multi-Arch)
+        if: ${{ github.event.inputs.architecture == 'amd64 & arm64' }}
+        uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ${{ github.event.inputs.workspace }}
           base_tag: ${{ github.event.inputs.base_tag }}
