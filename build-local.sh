@@ -5,7 +5,7 @@ CURRENT_DIR="$(pwd)"
 
 BASE_TAG=humble
 OUTPUT_TAG=humble-devel
-CL_BRANCH=feature/arm64
+CL_BRANCH=develop
 MODULO_BRANCH=develop
 
 BUILD_FLAGS=()
