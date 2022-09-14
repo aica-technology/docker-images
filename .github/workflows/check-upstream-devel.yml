@@ -85,7 +85,7 @@ jobs:
           workspace: ros2-control-libraries
           base_tag: galactic
           cl_branch: develop
-          output_tag: galactic-devel
+          output_tag: galactic-devel-nightly
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
@@ -110,7 +110,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo
-          base_tag: galactic-devel
+          base_tag: galactic-devel-nightly
           modulo_branch: develop
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -135,7 +135,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo-control
-          base_tag: galactic-devel
+          base_tag: galactic-devel-nightly
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
@@ -155,7 +155,7 @@ jobs:
           workspace: ros2-control-libraries
           base_tag: humble
           cl_branch: develop
-          output_tag: humble-devel
+          output_tag: humble-devel-nightly
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
@@ -180,7 +180,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo
-          base_tag: humble-devel
+          base_tag: humble-devel-nightly
           modulo_branch: humble
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -205,6 +205,6 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo-control
-          base_tag: humble-devel
+          base_tag: humble-devel-nightly
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}

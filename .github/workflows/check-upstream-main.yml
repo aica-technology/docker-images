@@ -25,7 +25,7 @@ jobs:
         with:
           ref: ${{ env.CI_BRANCH }}
 
-      - name: Check lastest hash on control libraries main branch
+      - name: Check latest hash on control libraries main branch
         id: check_cl
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git main | awk '{ print $1 }')
@@ -39,7 +39,7 @@ jobs:
             echo "::set-output name=id::${NEW_HASH}"
           fi
 
-      - name: Check lastest hash on modulo main branch
+      - name: Check latest hash on modulo main branch
         id: check_modulo
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git main | awk '{ print $1 }')
@@ -68,6 +68,7 @@ jobs:
         with:
           workspace: ros2-control-libraries
           base_tag: galactic
+          output_tag: galactic-nightly
           cl_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -93,7 +94,7 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo
-          base_tag: galactic
+          base_tag: galactic-nightly
           modulo_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -118,6 +119,6 @@ jobs:
         uses: ./.github/actions/build-push
         with:
           workspace: ros2-modulo-control
-          base_tag: galactic
+          base_tag: galactic-nightly
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
