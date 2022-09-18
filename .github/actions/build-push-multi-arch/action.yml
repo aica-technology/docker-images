@@ -17,6 +17,10 @@ inputs:
     description: 'The branch of modulo'
     required: false
     default: 'main'
+  dockerfile_extension:
+    description: 'The optional extension of the Dockerfile for variant images'
+    required: false
+    default: ''
   output_tag:
     description: 'The tag for the output image (if left empty, the base tag is used)'
     required: false
@@ -75,10 +79,11 @@ runs:
         echo "WORKSPACE_PATH=${WORKSPACE_PATH}" >> $GITHUB_ENV
         BASE_TAG=${{ env.BASE_TAG }}
         IMAGE_NAME=${{ env.IMAGE_NAME }}
+        DOCKERFILE=${WORKSPACE_PATH}/Dockerfile${{ inputs.dockerfile_extension }}
 
         mkdir -p ${WORKSPACE_PATH}/config
         cp common/sshd_entrypoint.sh ${WORKSPACE_PATH}/config/
-        docker buildx build --file ${WORKSPACE_PATH}/Dockerfile \
+        docker buildx build --file ${DOCKERFILE} \
           --platform=linux/arm64,linux/amd64 \
           --push --tag ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME} \
           --build-arg BASE_TAG=${BASE_TAG} \

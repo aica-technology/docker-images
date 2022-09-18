@@ -246,6 +246,7 @@ jobs:
         with:
           workspace: ros2-modulo-control
           base_tag: galactic-devel
+          dockerfile_extension: .galactic
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
@@ -262,6 +263,7 @@ jobs:
         with:
           workspace: ros2-modulo-control
           base_tag: humble-devel
+          dockerfile_extension: .humble
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
@@ -278,5 +280,6 @@ jobs:
         with:
           workspace: ros2-modulo-control
           base_tag: galactic
+          dockerfile_extension: .galactic
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}

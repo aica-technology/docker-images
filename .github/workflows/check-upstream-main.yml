@@ -53,10 +53,10 @@ jobs:
             echo "::set-output name=id::${NEW_HASH}"
           fi
 
-  rebuild-cl-image:
+  rebuild-cl-galactic-image:
     needs: check-hash
     runs-on: ubuntu-latest
-    name: Rebuild ros2-control-libraries image
+    name: Rebuild ros2-control-libraries galactic image
     steps:
       - name: Checkout repository
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
@@ -81,10 +81,10 @@ jobs:
           file: './control-libraries-main-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
-  rebuild-modulo-image:
-    needs: [check-hash, rebuild-cl-image]
+  rebuild-modulo-galactic-image:
+    needs: [check-hash, rebuild-cl-galactic-image]
     runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo image
+    name: Rebuild ros2-modulo galactic image
     if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
@@ -107,10 +107,10 @@ jobs:
           file: './modulo-main-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
-  rebuild-modulo-control-image:
-    needs: [ check-hash, rebuild-cl-image, rebuild-modulo-image ]
+  rebuild-modulo-control-galactic-image:
+    needs: [ check-hash, rebuild-cl-galactic-image, rebuild-modulo-galactic-image ]
     runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo-control image
+    name: Rebuild ros2-modulo-control galactic image
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -120,5 +120,6 @@ jobs:
         with:
           workspace: ros2-modulo-control
           base_tag: galactic-nightly
+          dockerfile_extension: .galactic
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}

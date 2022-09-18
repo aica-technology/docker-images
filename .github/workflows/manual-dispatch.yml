@@ -13,7 +13,7 @@ on:
           - 'ros2-modulo'
           - 'ros2-modulo-control'
       architecture:
-        description: ''
+        description: 'The desired architecture to build [`amd64` or `amd64 & arm64`]'
         required: true
         default: 'amd64'
         options:
@@ -27,6 +27,10 @@ on:
         description: 'The branch of control libraries'
         required: false
         default: 'main'
+      dockerfile_extension:
+        description: 'The optional extension of the Dockerfile for variant images'
+        required: false
+        default: ''
       modulo_branch:
         description: 'The branch of modulo'
         required: false
