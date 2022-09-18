@@ -1,4 +1,4 @@
-name: Build and Push
+name: Build and Push Multi-Arch Images
 
 # Run workflow on pushes to main branch
 on:

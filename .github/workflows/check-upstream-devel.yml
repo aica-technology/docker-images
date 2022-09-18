@@ -1,4 +1,4 @@
-name: Check for updated upstream libraries (develop branches)
+name: Scheduled Build and Push (devel-nightly, amd64)
 
 # Run scheduled workflow
 on:

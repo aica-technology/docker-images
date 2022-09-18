@@ -1,4 +1,4 @@
-name: Check for updated upstream libraries (main branches)
+name: Scheduled Build and Push Multi-Arch Images (main branches)
 
 # Run scheduled workflow
 on:

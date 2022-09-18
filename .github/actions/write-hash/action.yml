@@ -1,5 +1,9 @@
 name: 'Write hash to file'
 description: 'Write a hash to a file and push it to the CI branch'
+author: aica-technology
+branding:
+  icon: hash
+  color: white
 inputs:
   hash:
     description: 'The hash to be written to file'

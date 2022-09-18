@@ -1,5 +1,9 @@
 name: 'Build and Push'
 description: 'Build the Docker image and push to GitHub Container Registry'
+author: aica-technology
+branding:
+  icon: file
+  color: gray-dark
 inputs:
   workspace:
     description: 'The desired workspace'

@@ -1,5 +1,9 @@
 name: 'Build and Push (Multi-Arch)'
 description: 'Build the Docker image for amd64 and arm64 and push to GitHub Container Registry'
+author: aica-technology
+branding:
+  icon: file-plus
+  color: gray-dark
 inputs:
   workspace:
     description: 'The desired workspace'
