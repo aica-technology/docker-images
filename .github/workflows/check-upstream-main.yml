@@ -64,11 +64,11 @@ jobs:
 
       - name: Build new ros2-control-libraries galactic image
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: ./.github/actions/build-push
+        uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-control-libraries
           base_tag: galactic
-          output_tag: galactic-nightly
+          output_tag: galactic
           cl_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -91,10 +91,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build new ros2-modulo galactic image
-        uses: ./.github/actions/build-push
+        uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-modulo
-          base_tag: galactic-nightly
+          base_tag: galactic
           modulo_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -116,10 +116,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build new ros2-modulo-control galactic image
-        uses: ./.github/actions/build-push
+        uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-modulo-control
-          base_tag: galactic-nightly
+          base_tag: galactic
           dockerfile_extension: .galactic
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
