@@ -3,7 +3,7 @@
 IMAGE_NAME=aica-technology/ros-control-libraries
 
 LOCAL_BASE_IMAGE=false
-BASE_IMAGE=ghcr.io/eeberhard/ros-ws
+BASE_IMAGE=ghcr.io/aica-technology/ros-ws
 BASE_TAG=noetic
 OUTPUT_TAG=noetic
 CL_BRANCH=main

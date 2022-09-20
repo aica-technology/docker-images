@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/eeberhard/ros2-modulo
+ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
 ARG BASE_TAG=galactic
 FROM ${BASE_IMAGE}:${BASE_TAG} as ros2-control-sources
 USER ${USER}

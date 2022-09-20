@@ -3,7 +3,7 @@
 IMAGE_NAME=aica-technology/ros2-control-libraries
 
 LOCAL_BASE_IMAGE=false
-BASE_IMAGE=ghcr.io/eeberhard/ros2-ws
+BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 BASE_TAG=galactic
 OUTPUT_TAG=galactic
 CL_BRANCH=main
