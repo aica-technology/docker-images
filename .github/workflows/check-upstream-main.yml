@@ -1,4 +1,4 @@
-name: Check for updated upstream libraries (main branches)
+name: Scheduled Build and Push Multi-Arch Images (main branches)
 
 # Run scheduled workflow
 on:
@@ -25,7 +25,7 @@ jobs:
         with:
           ref: ${{ env.CI_BRANCH }}
 
-      - name: Check lastest hash on control libraries main branch
+      - name: Check latest hash on control libraries main branch
         id: check_cl
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git main | awk '{ print $1 }')
@@ -39,7 +39,7 @@ jobs:
             echo "::set-output name=id::${NEW_HASH}"
           fi
 
-      - name: Check lastest hash on modulo main branch
+      - name: Check latest hash on modulo main branch
         id: check_modulo
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git main | awk '{ print $1 }')
@@ -53,10 +53,10 @@ jobs:
             echo "::set-output name=id::${NEW_HASH}"
           fi
 
-  rebuild-cl-image:
+  rebuild-cl-galactic-image:
     needs: check-hash
     runs-on: ubuntu-latest
-    name: Rebuild ros2-control-libraries image
+    name: Rebuild ros2-control-libraries galactic image
     steps:
       - name: Checkout repository
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
@@ -64,10 +64,11 @@ jobs:
 
       - name: Build new ros2-control-libraries galactic image
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: ./.github/actions/build-push
+        uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-control-libraries
           base_tag: galactic
+          output_tag: galactic
           cl_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -80,17 +81,17 @@ jobs:
           file: './control-libraries-main-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
-  rebuild-modulo-image:
-    needs: [check-hash, rebuild-cl-image]
+  rebuild-modulo-galactic-image:
+    needs: [check-hash, rebuild-cl-galactic-image]
     runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo image
+    name: Rebuild ros2-modulo galactic image
     if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Build new ros2-modulo galactic image
-        uses: ./.github/actions/build-push
+        uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-modulo
           base_tag: galactic
@@ -106,18 +107,19 @@ jobs:
           file: './modulo-main-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
-  rebuild-modulo-control-image:
-    needs: [ check-hash, rebuild-cl-image, rebuild-modulo-image ]
+  rebuild-modulo-control-galactic-image:
+    needs: [ check-hash, rebuild-cl-galactic-image, rebuild-modulo-galactic-image ]
     runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo-control image
+    name: Rebuild ros2-modulo-control galactic image
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Build new ros2-modulo-control galactic image
-        uses: ./.github/actions/build-push
+        uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-modulo-control
           base_tag: galactic
+          dockerfile_extension: .galactic
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}

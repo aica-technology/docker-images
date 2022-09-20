@@ -46,4 +46,10 @@ fi
 BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
 BUILD_FLAGS+=(-t "${IMAGE_NAME}:${OUTPUT_TAG}")
 
-DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .
+if [[ "${BASE_TAG}" == *"galactic"* ]]; then
+  DOCKERFILE=Dockerfile.galactic
+else
+  DOCKERFILE=Dockerfile.humble
+fi
+
+DOCKER_BUILDKIT=1 docker build -f "${DOCKERFILE}" "${BUILD_FLAGS[@]}" .
