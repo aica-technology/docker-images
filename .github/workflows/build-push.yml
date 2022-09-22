@@ -75,18 +75,6 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get control libraries develop hash
-        run: |
-          HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
-          echo "CL_DEVELOP_HASH=${HASH}" >> $GITHUB_ENV
-
-      - name: Write hash
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ env.CL_DEVELOP_HASH }}
-          file: ./control-libraries-develop-hash
-          ci_branch: ci
-
   build-publish-humble-control-libraries-devel:
     needs: build-publish-humble-workspace
     runs-on: ubuntu-latest
@@ -105,6 +93,14 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
+  write-control-libraries-develop-hash:
+    needs: [ build-publish-galactic-control-libraries-devel, build-publish-humble-control-libraries-devel]
+    runs-on: ubuntu-latest
+    name: Write control libraries develop hash to file
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Get control libraries develop hash
         run: |
           HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
@@ -114,7 +110,7 @@ jobs:
         uses: ./.github/actions/write-hash
         with:
           hash: ${{ env.CL_DEVELOP_HASH }}
-          file: ./control-libraries-humble-develop-hash
+          file: ./control-libraries-develop-hash
           ci_branch: ci
 
   build-publish-galactic-control-libraries:
