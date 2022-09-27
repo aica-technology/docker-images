@@ -5,7 +5,7 @@ IMAGE_NAME=aica-technology/ros2-control-libraries
 LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 BASE_TAG=galactic
-OUTPUT_TAG=galactic
+OUTPUT_TAG=""
 CL_BRANCH=main
 
 BUILD_FLAGS=()
@@ -41,6 +41,11 @@ while [ "$#" -gt 0 ]; do
     ;;
   esac
 done
+
+if [ -z "${OUTPUT_TAG}" ]; then
+  echo "Output tag is empty, using the base tag as output tag."
+  OUTPUT_TAG="${BASE_TAG}"
+fi
 
 if [ "${LOCAL_BASE_IMAGE}" == true ]; then
   BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-ws)
