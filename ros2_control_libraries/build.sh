@@ -50,8 +50,11 @@ fi
 
 if [[ "${BASE_TAG}" == *"galactic"* ]]; then
   UBUNTU_VERSION=focal-fossa
-else
+elif [[ "${BASE_TAG}" == *"humble"* ]]; then
   UBUNTU_VERSION=jammy-jellyfish
+else
+  echo "Invalid base tag. Base tag needs to contain either 'galactic' or 'humble'."
+  exit 1
 fi
 
 BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")

@@ -74,8 +74,11 @@ runs:
         
         if [[ "${BASE_TAG}" == *"galactic"* ]]; then
           UBUNTU_VERSION=focal-fossa
-        else
+        elif [[ "${BASE_TAG}" == *"humble"* ]]; then
           UBUNTU_VERSION=jammy-jellyfish
+        else
+          echo "::error::Invalid base tag. Base tag needs to contain either 'galactic' or 'humble'."
+          exit 1
         fi
 
         mkdir -p ${WORKSPACE_PATH}/config
