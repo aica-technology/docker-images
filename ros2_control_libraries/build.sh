@@ -48,7 +48,14 @@ else
   docker pull "${BASE_IMAGE}:${BASE_TAG}"
 fi
 
+if [[ "${BASE_TAG}" == *"galactic"* ]]; then
+  UBUNTU_VERSION=bionic-beaver
+else
+  UBUNTU_VERSION=jammy-jellyfish
+fi
+
 BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
+BUILD_FLAGS+=(--build-arg UBUNTU_VERSION="${UBUNTU_VERSION}")
 BUILD_FLAGS+=(--build-arg CL_BRANCH="${CL_BRANCH}")
 BUILD_FLAGS+=(-t "${IMAGE_NAME}:${OUTPUT_TAG}")
 
