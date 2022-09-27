@@ -73,7 +73,7 @@ runs:
         DOCKERFILE=${WORKSPACE_PATH}/Dockerfile${{ inputs.dockerfile_extension }}
         
         if [[ "${BASE_TAG}" == *"galactic"* ]]; then
-          UBUNTU_VERSION=bionic-beaver
+          UBUNTU_VERSION=focal-fossa
         else
           UBUNTU_VERSION=jammy-jellyfish
         fi

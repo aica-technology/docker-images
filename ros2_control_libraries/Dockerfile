@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 ARG BASE_TAG=galactic
-ARG UBUNTU_VERSION=bionic-beaver
+ARG UBUNTU_VERSION=focal-fossa
 FROM ${BASE_IMAGE}:${BASE_TAG} as jammy-jellyfish
 
 # install development dependencies
@@ -8,7 +8,7 @@ COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:22.04 /
 RUN sudo cp -R /tmp/local/* /usr/local && sudo rm -r /tmp/local
 
 
-FROM ${BASE_IMAGE}:${BASE_TAG} as bionic-beaver
+FROM ${BASE_IMAGE}:${BASE_TAG} as focal-fossa
 
 # install development dependencies
 COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:20.04 /usr/local /tmp/local

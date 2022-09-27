@@ -49,7 +49,7 @@ else
 fi
 
 if [[ "${BASE_TAG}" == *"galactic"* ]]; then
-  UBUNTU_VERSION=bionic-beaver
+  UBUNTU_VERSION=focal-fossa
 else
   UBUNTU_VERSION=jammy-jellyfish
 fi
