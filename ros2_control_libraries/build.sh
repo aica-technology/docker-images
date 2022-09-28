@@ -5,7 +5,7 @@ IMAGE_NAME=aica-technology/ros2-control-libraries
 LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 BASE_TAG=galactic
-OUTPUT_TAG=galactic
+OUTPUT_TAG=""
 CL_BRANCH=main
 
 BUILD_FLAGS=()
@@ -42,13 +42,28 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+if [ -z "${OUTPUT_TAG}" ]; then
+  echo "Output tag is empty, using the base tag as output tag."
+  OUTPUT_TAG="${BASE_TAG}"
+fi
+
 if [ "${LOCAL_BASE_IMAGE}" == true ]; then
   BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-ws)
 else
   docker pull "${BASE_IMAGE}:${BASE_TAG}"
 fi
 
+if [[ "${BASE_TAG}" == *"galactic"* ]]; then
+  UBUNTU_VERSION=focal-fossa
+elif [[ "${BASE_TAG}" == *"humble"* ]]; then
+  UBUNTU_VERSION=jammy-jellyfish
+else
+  echo "Invalid base tag. Base tag needs to contain either 'galactic' or 'humble'."
+  exit 1
+fi
+
 BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
+BUILD_FLAGS+=(--build-arg UBUNTU_VERSION="${UBUNTU_VERSION}")
 BUILD_FLAGS+=(--build-arg CL_BRANCH="${CL_BRANCH}")
 BUILD_FLAGS+=(-t "${IMAGE_NAME}:${OUTPUT_TAG}")
 

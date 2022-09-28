@@ -5,7 +5,7 @@ IMAGE_NAME=aica-technology/ros2-modulo-control
 LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
 BASE_TAG=galactic
-OUTPUT_TAG=galactic
+OUTPUT_TAG=""
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
@@ -37,6 +37,11 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+if [ -z "${OUTPUT_TAG}" ]; then
+  echo "Output tag is empty, using the base tag as output tag."
+  OUTPUT_TAG="${BASE_TAG}"
+fi
+
 if [ "${LOCAL_BASE_IMAGE}" = true ]; then
   BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-modulo)
 else
@@ -48,8 +53,11 @@ BUILD_FLAGS+=(-t "${IMAGE_NAME}:${OUTPUT_TAG}")
 
 if [[ "${BASE_TAG}" == *"galactic"* ]]; then
   DOCKERFILE=Dockerfile.galactic
-else
+elif [[ "${BASE_TAG}" == *"humble"* ]]; then
   DOCKERFILE=Dockerfile.humble
+else
+  echo "Invalid base tag. Base tag needs to contain either 'galactic' or 'humble'."
+  exit 1
 fi
 
 DOCKER_BUILDKIT=1 docker build -f "${DOCKERFILE}" "${BUILD_FLAGS[@]}" .

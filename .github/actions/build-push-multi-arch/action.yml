@@ -85,12 +85,22 @@ runs:
         IMAGE_NAME=${{ env.IMAGE_NAME }}
         DOCKERFILE=${WORKSPACE_PATH}/Dockerfile${{ inputs.dockerfile_extension }}
 
+        if [[ "${BASE_TAG}" == *"galactic"* ]]; then
+          UBUNTU_VERSION=focal-fossa
+        elif [[ "${BASE_TAG}" == *"humble"* ]]; then
+          UBUNTU_VERSION=jammy-jellyfish
+        else
+          echo "::error::Invalid base tag. Base tag needs to contain either 'galactic' or 'humble'."
+          exit 1
+        fi
+
         mkdir -p ${WORKSPACE_PATH}/config
         cp common/sshd_entrypoint.sh ${WORKSPACE_PATH}/config/
         docker buildx build --file ${DOCKERFILE} \
           --platform=linux/arm64,linux/amd64 \
           --push --tag ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME} \
           --build-arg BASE_TAG=${BASE_TAG} \
+          --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} \
           --build-arg CL_BRANCH=${{ inputs.cl_branch }} \
           --build-arg MODULO_BRANCH=${{ inputs.modulo_branch }} \
           ${WORKSPACE_PATH}
