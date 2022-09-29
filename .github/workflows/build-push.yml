@@ -184,20 +184,20 @@ jobs:
         with:
           workspace: ros2-modulo
           base_tag: humble-devel
-          modulo_branch: develop
+          modulo_branch: humble
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get modulo develop hash
+      - name: Get modulo humble hash
         run: |
-          HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
-          echo "MODULO_DEVELOP_HASH=${HASH}" >> $GITHUB_ENV
+          HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git humble | awk '{ print $1 }')
+          echo "MODULO_HUMBLE_HASH=${HASH}" >> $GITHUB_ENV
 
       - name: Write hash
         uses: ./.github/actions/write-hash
         with:
-          hash: ${{ env.MODULO_DEVELOP_HASH }}
-          file: ./modulo-humble-develop-hash
+          hash: ${{ env.MODULO_HUMBLE_HASH }}
+          file: ./modulo-humble-hash
           ci_branch: ci
 
   build-publish-galactic-modulo:
