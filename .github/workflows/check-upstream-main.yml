@@ -108,7 +108,7 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
 
   rebuild-modulo-control-galactic-image:
-    needs: [ check-hash, rebuild-cl-galactic-image, rebuild-modulo-galactic-image ]
+    needs: [ rebuild-modulo-galactic-image ]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo-control galactic image
     steps:
