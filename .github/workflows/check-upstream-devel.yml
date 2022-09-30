@@ -116,7 +116,7 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
 
   rebuild-modulo-control-galactic-image:
-    needs: [ check-hash, rebuild-cl-galactic-image, rebuild-modulo-galactic-image ]
+    needs: [ rebuild-modulo-galactic-image ]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo-control galactic-devel image
     steps:
@@ -179,7 +179,7 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
 
   rebuild-modulo-control-humble-image:
-    needs: [ check-hash, rebuild-cl-humble-image, rebuild-modulo-humble-image ]
+    needs: [ rebuild-modulo-humble-image ]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo-control humble-devel image
     steps:
@@ -196,15 +196,15 @@ jobs:
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   write-cl-hash:
-    needs: [ rebuild-cl-galactic-image, rebuild-cl-humble-image ]
+    needs: [ check-hash, rebuild-cl-galactic-image, rebuild-cl-humble-image ]
     runs-on: ubuntu-latest
     name: Write the control libraries hash to file
+    if: needs.check-hash.outputs.cl_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
         uses: ./.github/actions/write-hash
         with:
           hash: ${{ needs.check-hash.outputs.cl_id }}
