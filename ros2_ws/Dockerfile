@@ -1,6 +1,7 @@
 ARG BASE_TAG=galactic
 FROM ros:${BASE_TAG} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources
 
 # disable suggested and recommended install
 RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
