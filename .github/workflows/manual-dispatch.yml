@@ -65,6 +65,7 @@ jobs:
           workspace: ${{ github.event.inputs.workspace }}
           base_tag: ${{ github.event.inputs.base_tag }}
           cl_branch: ${{ github.event.inputs.cl_branch }}
+          dockerfile_extension: ${{ github.event.inputs.dockerfile_extension }}
           modulo_branch: ${{ github.event.inputs.modulo_branch }}
           output_tag: ${{ github.event.inputs.output_tag }}
           write_image_hash: ${{ github.event.inputs.write_image_hash }}
@@ -78,6 +79,7 @@ jobs:
           workspace: ${{ github.event.inputs.workspace }}
           base_tag: ${{ github.event.inputs.base_tag }}
           cl_branch: ${{ github.event.inputs.cl_branch }}
+          dockerfile_extension: ${{ github.event.inputs.dockerfile_extension }}
           modulo_branch: ${{ github.event.inputs.modulo_branch }}
           output_tag: ${{ github.event.inputs.output_tag }}
           write_image_hash: ${{ github.event.inputs.write_image_hash }}
