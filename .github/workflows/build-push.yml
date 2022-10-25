@@ -111,7 +111,7 @@ jobs:
         with:
           hash: ${{ env.CL_DEVELOP_HASH }}
           file: ./control-libraries-develop-hash
-          ci_branch: ci
+          ci_branch: ${{ env.CI_BRANCH }}
 
   build-publish-galactic-control-libraries:
     needs: build-publish-galactic-workspace
@@ -140,7 +140,7 @@ jobs:
         with:
           hash: ${{ env.CL_MAIN_HASH }}
           file: ./control-libraries-main-hash
-          ci_branch: ci
+          ci_branch: ${{ env.CI_BRANCH }}
 
   build-publish-galactic-modulo-devel:
     needs: build-publish-galactic-control-libraries-devel
@@ -169,7 +169,7 @@ jobs:
         with:
           hash: ${{ env.MODULO_DEVELOP_HASH }}
           file: ./modulo-develop-hash
-          ci_branch: ci
+          ci_branch: ${{ env.CI_BRANCH }}
 
   build-publish-humble-modulo-devel:
     needs: build-publish-humble-control-libraries-devel
@@ -198,7 +198,7 @@ jobs:
         with:
           hash: ${{ env.MODULO_HUMBLE_HASH }}
           file: ./modulo-humble-hash
-          ci_branch: ci
+          ci_branch: ${{ env.CI_BRANCH }}
 
   build-publish-galactic-modulo:
     needs: build-publish-galactic-control-libraries
@@ -227,7 +227,7 @@ jobs:
         with:
           hash: ${{ env.MODULO_MAIN_HASH }}
           file: ./modulo-main-hash
-          ci_branch: ci
+          ci_branch: ${{ env.CI_BRANCH }}
 
   build-publish-galactic-modulo-control-devel:
     needs: build-publish-galactic-modulo-devel

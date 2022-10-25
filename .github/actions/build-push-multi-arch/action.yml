@@ -104,6 +104,7 @@ runs:
           --build-arg CL_BRANCH=${{ inputs.cl_branch }} \
           --build-arg MODULO_BRANCH=${{ inputs.modulo_branch }} \
           ${WORKSPACE_PATH}
+        rm -rf ${WORKSPACE_PATH}/config
       shell: bash
 
     - name: Write new image hash to file
