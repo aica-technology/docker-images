@@ -22,7 +22,7 @@ on:
       base_tag:
         description: 'The tag of the base image to use'
         required: false
-        default: 'galactic'
+        default: 'humble'
       cl_branch:
         description: 'The branch of control libraries'
         required: false

@@ -1,4 +1,4 @@
-ARG BASE_TAG=galactic
+ARG BASE_TAG=humble
 FROM ros:${BASE_TAG} as base-dependencies
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources

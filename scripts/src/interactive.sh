@@ -22,8 +22,8 @@ Options:
                            the image name, replacing all
                            '/' and ':' with '-' and appending
                            '-runtime'. For example, the image
-                           aica-technology/ros2-ws:galactic would yield
-                           aica-technology-ros2-ws-galactic-runtime
+                           aica-technology/ros2-ws:humble would yield
+                           aica-technology-ros2-ws-humble-runtime
 
   -c, --command <cmd>      Pass a command to execute in the container.
                            (optional, default: ${COMMAND})

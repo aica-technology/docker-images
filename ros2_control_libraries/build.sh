@@ -4,7 +4,7 @@ IMAGE_NAME=aica-technology/ros2-control-libraries
 
 LOCAL_BASE_IMAGE=false
 BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
-BASE_TAG=galactic
+BASE_TAG=humble
 OUTPUT_TAG=""
 CL_BRANCH=main
 
