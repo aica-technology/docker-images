@@ -89,7 +89,7 @@ runs:
           --build-arg CL_BRANCH=${{ inputs.cl_branch }} \
           --build-arg MODULO_BRANCH=${{ inputs.modulo_branch }} \
           --tag ${IMAGE_NAME}
-        rm -rf ${WORKSPACE_PATH}/config
+        rm ${WORKSPACE_PATH}/config/sshd_entrypoint.sh
       shell: bash
 
     - name: Login to GitHub Container Registry
