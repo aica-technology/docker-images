@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-control-libraries
-ARG BASE_TAG=galactic
+ARG BASE_TAG=humble
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 ARG MODULO_BRANCH=main

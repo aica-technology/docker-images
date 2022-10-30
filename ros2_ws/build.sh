@@ -1,7 +1,7 @@
 #!/bin/bash
 
 IMAGE_NAME=aica-technology/ros2-ws
-BASE_TAG=galactic
+BASE_TAG=humble
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then

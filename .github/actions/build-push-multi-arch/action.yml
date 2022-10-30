@@ -104,7 +104,6 @@ runs:
           --build-arg CL_BRANCH=${{ inputs.cl_branch }} \
           --build-arg MODULO_BRANCH=${{ inputs.modulo_branch }} \
           ${WORKSPACE_PATH}
-        rm -rf ${WORKSPACE_PATH}/config
       shell: bash
 
     - name: Write new image hash to file
@@ -112,7 +111,7 @@ runs:
       run: |
         git config user.name github-actions
         git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-        git fetch origin ${{ inputs.ci_branch }} && git checkout ${{ inputs.ci_branch }} && git rebase origin/main
+        git fetch origin ${{ inputs.ci_branch }} && git checkout ${{ inputs.ci_branch }} && git reset --hard HEAD && git rebase origin/main
         SHA=$(docker images --no-trunc --quiet ${IMAGE_NAME})
         echo ${SHA} > ./${{ env.WORKSPACE_PATH }}/${{ env.OUTPUT_TAG }}-hash
         git add ./${{ env.WORKSPACE_PATH }}/${{ env.OUTPUT_TAG }}-hash

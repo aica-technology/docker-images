@@ -17,8 +17,6 @@ jobs:
     outputs:
       cl_id: ${{ steps.check_cl.outputs.id }}
       cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
-      modulo_develop_id: ${{ steps.check_modulo_develop.outputs.id }}
-      modulo_develop_rebuild: ${{ steps.check_modulo_develop.outputs.rebuild }}
       modulo_humble_id: ${{ steps.check_modulo_humble.outputs.id }}
       modulo_humble_rebuild: ${{ steps.check_modulo_humble.outputs.rebuild }}
     steps:
@@ -54,83 +52,6 @@ jobs:
             echo "::set-output name=rebuild::true"
             echo "::set-output name=id::${NEW_HASH}"
           fi
-
-      - name: Check latest hash on modulo humble branch
-        id: check_modulo_humble
-        run: |
-          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git humble | awk '{ print $1 }')
-          OLD_HASH=$(cat ./modulo-humble-hash || echo '')
-          if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
-            echo "Modulo doesn't have new commits."
-            echo "::set-output name=rebuild::false"
-          else
-            echo "Modulo has new commits, rebuilding image now..."
-            echo "::set-output name=rebuild::true"
-            echo "::set-output name=id::${NEW_HASH}"
-          fi
-
-  rebuild-cl-galactic-image:
-    needs: check-hash
-    runs-on: ubuntu-latest
-    name: Rebuild ros2-control-libraries galactic-devel image
-    steps:
-      - name: Checkout repository
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: actions/checkout@v2
-
-      - name: Build new ros2-control-libraries galactic image
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: ./.github/actions/build-push
-        with:
-          workspace: ros2-control-libraries
-          base_tag: galactic
-          cl_branch: develop
-          output_tag: galactic-devel-nightly
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-  rebuild-modulo-galactic-image:
-    needs: [check-hash, rebuild-cl-galactic-image]
-    runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo galactic-devel image
-    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_develop_rebuild == 'true'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Build new ros2-modulo galactic-devel image
-        uses: ./.github/actions/build-push
-        with:
-          workspace: ros2-modulo
-          base_tag: galactic-devel-nightly
-          modulo_branch: develop
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.modulo_develop_rebuild == 'true' }}
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ needs.check-hash.outputs.modulo_develop_id }}
-          file: './modulo-develop-hash'
-          ci_branch: ${{ env.CI_BRANCH }}
-
-  rebuild-modulo-control-galactic-image:
-    needs: [ rebuild-modulo-galactic-image ]
-    runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo-control galactic-devel image
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Build new ros2-modulo-control galactic-devel image
-        uses: ./.github/actions/build-push
-        with:
-          workspace: ros2-modulo-control
-          base_tag: galactic-devel-nightly
-          dockerfile_extension: .galactic
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
 
   rebuild-cl-humble-image:
     needs: check-hash
@@ -196,7 +117,7 @@ jobs:
           secret: ${{ secrets.GITHUB_TOKEN }}
 
   write-cl-hash:
-    needs: [ check-hash, rebuild-cl-galactic-image, rebuild-cl-humble-image ]
+    needs: [ check-hash, rebuild-cl-humble-image ]
     runs-on: ubuntu-latest
     name: Write the control libraries hash to file
     if: needs.check-hash.outputs.cl_rebuild == 'true'

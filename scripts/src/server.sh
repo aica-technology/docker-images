@@ -42,8 +42,8 @@ Options:
                            the image name, replacing all
                            '/' and ':' with '-' and appending
                            '-ssh'. For example, the image
-                           aica-technology/ros2-ws:galactic would yield
-                           aica-technology-ros2-ws-galactic-ssh
+                           aica-technology/ros2-ws:humble would yield
+                           aica-technology-ros2-ws-humble-ssh
 
   -u, --user <user>        Specify the name of the remote user.
                            (default: ${USERNAME})

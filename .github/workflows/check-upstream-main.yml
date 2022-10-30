@@ -53,22 +53,21 @@ jobs:
             echo "::set-output name=id::${NEW_HASH}"
           fi
 
-  rebuild-cl-galactic-image:
+  rebuild-cl-humble-image:
     needs: check-hash
     runs-on: ubuntu-latest
-    name: Rebuild ros2-control-libraries galactic image
+    name: Rebuild ros2-control-libraries humble image
     steps:
       - name: Checkout repository
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
         uses: actions/checkout@v2
 
-      - name: Build new ros2-control-libraries galactic image
+      - name: Build new ros2-control-libraries humble image
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
         uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-control-libraries
-          base_tag: galactic
-          output_tag: galactic
+          base_tag: humble
           cl_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -81,20 +80,20 @@ jobs:
           file: './control-libraries-main-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
-  rebuild-modulo-galactic-image:
-    needs: [check-hash, rebuild-cl-galactic-image]
+  rebuild-modulo-humble-image:
+    needs: [check-hash, rebuild-cl-humble-image]
     runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo galactic image
+    name: Rebuild ros2-modulo humble image
     if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Build new ros2-modulo galactic image
+      - name: Build new ros2-modulo humble image
         uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-modulo
-          base_tag: galactic
+          base_tag: humble
           modulo_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
@@ -107,19 +106,19 @@ jobs:
           file: './modulo-main-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
-  rebuild-modulo-control-galactic-image:
-    needs: [ rebuild-modulo-galactic-image ]
+  rebuild-modulo-control-humble-image:
+    needs: [ rebuild-modulo-humble-image ]
     runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo-control galactic image
+    name: Rebuild ros2-modulo-control humble image
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Build new ros2-modulo-control galactic image
+      - name: Build new ros2-modulo-control humble image
         uses: ./.github/actions/build-push-multi-arch
         with:
           workspace: ros2-modulo-control
-          base_tag: galactic
-          dockerfile_extension: .galactic
+          base_tag: humble
+          dockerfile_extension: .humble
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
