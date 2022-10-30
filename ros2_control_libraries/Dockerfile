@@ -3,16 +3,20 @@ ARG BASE_TAG=humble
 ARG UBUNTU_VERSION=focal-fossa
 FROM ${BASE_IMAGE}:${BASE_TAG} as jammy-jellyfish
 
-# install development dependencies
+# install development dependencies and copy licenses
 COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:22.04 /usr/local /tmp/local
 RUN sudo cp -R /tmp/local/* /usr/local && sudo rm -r /tmp/local
+COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:22.04 \
+  /usr/share/doc/control-libraries/licenses /usr/share/doc/control-libraries/licenses
 
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as focal-fossa
 
-# install development dependencies
+# install development dependencies and copy licenses
 COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:20.04 /usr/local /tmp/local
 RUN sudo cp -R /tmp/local/* /usr/local && sudo rm -r /tmp/local
+COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:20.04 \
+  /usr/share/doc/control-libraries/licenses /usr/share/doc/control-libraries/licenses
 
 
 FROM ${UBUNTU_VERSION}
