@@ -3,7 +3,7 @@ name: Scheduled Build and Push Multi-Arch Images (main branches)
 # Run scheduled workflow
 on:
   schedule:
-   - cron: '05 4 * * 1,4' # corresponds to Wednesday and Saturday
+    - cron: '05 4 * * 1,4' # corresponds to Wednesday and Saturday
   workflow_dispatch:
 
 env:
@@ -21,7 +21,7 @@ jobs:
       modulo_rebuild: ${{ steps.check_modulo.outputs.rebuild }}
     steps:
       - name: Checkout CI branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ env.CI_BRANCH }}
 
@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Checkout repository
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build new ros2-control-libraries humble image
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
@@ -87,7 +87,7 @@ jobs:
     if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build new ros2-modulo humble image
         uses: ./.github/actions/build-push-multi-arch
@@ -112,7 +112,7 @@ jobs:
     name: Rebuild ros2-modulo-control humble image
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build new ros2-modulo-control humble image
         uses: ./.github/actions/build-push-multi-arch
