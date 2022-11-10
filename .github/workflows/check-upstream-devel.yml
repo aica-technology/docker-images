@@ -17,8 +17,8 @@ jobs:
     outputs:
       cl_id: ${{ steps.check_cl.outputs.id }}
       cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
-      modulo_humble_id: ${{ steps.check_modulo_humble.outputs.id }}
-      modulo_humble_rebuild: ${{ steps.check_modulo_humble.outputs.rebuild }}
+      modulo_id: ${{ steps.check_modulo.outputs.id }}
+      modulo_rebuild: ${{ steps.check_modulo.outputs.rebuild }}
     steps:
       - name: Checkout CI branch
         uses: actions/checkout@v3
@@ -40,7 +40,7 @@ jobs:
           fi
 
       - name: Check latest hash on modulo develop branch
-        id: check_modulo_develop
+        id: check_modulo
         run: |
           NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
           OLD_HASH=$(cat ./modulo-develop-hash || echo '')
@@ -74,11 +74,19 @@ jobs:
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Write hash to file and push to ci branch
+        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
+        uses: ./.github/actions/write-hash
+        with:
+          hash: ${{ needs.check-hash.outputs.cl_id }}
+          file: './control-libraries-develop-hash'
+          ci_branch: ${{ env.CI_BRANCH }}
+
   rebuild-modulo-humble-image:
     needs: [ check-hash, rebuild-cl-humble-image ]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo humble-devel image
-    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_humble_rebuild == 'true'
+    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -89,16 +97,16 @@ jobs:
           architecture: amd64
           workspace: ros2-modulo
           base_tag: humble-devel-nightly
-          modulo_branch: humble
+          modulo_branch: develop
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.modulo_humble_rebuild == 'true' }}
+        if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
         uses: ./.github/actions/write-hash
         with:
-          hash: ${{ needs.check-hash.outputs.modulo_humble_id }}
-          file: './modulo-humble-hash'
+          hash: ${{ needs.check-hash.outputs.modulo_develop_id }}
+          file: './modulo-develop-hash'
           ci_branch: ${{ env.CI_BRANCH }}
 
   rebuild-modulo-control-humble-image:
@@ -118,19 +126,3 @@ jobs:
           dockerfile_extension: .humble
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
-
-  write-cl-hash:
-    needs: [ check-hash, rebuild-cl-humble-image ]
-    runs-on: ubuntu-latest
-    name: Write the control libraries hash to file
-    if: needs.check-hash.outputs.cl_rebuild == 'true'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Write hash to file and push to ci branch
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ needs.check-hash.outputs.cl_id }}
-          file: './control-libraries-develop-hash'
-          ci_branch: ${{ env.CI_BRANCH }}
