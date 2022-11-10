@@ -56,7 +56,7 @@ jobs:
     name: Build and publish image
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         if: ${{ github.event.inputs.architecture == 'amd64' }}

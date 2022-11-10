@@ -21,7 +21,7 @@ jobs:
       modulo_humble_rebuild: ${{ steps.check_modulo_humble.outputs.rebuild }}
     steps:
       - name: Checkout CI branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ env.CI_BRANCH }}
 
@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Checkout repository
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build new ros2-control-libraries humble image
         if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
@@ -80,7 +80,7 @@ jobs:
     if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_humble_rebuild == 'true'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build new ros2-modulo humble-devel image
         uses: ./.github/actions/build-push
@@ -105,7 +105,7 @@ jobs:
     name: Rebuild ros2-modulo-control humble-devel image
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build new ros2-modulo-control humble-devel image
         uses: ./.github/actions/build-push
@@ -123,7 +123,7 @@ jobs:
     if: needs.check-hash.outputs.cl_rebuild == 'true'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Write hash to file and push to ci branch
         uses: ./.github/actions/write-hash

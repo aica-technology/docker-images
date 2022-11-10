@@ -17,7 +17,7 @@ jobs:
     name: Create new ci branch from main
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Recreate ci branch
         run: |
@@ -31,7 +31,7 @@ jobs:
     name: Build and publish ROS2 galactic workspace image
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -47,7 +47,7 @@ jobs:
     name: Build and publish ROS2 humble workspace image
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -63,7 +63,7 @@ jobs:
     name: Build and publish ROS2 galactic workspace image with control libraries installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -80,7 +80,7 @@ jobs:
     name: Build and publish ROS2 humble workspace image with control libraries installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -97,7 +97,7 @@ jobs:
     name: Write control libraries main hash to file
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get control libraries main hash
         run: |
@@ -117,7 +117,7 @@ jobs:
     name: Build and publish development ROS2 humble workspace image with control libraries installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -147,7 +147,7 @@ jobs:
     name: Build and publish ROS2 galactic workspace image with modulo installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -176,7 +176,7 @@ jobs:
     name: Build and publish development ROS2 humble workspace image with modulo installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -205,7 +205,7 @@ jobs:
     name: Build and publish ROS2 humble workspace image with modulo installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -234,7 +234,7 @@ jobs:
     name: Build and publish ROS2 galactic workspace image with modulo and ros2 control installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -251,7 +251,7 @@ jobs:
     name: Build and publish development ROS2 humble workspace image with modulo and ros2 control installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
@@ -268,7 +268,7 @@ jobs:
     name: Build and publish ROS2 humble workspace image with modulo and ros2 control installed
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build and Push
         uses: ./.github/actions/build-push-multi-arch
