@@ -3,7 +3,7 @@ name: Scheduled Build and Push (devel-nightly, amd64)
 # Run scheduled workflow
 on:
   schedule:
-   - cron: '20 3,13 * * MON-FRI'
+    - cron: '20 3,13 * * MON-FRI'
   workflow_dispatch:
 
 env:

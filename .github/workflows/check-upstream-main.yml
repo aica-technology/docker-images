@@ -3,7 +3,7 @@ name: Scheduled Build and Push Multi-Arch Images (main branches)
 # Run scheduled workflow
 on:
   schedule:
-   - cron: '05 4 * * 1,4' # corresponds to Wednesday and Saturday
+    - cron: '05 4 * * 1,4' # corresponds to Wednesday and Saturday
   workflow_dispatch:
 
 env:
