@@ -59,23 +59,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build and Push
-        if: ${{ github.event.inputs.architecture == 'amd64' }}
-        uses: ./.github/actions/build-push
-        with:
-          workspace: ${{ github.event.inputs.workspace }}
-          base_tag: ${{ github.event.inputs.base_tag }}
-          cl_branch: ${{ github.event.inputs.cl_branch }}
-          dockerfile_extension: ${{ github.event.inputs.dockerfile_extension }}
-          modulo_branch: ${{ github.event.inputs.modulo_branch }}
-          output_tag: ${{ github.event.inputs.output_tag }}
-          write_image_hash: ${{ github.event.inputs.write_image_hash }}
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and Push (Multi-Arch)
-        if: ${{ github.event.inputs.architecture == 'amd64 & arm64' }}
         uses: ./.github/actions/build-push-multi-arch
         with:
+          architecture: ${{ github.event.inputs.architecture }}
           workspace: ${{ github.event.inputs.workspace }}
           base_tag: ${{ github.event.inputs.base_tag }}
           cl_branch: ${{ github.event.inputs.cl_branch }}
