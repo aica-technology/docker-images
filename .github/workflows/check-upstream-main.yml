@@ -3,122 +3,14 @@ name: Scheduled Build and Push Multi-Arch Images (main branches)
 # Run scheduled workflow
 on:
   schedule:
-    - cron: '05 4 * * 1,4' # corresponds to Wednesday and Saturday
+    - cron: '05 4 * * 1' # corresponds to Saturday
   workflow_dispatch:
 
-env:
-  CI_BRANCH: 'ci'
-
 jobs:
-
-  check-hash:
-    runs-on: ubuntu-latest
-    name: Check latest hashes on control libraries and modulo
-    outputs:
-      cl_id: ${{ steps.check_cl.outputs.id }}
-      cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
-      modulo_id: ${{ steps.check_modulo.outputs.id }}
-      modulo_rebuild: ${{ steps.check_modulo.outputs.rebuild }}
-    steps:
-      - name: Checkout CI branch
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ env.CI_BRANCH }}
-
-      - name: Check latest hash on control libraries main branch
-        id: check_cl
-        run: |
-          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git main | awk '{ print $1 }')
-          OLD_HASH=$(cat ./control-libraries-main-hash || echo '')
-          if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
-            echo "Control libraries doesn't have new commits."
-            echo "::set-output name=rebuild::false"
-          else
-            echo "Control libraries have new commits, rebuilding image now..."
-            echo "::set-output name=rebuild::true"
-            echo "::set-output name=id::${NEW_HASH}"
-          fi
-
-      - name: Check latest hash on modulo main branch
-        id: check_modulo
-        run: |
-          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git main | awk '{ print $1 }')
-          OLD_HASH=$(cat ./modulo-main-hash || echo '')
-          if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
-            echo "Modulo doesn't have new commits."
-            echo "::set-output name=rebuild::false"
-          else
-            echo "Modulo has new commits, rebuilding image now..."
-            echo "::set-output name=rebuild::true"
-            echo "::set-output name=id::${NEW_HASH}"
-          fi
-
-  rebuild-cl-humble-image:
-    needs: check-hash
-    runs-on: ubuntu-latest
-    name: Rebuild ros2-control-libraries humble image
-    steps:
-      - name: Checkout repository
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: actions/checkout@v3
-
-      - name: Build new ros2-control-libraries humble image
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-control-libraries
-          base_tag: humble
-          cl_branch: main
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ needs.check-hash.outputs.cl_id }}
-          file: './control-libraries-main-hash'
-          ci_branch: ${{ env.CI_BRANCH }}
-
-  rebuild-modulo-humble-image:
-    needs: [check-hash, rebuild-cl-humble-image]
-    runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo humble image
-    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build new ros2-modulo humble image
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo
-          base_tag: humble
-          modulo_branch: main
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ needs.check-hash.outputs.modulo_id }}
-          file: './modulo-main-hash'
-          ci_branch: ${{ env.CI_BRANCH }}
-
-  rebuild-modulo-control-humble-image:
-    needs: [ rebuild-modulo-humble-image ]
-    runs-on: ubuntu-latest
-    name: Rebuild ros2-modulo-control humble image
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build new ros2-modulo-control humble image
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo-control
-          base_tag: humble
-          dockerfile_extension: .humble
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
+  check-upstream:
+    uses: ./.github/workflows/reusable-check-upstream.yml
+    with:
+      upstream_branch: main
+      ci_branch: ci
+    secrets:
+      registry_token: ${{ secrets.GITHUB_TOKEN }}
