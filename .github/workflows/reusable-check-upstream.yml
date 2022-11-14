@@ -126,7 +126,7 @@ jobs:
           ci_branch: ${{ inputs.ci_branch }}
 
   rebuild-modulo-control-humble-image:
-    needs: [ rebuild-modulo-humble-image ]
+    needs: [ check-hash, rebuild-modulo-humble-image ]
     runs-on: ubuntu-latest
     name: Rebuild ros2-modulo-control humble image
     steps:
