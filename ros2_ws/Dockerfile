@@ -55,7 +55,7 @@ RUN ( \
 
 FROM base-dependencies as base-workspace
 
-# create amd configure a new user
+# create and configure a new user
 ARG UID=1000
 ARG GID=1000
 RUN addgroup --gid ${GID} ${USER}
