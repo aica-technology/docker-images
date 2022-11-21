@@ -40,4 +40,5 @@ RUN sudo rm -rf ./control-libraries
 RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as final
-COPY --from=control-libraries-build /usr /usr
+RUN sudo rm -rf /usr/include/eigen3
+COPY --from=control-libraries-build /usr/ /usr/
