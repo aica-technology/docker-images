@@ -35,9 +35,9 @@ RUN sudo ./control-libraries/protocol/install.sh -y
 
 # install python bindings
 RUN sudo pip3 install ./control-libraries/python
-RUN sudo rm -rf ./control-libraries
 
-RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+# clean image
+RUN sudo rm -rf ./control-libraries && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as final
 RUN sudo rm -rf /usr/include/eigen3

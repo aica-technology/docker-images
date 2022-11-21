@@ -88,7 +88,7 @@ RUN mkdir /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
 
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
-  source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
+source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
 # enable colorized output from ros logging
