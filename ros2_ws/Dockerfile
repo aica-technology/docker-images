@@ -1,14 +1,22 @@
 ARG BASE_TAG=humble
-FROM ros:${BASE_TAG} as base-dependencies
+FROM ros:${BASE_TAG} as environment-variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources
+ENV PIP_NO_CACHE_DIR 1
+ENV USER ros2
+ENV HOME /home/${USER}
+ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
+ENV COLCON_HOME ${HOME}/.colcon
+ENV COLCON_DEFAULTS_FILE ${COLCON_HOME}/defaults.yaml
+ENV COLCON_WORKSPACE=${ROS2_WORKSPACE}
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+
+
+FROM environment-variables as base-dependencies
 
 # disable suggested and recommended install
 RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
   | sudo tee /etc/apt/apt.conf.d/999norecommend
-
-# disable pip caching
-ENV PIP_NO_CACHE_DIR 1
 
 # install base dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -46,9 +54,6 @@ RUN ( \
 
 
 FROM base-dependencies as base-workspace
-ENV USER ros2
-ENV HOME /home/${USER}
-ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
 
 # create amd configure a new user
 ARG UID=1000
@@ -67,20 +72,14 @@ RUN chmod 744 /sshd_entrypoint.sh
 # configure colcon defaults and utilities
 USER ${USER}
 WORKDIR ${HOME}
-ENV COLCON_HOME ${HOME}/.colcon
 RUN mkdir -p ${COLCON_HOME}
 COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
-ENV COLCON_DEFAULTS_FILE ${COLCON_HOME}/defaults.yaml
-
-# set the default colcon workspace path
-ENV COLCON_WORKSPACE=${ROS2_WORKSPACE}
 
 # build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src
 WORKDIR ${ROS2_WORKSPACE}
 RUN rosdep update
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
 
 # create the credentials to be able to pull private repos using ssh
@@ -89,15 +88,16 @@ RUN mkdir /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
 
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
-source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
+  source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
 # enable colorized output from ros logging
 RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
 
+
+FROM environment-variables as final
+COPY --from=base-workspace / /
+
 # start as ROS user
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
-
-# Clean image
-RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
