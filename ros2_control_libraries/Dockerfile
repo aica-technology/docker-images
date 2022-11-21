@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 ARG BASE_TAG=humble
-ARG UBUNTU_VERSION=focal-fossa
+ARG UBUNTU_VERSION=jammy-jellyfish
 FROM ${BASE_IMAGE}:${BASE_TAG} as jammy-jellyfish
 
 # install development dependencies and copy licenses
