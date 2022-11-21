@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-control-libraries
 ARG BASE_TAG=humble
-FROM ${BASE_IMAGE}:${BASE_TAG}
+FROM ${BASE_IMAGE}:${BASE_TAG} as modulo-build
 
 ARG MODULO_BRANCH=main
 WORKDIR /tmp
@@ -13,3 +13,6 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 
 RUN sudo rm -rf /tmp/*
+
+FROM ${BASE_IMAGE}:${BASE_TAG} as final
+COPY --from=modulo-build ${ROS2_WORKSPACE} ${ROS2_WORKSPACE}
