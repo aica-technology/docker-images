@@ -19,7 +19,7 @@ COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:20.04 \
   /usr/share/doc/control-libraries/licenses /usr/share/doc/control-libraries/licenses
 
 
-FROM ${UBUNTU_VERSION}
+FROM ${UBUNTU_VERSION} as control-libraries-build
 WORKDIR ${HOME}
 
 RUN sudo ldconfig
@@ -38,3 +38,6 @@ RUN sudo pip3 install ./control-libraries/python
 RUN sudo rm -rf ./control-libraries
 
 RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+
+FROM ${BASE_IMAGE}:${BASE_TAG} as final
+COPY --from=control-libraries-build /usr /usr
