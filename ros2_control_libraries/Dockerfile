@@ -1,6 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 ARG BASE_TAG=humble
-ARG UBUNTU_VERSION=focal-fossa
+ARG UBUNTU_VERSION=jammy-jellyfish
 FROM ${BASE_IMAGE}:${BASE_TAG} as jammy-jellyfish
 
 # install development dependencies and copy licenses
@@ -19,7 +19,7 @@ COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:20.04 \
   /usr/share/doc/control-libraries/licenses /usr/share/doc/control-libraries/licenses
 
 
-FROM ${UBUNTU_VERSION}
+FROM ${UBUNTU_VERSION} as control-libraries-build
 WORKDIR ${HOME}
 
 RUN sudo ldconfig
@@ -35,6 +35,10 @@ RUN sudo ./control-libraries/protocol/install.sh -y
 
 # install python bindings
 RUN sudo pip3 install ./control-libraries/python
-RUN sudo rm -rf ./control-libraries
 
-RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+# clean image
+RUN sudo rm -rf ./control-libraries && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+
+FROM ${BASE_IMAGE}:${BASE_TAG} as final
+RUN sudo rm -rf /usr/include/eigen3
+COPY --from=control-libraries-build /usr/ /usr/

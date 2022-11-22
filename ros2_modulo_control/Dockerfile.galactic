@@ -1,7 +1,6 @@
 ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-modulo
 ARG BASE_TAG=humble
-FROM ${BASE_IMAGE}:${BASE_TAG} as ros2-control-sources
-USER ${USER}
+FROM ${BASE_IMAGE}:${BASE_TAG} as ros2-control-build
 
 RUN mkdir -p ${ROS2_WORKSPACE}/src/ros2_control
 WORKDIR ${ROS2_WORKSPACE}/src/ros2_control
@@ -17,8 +16,9 @@ RUN git clone -b galactic --depth 1 https://github.com/ros2/rcl_interfaces.git
 RUN git clone -b galactic --depth 1 https://github.com/ros2/test_interface_files.git
 RUN git clone -b ros2 --depth 1 https://github.com/ros/angles.git
 
-
-FROM ros2-control-sources as final
-ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
+
+
+FROM ${BASE_IMAGE}:${BASE_TAG} as final
+COPY --from=ros2-control-build ${ROS2_WORKSPACE} ${ROS2_WORKSPACE}
