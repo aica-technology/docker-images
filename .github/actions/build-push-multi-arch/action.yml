@@ -102,12 +102,15 @@ runs:
         IMAGE_NAME=${{ env.IMAGE_NAME }}
         DOCKERFILE=${WORKSPACE_PATH}/Dockerfile${{ inputs.dockerfile_extension }}
 
-        if [[ "${BASE_TAG}" == *"galactic"* ]]; then
+        if [[ "${BASE_TAG}" == *"noetic"* ]]; then
           UBUNTU_VERSION=focal-fossa
+        elif [[ "${BASE_TAG}" == *"humble"* ]]; then
+          UBUNTU_VERSION=focal-fossa
+        else
         elif [[ "${BASE_TAG}" == *"humble"* ]]; then
           UBUNTU_VERSION=jammy-jellyfish
         else
-          echo "::error::Invalid base tag. Base tag needs to contain either 'galactic' or 'humble'."
+          echo "::error::Invalid base tag. Base tag needs to contain either 'noetic', 'galactic' or 'humble'."
           exit 1
         fi
 
