@@ -104,9 +104,8 @@ runs:
 
         if [[ "${BASE_TAG}" == *"noetic"* ]]; then
           UBUNTU_VERSION=focal-fossa
-        elif [[ "${BASE_TAG}" == *"humble"* ]]; then
+        elif [[ "${BASE_TAG}" == *"galactic"* ]]; then
           UBUNTU_VERSION=focal-fossa
-        else
         elif [[ "${BASE_TAG}" == *"humble"* ]]; then
           UBUNTU_VERSION=jammy-jellyfish
         else
