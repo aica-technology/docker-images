@@ -25,22 +25,6 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git checkout -b ${{ env.CI_BRANCH }} origin/main && git push -f -u origin ${{ env.CI_BRANCH }}
 
-  build-publish-galactic-workspace:
-    needs: create-new-ci-branch
-    runs-on: ubuntu-latest
-    name: Build and publish ROS2 galactic workspace image
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-ws
-          base_tag: galactic
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
   build-publish-humble-workspace:
     needs: create-new-ci-branch
     runs-on: ubuntu-latest
@@ -54,23 +38,6 @@ jobs:
         with:
           workspace: ros2-ws
           base_tag: humble
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-  build-publish-galactic-control-libraries:
-    needs: build-publish-galactic-workspace
-    runs-on: ubuntu-latest
-    name: Build and publish ROS2 galactic workspace image with control libraries installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-control-libraries
-          base_tag: galactic
-          cl_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
 
@@ -90,14 +57,6 @@ jobs:
           cl_branch: main
           ci_branch: ${{ env.CI_BRANCH }}
           secret: ${{ secrets.GITHUB_TOKEN }}
-
-  write-control-libraries-main-hash:
-    needs: [ build-publish-galactic-control-libraries, build-publish-humble-control-libraries]
-    runs-on: ubuntu-latest
-    name: Write control libraries main hash to file
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
 
       - name: Get control libraries main hash
         run: |
@@ -139,35 +98,6 @@ jobs:
         with:
           hash: ${{ env.CL_DEVELOP_HASH }}
           file: ./control-libraries-develop-hash
-          ci_branch: ${{ env.CI_BRANCH }}
-
-  build-publish-galactic-modulo:
-    needs: build-publish-galactic-control-libraries
-    runs-on: ubuntu-latest
-    name: Build and publish ROS2 galactic workspace image with modulo installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo
-          base_tag: galactic
-          modulo_branch: galactic
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get modulo galactic hash
-        run: |
-          HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git galactic | awk '{ print $1 }')
-          echo "MODULO_GALACTIC_HASH=${HASH}" >> $GITHUB_ENV
-
-      - name: Write hash
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ env.MODULO_GALACTIC_HASH }}
-          file: ./modulo-galactic-hash
           ci_branch: ${{ env.CI_BRANCH }}
 
   build-publish-humble-modulo-devel:
@@ -227,23 +157,6 @@ jobs:
           hash: ${{ env.MODULO_MAIN_HASH }}
           file: ./modulo-main-hash
           ci_branch: ${{ env.CI_BRANCH }}
-
-  build-publish-galactic-modulo-control:
-    needs: build-publish-galactic-modulo
-    runs-on: ubuntu-latest
-    name: Build and publish ROS2 galactic workspace image with modulo and ros2 control installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo-control
-          base_tag: galactic
-          dockerfile_extension: .galactic
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-humble-modulo-control-devel:
     needs: build-publish-humble-modulo-devel

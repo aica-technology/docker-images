@@ -32,3 +32,4 @@ RUN sudo rm -rf ./control-libraries && sudo apt-get clean && sudo rm -rf /var/li
 FROM ${BASE_IMAGE}:${BASE_TAG} as final
 RUN sudo rm -rf /usr/include/eigen3
 COPY --from=control-libraries-build /usr/ /usr/
+RUN sudo ldconfig
