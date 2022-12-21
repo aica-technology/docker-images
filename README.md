@@ -14,7 +14,7 @@ The username that should be supplied at login is `ros`.
 ### ROS workspace with pre-installed control libraries
 
 The ros_control_libraries image provides the same ROS workspace as ros_ws but
-comes with the pre-installed [control libraries](https://github.com/epfl-lasa/control-libraries).
+comes with the pre-installed [control libraries](https://github.com/aica-technology/control-libraries).
 
 ### ROS2 workspace
 
@@ -28,17 +28,17 @@ The username that should be supplied at login is `ros2`.
 ### ROS2 workspace with pre-installed control libraries
 
 The ros2_control_libraries image provides the same ROS2 workspace as ros2_ws but
-comes with the pre-installed [control libraries](https://github.com/epfl-lasa/control-libraries).
+comes with the pre-installed [control libraries](https://github.com/aica-technology/control-libraries).
 
 ### ROS2 workspace with pre-installed control libraries and modulo
 
-The ros2_modulo image provides a ROS2 workspace with [modulo](https://github.com/epfl-lasa/modulo)
-already built and comes with pre-installed [control libraries](https://github.com/epfl-lasa/control-libraries).
+The ros2_modulo image provides a ROS2 workspace with [modulo](https://github.com/aica-technology/modulo)
+already built and comes with pre-installed [control libraries](https://github.com/aica-technology/control-libraries).
 
 ### ROS2 workspace with pre-installed control libraries, modulo, and ROS2 control
 
-The ros2_modulo_control image provides a ROS2 workspace with [modulo](https://github.com/epfl-lasa/modulo)
-already built and comes with pre-installed [control libraries](https://github.com/epfl-lasa/control-libraries)
+The ros2_modulo_control image provides a ROS2 workspace with [modulo](https://github.com/aica-technology/modulo)
+already built and comes with pre-installed [control libraries](https://github.com/aica-technology/control-libraries)
 and ROS2 control packages.
 
 ## Scripts

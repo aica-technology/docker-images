@@ -60,7 +60,7 @@ jobs:
 
       - name: Get control libraries main hash
         run: |
-          HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git main | awk '{ print $1 }')
+          HASH=$(git ls-remote https://github.com/aica-technology/control-libraries.git main | awk '{ print $1 }')
           echo "CL_MAIN_HASH=${HASH}" >> $GITHUB_ENV
 
       - name: Write hash
@@ -90,7 +90,7 @@ jobs:
 
       - name: Get control libraries develop hash
         run: |
-          HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git develop | awk '{ print $1 }')
+          HASH=$(git ls-remote https://github.com/aica-technology/control-libraries.git develop | awk '{ print $1 }')
           echo "CL_DEVELOP_HASH=${HASH}" >> $GITHUB_ENV
 
       - name: Write hash
@@ -119,7 +119,7 @@ jobs:
 
       - name: Get modulo develop hash
         run: |
-          HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git develop | awk '{ print $1 }')
+          HASH=$(git ls-remote https://github.com/aica-technology/modulo.git develop | awk '{ print $1 }')
           echo "MODULO_DEVELOP_HASH=${HASH}" >> $GITHUB_ENV
 
       - name: Write hash
@@ -148,7 +148,7 @@ jobs:
 
       - name: Get modulo main hash
         run: |
-          HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git main | awk '{ print $1 }')
+          HASH=$(git ls-remote https://github.com/aica-technology/modulo.git main | awk '{ print $1 }')
           echo "MODULO_MAIN_HASH=${HASH}" >> $GITHUB_ENV
 
       - name: Write hash

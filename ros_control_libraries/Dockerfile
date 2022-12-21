@@ -3,9 +3,9 @@ ARG BASE_TAG=noetic
 FROM ${BASE_IMAGE}:${BASE_TAG} as focal-fossa
 
 # install development dependencies and copy licenses
-COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:20.04 /usr/local /tmp/local
+COPY --from=ghcr.io/aica-technology/control-libraries/development-dependencies:20.04 /usr/local /tmp/local
 RUN sudo cp -R /tmp/local/* /usr/local && sudo rm -r /tmp/local
-COPY --from=ghcr.io/epfl-lasa/control-libraries/development-dependencies:20.04 \
+COPY --from=ghcr.io/aica-technology/control-libraries/development-dependencies:20.04 \
   /usr/share/doc/control-libraries/licenses /usr/share/doc/control-libraries/licenses
 
 
@@ -15,7 +15,7 @@ WORKDIR ${HOME}
 RUN sudo ldconfig
 
 ARG CL_BRANCH=main
-RUN git clone -b ${CL_BRANCH} --depth 1 https://github.com/epfl-lasa/control-libraries.git
+RUN git clone -b ${CL_BRANCH} --depth 1 https://github.com/aica-technology/control-libraries.git
 
 # install source
 RUN sudo ./control-libraries/source/install.sh -y
