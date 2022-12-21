@@ -45,7 +45,7 @@ jobs:
       - name: Check latest hash on control libraries
         id: check_cl
         run: |
-          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/control-libraries.git ${{ inputs.upstream_branch }} | awk '{ print $1 }')
+          NEW_HASH=$(git ls-remote https://github.com/aica-technology/control-libraries.git ${{ inputs.upstream_branch }} | awk '{ print $1 }')
           OLD_HASH=$(cat ./control-libraries-${{ inputs.upstream_branch }}-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
             echo "Control libraries doesn't have new commits."
@@ -59,7 +59,7 @@ jobs:
       - name: Check latest hash on modulo
         id: check_modulo
         run: |
-          NEW_HASH=$(git ls-remote https://github.com/epfl-lasa/modulo.git ${{ inputs.upstream_branch }} | awk '{ print $1 }')
+          NEW_HASH=$(git ls-remote https://github.com/aica-technology/modulo.git ${{ inputs.upstream_branch }} | awk '{ print $1 }')
           OLD_HASH=$(cat ./modulo-${{ inputs.upstream_branch }}-hash || echo '')
           if [ "${NEW_HASH}" = "${OLD_HASH}" ]; then
             echo "Modulo doesn't have new commits."
