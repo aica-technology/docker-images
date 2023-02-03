@@ -123,6 +123,7 @@ runs:
           --build-arg UBUNTU_VERSION=${UBUNTU_VERSION} \
           --build-arg CL_BRANCH=${{ inputs.cl_branch }} \
           --build-arg MODULO_BRANCH=${{ inputs.modulo_branch }} \
+          --provenance=false --sbom=false \
           ${WORKSPACE_PATH}
         SHA=$(docker buildx imagetools inspect ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME} | grep Digest)
         echo "SHA=${SHA##*sha256:}" >> $GITHUB_ENV
