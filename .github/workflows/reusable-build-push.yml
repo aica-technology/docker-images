@@ -160,6 +160,7 @@ jobs:
 
   get-dependency-hash:
     needs: [ write-image-hash ]
+    if: inputs.workspace == 'ros2-control-libraries' || inputs.workspace == 'ros2-modulo'
     runs-on: ubuntu-latest
     name: Get hash of installed library
     outputs:
@@ -189,7 +190,6 @@ jobs:
 
   write-dependency-hash:
     needs: [ parse-inputs, get-dependency-hash ]
-    if: needs.get-dependency-hash.outputs.hash
     name: Write dependency hash
     uses: aica-technology/.github/.github/workflows/write-file.yml@main
     with:
