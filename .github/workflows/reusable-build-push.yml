@@ -1,6 +1,5 @@
-name: Reusable workflow for build and push multi-arch images
+name: Reusable workflow to build and push multi-arch images
 
-# Run workflow by manual dispatch
 on:
   workflow_call:
     inputs:
