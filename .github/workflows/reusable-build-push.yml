@@ -1,0 +1,197 @@
+name: Reusable workflow to build and push multi-arch images
+
+on:
+  workflow_call:
+    inputs:
+      workspace:
+        required: true
+        type: string
+      base_tag:
+        required: false
+        type: string
+        default: 'humble'
+      output_tag:
+        required: false
+        type: string
+      cl_branch:
+        required: false
+        type: string
+        default: 'main'
+      modulo_branch:
+        required: false
+        type: string
+        default: 'main'
+      dockerfile_extension:
+        required: false
+        type: string
+      platforms:
+        required: false
+        type: string
+        default: 'linux/amd64,linux/arm64'
+      write_hashes:
+        required: false
+        type: string
+        default: 'true'
+    secrets:
+      token:
+        description: 'The GitHub token passed from the caller workflow'
+        required: true
+
+env:
+  CI_BRANCH: 'ci'
+  ARTI_NAME: 'artifact'
+
+jobs:
+  parse-inputs:
+    runs-on: ubuntu-latest
+    name: Parse inputs
+    outputs:
+      output_tag: ${{ steps.parse.outputs.output_tag }}
+      image_name: ${{ steps.parse.outputs.image_name }}
+      path: ${{ steps.parse.outputs.path }}
+      file: ${{ steps.parse.outputs.file }}
+      build_flags: ${{ steps.parse.outputs.build_flags }}
+      ci_branch: ${{ steps.parse.outputs.ci_branch }}
+    steps:
+      - name: Parse inputs
+        id: parse
+        run: |
+          BUILD_FLAGS=()
+          # parse base tag     
+          BASE_TAG=${{ inputs.base_tag }}
+          if [[ "${BASE_TAG}" == *"noetic"* ]]; then
+            UBUNTU_VERSION=focal-fossa
+          elif [[ "${BASE_TAG}" == *"galactic"* ]]; then
+            UBUNTU_VERSION=focal-fossa
+          elif [[ "${BASE_TAG}" == *"humble"* ]]; then
+            UBUNTU_VERSION=jammy-jellyfish
+          else
+            echo "::error::Invalid base tag. Base tag needs to contain either 'noetic', 'galactic' or 'humble'."
+            exit 1
+          fi
+          BUILD_FLAGS+=(--build-arg BASE_TAG=${BASE_TAG})
+          BUILD_FLAGS+=(--build-arg UBUNTU_VERSION=${UBUNTU_VERSION})
+          echo "::debug::Using base image tag ${BASE_TAG}"
+          # parse output tag
+          OUTPUT_TAG=${{ inputs.output_tag }}
+          if [ -z ${OUTPUT_TAG} ]; then
+            OUTPUT_TAG=${BASE_TAG}
+          fi
+          echo "output_tag=${OUTPUT_TAG}" >> $GITHUB_OUTPUT
+          echo "::debug::Generated image tag will be ${OUTPUT_TAG}"
+          
+          # parse image name
+          IMAGE_NAME=${{ inputs.workspace }}
+          IMAGE_NAME=${{ github.repository_owner }}/${IMAGE_NAME//[_]/-}
+          echo "::debug::Generated image name will be ${IMAGE_NAME}"
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          
+          # parse docker path and file
+          WS_PATH=${{ inputs.workspace }}
+          WS_PATH=${WS_PATH//[-]/_}
+          echo "path=${WS_PATH}" >> $GITHUB_OUTPUT
+          FILE=${WS_PATH}/Dockerfile${{ inputs.dockerfile_extension }}
+          echo "file=${FILE}" >> $GITHUB_OUTPUT
+          
+          # add branches to build flags
+          BUILD_FLAGS+=(--build-arg CL_BRANCH=${{ inputs.cl_branch }})
+          BUILD_FLAGS+=(--build-arg MODULO_BRANCH=${{ inputs.modulo_branch }})
+          echo "build_flags=${BUILD_FLAGS[@]}" >> $GITHUB_OUTPUT
+          
+          # convert env to output
+          echo "ci_branch=${{ env.CI_BRANCH }}" >> $GITHUB_OUTPUT
+
+  prepare-workspace:
+    needs: parse-inputs
+    runs-on: ubuntu-latest
+    name: Prepare workspace
+    outputs:
+      artifact_name: ${{ steps.prepare.outputs.artifact_name }}
+      artifact_path: ${{ steps.prepare.outputs.artifact_path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Prepare workspace
+        id: prepare
+        if: needs.parse-inputs.outputs.path == 'ros2_ws' || needs.parse-inputs.outputs.path == 'ros_ws'
+        run: |
+          CONFIG_PATH=${{ needs.parse-inputs.outputs.path }}/config
+          mkdir -p ${CONFIG_PATH}
+          cp common/sshd_entrypoint.sh ${CONFIG_PATH}/
+          echo "artifact_name=${{ env.ARTI_NAME }}" >> $GITHUB_OUTPUT
+          echo "artifact_path=${CONFIG_PATH}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Upload artifacts
+        if: needs.parse-inputs.outputs.path == 'ros2_ws' || needs.parse-inputs.outputs.path == 'ros_ws'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.prepare.outputs.artifact_name }}
+          path: ${{ steps.prepare.outputs.artifact_path }}
+          retention-days: 1
+
+  build-push:
+    needs: [ parse-inputs, prepare-workspace ]
+    name: Build and push
+    uses: aica-technology/.github/.github/workflows/build-push-multi-arch.yml@main
+    with:
+      image_name: ${{ needs.parse-inputs.outputs.image_name }}
+      image_tags: ${{ needs.parse-inputs.outputs.output_tag }}
+      build_context_path: ${{ needs.parse-inputs.outputs.path }}
+      dockerfile_path: ${{ needs.parse-inputs.outputs.file }}
+      platforms: ${{ inputs.platforms }}
+      build_flags: ${{ needs.parse-inputs.outputs.build_flags }}
+      artifact_name: ${{ needs.prepare-workspace.outputs.artifact_name }}
+      artifact_path: ${{ needs.prepare-workspace.outputs.artifact_path }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  write-image-hash:
+    needs: [ parse-inputs, build-push ]
+    if: inputs.write_hashes == 'true'
+    name: Write image hash
+    uses: aica-technology/.github/.github/workflows/write-file.yml@main
+    with:
+      content: ${{ needs.build-push.outputs.image_hash }}
+      filepath: ./${{ needs.parse-inputs.outputs.path }}/${{ needs.parse-inputs.outputs.output_tag }}-hash
+      branch: ${{ needs.parse-inputs.outputs.ci_branch }}
+
+  get-dependency-hash:
+    needs: [ write-image-hash ]
+    if: inputs.workspace == 'ros2-control-libraries' || inputs.workspace == 'ros2-modulo'
+    runs-on: ubuntu-latest
+    name: Get hash of installed library
+    outputs:
+      hash: ${{ steps.get-hash.outputs.hash }}
+      hash_filename: ${{ steps.get-hash.outputs.hash_filename }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get hash
+        id: get-hash
+        run: |
+          HASH=""
+          HASH_FILENAME=""
+          if [[ "${{ inputs.workspace }}" == "ros2-control-libraries" ]]; then
+            BRANCH=${{ inputs.cl_branch }}
+            HASH_FILENAME="./control-libraries-${BRANCH}-hash"
+            HASH=$(git ls-remote https://github.com/aica-technology/control-libraries.git ${BRANCH} | awk '{ print $1 }')
+          elif [[ "${{ inputs.workspace }}" == "ros2-modulo" ]]; then
+            BRANCH=${{ inputs.modulo_branch }}
+            HASH_FILENAME="./modulo-${BRANCH}-hash"
+            HASH=$(git ls-remote https://github.com/aica-technology/modulo.git ${BRANCH} | awk '{ print $1 }')
+          fi
+          echo "hash_filename=${HASH_FILENAME}" >> $GITHUB_OUTPUT
+          echo "hash=${HASH}" >> $GITHUB_OUTPUT
+        shell: bash
+
+  write-dependency-hash:
+    needs: [ parse-inputs, get-dependency-hash ]
+    name: Write dependency hash
+    uses: aica-technology/.github/.github/workflows/write-file.yml@main
+    with:
+      content: ${{ needs.get-dependency-hash.outputs.hash }}
+      filepath: ${{ needs.get-dependency-hash.outputs.hash_filename }}
+      branch: ${{ needs.parse-inputs.outputs.ci_branch }}
