@@ -24,10 +24,10 @@ on:
       dockerfile_extension:
         required: false
         type: string
-      architecture:
+      platforms:
         required: false
         type: string
-        default: 'amd64 & arm64'
+        default: 'linux/amd64,linux/arm64'
       write_hashes:
         required: false
         type: string
@@ -137,10 +137,10 @@ jobs:
     uses: aica-technology/.github/.github/workflows/build-push-multi-arch.yml@main
     with:
       image_name: ${{ needs.parse-inputs.outputs.image_name }}
-      image_tag: ${{ needs.parse-inputs.outputs.output_tag }}
+      image_tags: ${{ needs.parse-inputs.outputs.output_tag }}
       build_context_path: ${{ needs.parse-inputs.outputs.path }}
       dockerfile_path: ${{ needs.parse-inputs.outputs.file }}
-      architecture: ${{ inputs.architecture }}
+      platforms: ${{ inputs.platforms }}
       build_flags: ${{ needs.parse-inputs.outputs.build_flags }}
       artifact_name: ${{ needs.prepare-workspace.outputs.artifact_name }}
       artifact_path: ${{ needs.prepare-workspace.outputs.artifact_path }}
@@ -149,7 +149,7 @@ jobs:
 
   write-image-hash:
     needs: [ parse-inputs, build-push ]
-    if: ${{ inputs.write_hashes == 'true' }}
+    if: inputs.write_hashes == 'true'
     name: Write image hash
     uses: aica-technology/.github/.github/workflows/write-file.yml@main
     with:
