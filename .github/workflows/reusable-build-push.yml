@@ -168,6 +168,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          ref: ${{ env.CI_BRANCH }}
 
       - name: Get hash
         id: get-hash
@@ -183,12 +185,16 @@ jobs:
             HASH_FILENAME="./modulo-${BRANCH}-hash"
             HASH=$(git ls-remote https://github.com/aica-technology/modulo.git ${BRANCH} | awk '{ print $1 }')
           fi
-          echo "hash_filename=${HASH_FILENAME}" >> $GITHUB_OUTPUT
-          echo "hash=${HASH}" >> $GITHUB_OUTPUT
+          OLD_HASH=$(cat ${HASH_FILENAME} || echo '')
+          if [ "${OLD_HASH}" != "${HASH}" ]; then
+            echo "hash_filename=${HASH_FILENAME}" >> $GITHUB_OUTPUT
+            echo "hash=${HASH}" >> $GITHUB_OUTPUT
+          fi
         shell: bash
 
   write-dependency-hash:
     needs: [ parse-inputs, get-dependency-hash ]
+    if: needs.get-dependency-hash.outputs.hash
     name: Write dependency hash
     uses: aica-technology/.github/.github/workflows/write-file.yml@v0.1
     with:
