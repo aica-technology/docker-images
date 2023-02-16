@@ -134,13 +134,13 @@ jobs:
   build-push:
     needs: [ parse-inputs, prepare-workspace ]
     name: Build and push
-    uses: aica-technology/.github/.github/workflows/build-push-multi-arch.yml@main
+    uses: aica-technology/.github/.github/workflows/build-push-multi-arch.yml@v0.1
     with:
       image_name: ${{ needs.parse-inputs.outputs.image_name }}
       image_tags: ${{ needs.parse-inputs.outputs.output_tag }}
+      platforms: ${{ inputs.platforms }}
       build_context_path: ${{ needs.parse-inputs.outputs.path }}
       dockerfile_path: ${{ needs.parse-inputs.outputs.file }}
-      platforms: ${{ inputs.platforms }}
       build_flags: ${{ needs.parse-inputs.outputs.build_flags }}
       artifact_name: ${{ needs.prepare-workspace.outputs.artifact_name }}
       artifact_path: ${{ needs.prepare-workspace.outputs.artifact_path }}
@@ -151,7 +151,7 @@ jobs:
     needs: [ parse-inputs, build-push ]
     if: inputs.write_hashes == 'true'
     name: Write image hash
-    uses: aica-technology/.github/.github/workflows/write-file.yml@main
+    uses: aica-technology/.github/.github/workflows/write-file.yml@v0.1
     with:
       content: ${{ needs.build-push.outputs.image_hash }}
       filepath: ./${{ needs.parse-inputs.outputs.path }}/${{ needs.parse-inputs.outputs.output_tag }}-hash
@@ -190,7 +190,7 @@ jobs:
   write-dependency-hash:
     needs: [ parse-inputs, get-dependency-hash ]
     name: Write dependency hash
-    uses: aica-technology/.github/.github/workflows/write-file.yml@main
+    uses: aica-technology/.github/.github/workflows/write-file.yml@v0.1
     with:
       content: ${{ needs.get-dependency-hash.outputs.hash }}
       filepath: ${{ needs.get-dependency-hash.outputs.hash_filename }}
