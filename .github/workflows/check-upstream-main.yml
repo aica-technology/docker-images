@@ -11,6 +11,5 @@ jobs:
     uses: ./.github/workflows/reusable-check-upstream.yml
     with:
       upstream_branch: main
-      ci_branch: ci
     secrets:
-      registry_token: ${{ secrets.GITHUB_TOKEN }}
+      token: ${{ secrets.GITHUB_TOKEN }}
