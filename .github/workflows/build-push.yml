@@ -21,173 +21,82 @@ jobs:
 
       - name: Recreate ci branch
         run: |
-          git config user.name github-actions
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
           git checkout -b ${{ env.CI_BRANCH }} origin/main && git push -f -u origin ${{ env.CI_BRANCH }}
 
   build-publish-humble-workspace:
     needs: create-new-ci-branch
-    runs-on: ubuntu-latest
     name: Build and publish ROS2 humble workspace image
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-ws
-          base_tag: humble
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-  build-publish-humble-control-libraries:
-    needs: build-publish-humble-workspace
-    runs-on: ubuntu-latest
-    name: Build and publish ROS2 humble workspace image with control libraries installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-control-libraries
-          base_tag: humble
-          cl_branch: main
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get control libraries main hash
-        run: |
-          HASH=$(git ls-remote https://github.com/aica-technology/control-libraries.git main | awk '{ print $1 }')
-          echo "CL_MAIN_HASH=${HASH}" >> $GITHUB_ENV
-
-      - name: Write hash
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ env.CL_MAIN_HASH }}
-          file: ./control-libraries-main-hash
-          ci_branch: ${{ env.CI_BRANCH }}
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-ws
+      base_tag: humble
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-humble-control-libraries-devel:
-    needs: build-publish-humble-workspace
-    runs-on: ubuntu-latest
+    needs: [ create-new-ci-branch, build-publish-humble-workspace ]
     name: Build and publish development ROS2 humble workspace image with control libraries installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-control-libraries
+      base_tag: humble
+      output_tag: humble-devel
+      cl_branch: develop
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-control-libraries
-          base_tag: humble
-          cl_branch: develop
-          output_tag: humble-devel
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get control libraries develop hash
-        run: |
-          HASH=$(git ls-remote https://github.com/aica-technology/control-libraries.git develop | awk '{ print $1 }')
-          echo "CL_DEVELOP_HASH=${HASH}" >> $GITHUB_ENV
-
-      - name: Write hash
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ env.CL_DEVELOP_HASH }}
-          file: ./control-libraries-develop-hash
-          ci_branch: ${{ env.CI_BRANCH }}
+  build-publish-humble-control-libraries:
+    needs: [ create-new-ci-branch, build-publish-humble-workspace ]
+    name: Build and publish ROS2 humble workspace image with control libraries installed
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-control-libraries
+      base_tag: humble
+      cl_branch: main
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-humble-modulo-devel:
-    needs: build-publish-humble-control-libraries-devel
-    runs-on: ubuntu-latest
+    needs: [ create-new-ci-branch, build-publish-humble-control-libraries-devel ]
     name: Build and publish development ROS2 humble workspace image with modulo installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo
-          base_tag: humble-devel
-          modulo_branch: develop
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get modulo develop hash
-        run: |
-          HASH=$(git ls-remote https://github.com/aica-technology/modulo.git develop | awk '{ print $1 }')
-          echo "MODULO_DEVELOP_HASH=${HASH}" >> $GITHUB_ENV
-
-      - name: Write hash
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ env.MODULO_DEVELOP_HASH }}
-          file: ./modulo-develop-hash
-          ci_branch: ${{ env.CI_BRANCH }}
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-modulo
+      base_tag: humble-devel
+      modulo_branch: develop
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-humble-modulo:
-    needs: build-publish-humble-control-libraries
-    runs-on: ubuntu-latest
+    needs: [ create-new-ci-branch, build-publish-humble-control-libraries ]
     name: Build and publish ROS2 humble workspace image with modulo installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo
-          base_tag: humble
-          modulo_branch: main
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get modulo main hash
-        run: |
-          HASH=$(git ls-remote https://github.com/aica-technology/modulo.git main | awk '{ print $1 }')
-          echo "MODULO_MAIN_HASH=${HASH}" >> $GITHUB_ENV
-
-      - name: Write hash
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ env.MODULO_MAIN_HASH }}
-          file: ./modulo-main-hash
-          ci_branch: ${{ env.CI_BRANCH }}
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-modulo
+      base_tag: humble
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-humble-modulo-control-devel:
-    needs: build-publish-humble-modulo-devel
-    runs-on: ubuntu-latest
+    needs: [ create-new-ci-branch, build-publish-humble-modulo-devel ]
     name: Build and publish development ROS2 humble workspace image with modulo and ros2 control installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo-control
-          base_tag: humble-devel
-          dockerfile_extension: .humble
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-modulo-control
+      base_tag: humble-devel
+      dockerfile_extension: .humble
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-humble-modulo-control:
-    needs: build-publish-humble-modulo
-    runs-on: ubuntu-latest
+    needs: [ create-new-ci-branch, build-publish-humble-modulo ]
     name: Build and publish ROS2 humble workspace image with modulo and ros2 control installed
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo-control
-          base_tag: humble
-          dockerfile_extension: .humble
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-modulo-control
+      base_tag: humble
+      dockerfile_extension: .humble
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}

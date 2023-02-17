@@ -1,4 +1,4 @@
-name: Reusable workflow for build and push multi-arch images
+name: Reusable workflow for scheduled checks
 
 on:
   workflow_call:
@@ -6,28 +6,26 @@ on:
       upstream_branch:
         required: true
         type: string
-      ci_branch:
-        required: true
-        type: string
     secrets:
-      registry_token:
+      token:
         required: true
+
+env:
+  CI_BRANCH: 'ci'
 
 jobs:
   check-hash:
     runs-on: ubuntu-latest
     name: Check latest hashes on control libraries and modulo
     outputs:
-      cl_id: ${{ steps.check_cl.outputs.id }}
       cl_rebuild: ${{ steps.check_cl.outputs.rebuild }}
-      modulo_id: ${{ steps.check_modulo.outputs.id }}
       modulo_rebuild: ${{ steps.check_modulo.outputs.rebuild }}
       image_tag: ${{ steps.parse_tag.outputs.tag }}
     steps:
       - name: Checkout CI branch
         uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.ci_branch }}
+          ref: ${{ env.CI_BRANCH }}
 
       - name: Parse tag for images
         id: parse_tag
@@ -53,7 +51,6 @@ jobs:
           else
             echo "Control libraries have new commits, rebuilding image now..."
             echo "rebuild=true" >> $GITHUB_OUTPUT
-            echo "id=${NEW_HASH}" >> $GITHUB_OUTPUT
           fi
 
       - name: Check latest hash on modulo
@@ -67,78 +64,46 @@ jobs:
           else
             echo "Modulo has new commits, rebuilding image now..."
             echo "rebuild=true" >> $GITHUB_OUTPUT
-            echo "id=${NEW_HASH}" >> $GITHUB_OUTPUT
           fi
 
   rebuild-cl-humble-image:
     needs: check-hash
-    runs-on: ubuntu-latest
+    if: needs.check-hash.outputs.cl_rebuild == 'true'
     name: Rebuild ros2-control-libraries humble image
-    steps:
-      - name: Checkout repository
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: actions/checkout@v3
-
-      - name: Build new ros2-control-libraries humble image
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-control-libraries
-          base_tag: humble
-          cl_branch: ${{ inputs.upstream_branch }}
-          output_tag: ${{ needs.check-hash.outputs.image_tag }}
-          ci_branch: ${{ inputs.ci_branch }}
-          secret: ${{ secrets.github_token }}
-
-      - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.cl_rebuild == 'true' }}
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ needs.check-hash.outputs.cl_id }}
-          file: ./control-libraries-${{ inputs.upstream_branch }}-hash
-          ci_branch: ${{ inputs.ci_branch }}
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-control-libraries
+      base_tag: humble
+      output_tag: ${{ needs.check-hash.outputs.image_tag }}
+      cl_branch: ${{ inputs.upstream_branch }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
 
   rebuild-modulo-humble-image:
-    needs: [check-hash, rebuild-cl-humble-image]
-    runs-on: ubuntu-latest
+    needs: [ check-hash, rebuild-cl-humble-image ]
+    if: |
+      always() &&
+      (needs.rebuild-cl-humble-image.result == 'success' || needs.rebuild-cl-humble-image.result == 'skipped') &&
+      (needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true')
     name: Rebuild ros2-modulo humble image
-    if: needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build new ros2-modulo humble image
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo
-          base_tag: ${{ needs.check-hash.outputs.image_tag }}
-          modulo_branch: ${{ inputs.upstream_branch }}
-          output_tag: ${{ needs.check-hash.outputs.image_tag }}
-          ci_branch: ${{ inputs.ci_branch }}
-          secret: ${{ secrets.github_token }}
-
-      - name: Write hash to file and push to ci branch
-        if: ${{ needs.check-hash.outputs.modulo_rebuild == 'true' }}
-        uses: ./.github/actions/write-hash
-        with:
-          hash: ${{ needs.check-hash.outputs.modulo_id }}
-          file: ./modulo-${{ inputs.upstream_branch }}-hash
-          ci_branch: ${{ inputs.ci_branch }}
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-modulo
+      base_tag: ${{ needs.check-hash.outputs.image_tag }}
+      output_tag: ${{ needs.check-hash.outputs.image_tag }}
+      modulo_branch: ${{ inputs.upstream_branch }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
 
   rebuild-modulo-control-humble-image:
     needs: [ check-hash, rebuild-modulo-humble-image ]
-    runs-on: ubuntu-latest
+    if: always() && needs.rebuild-modulo-humble-image.result == 'success'
     name: Rebuild ros2-modulo-control humble image
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build new ros2-modulo-control humble image
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          workspace: ros2-modulo-control
-          base_tag: ${{ needs.check-hash.outputs.image_tag }}
-          dockerfile_extension: .humble
-          output_tag: ${{ needs.check-hash.outputs.image_tag }}
-          ci_branch: ${{ inputs.ci_branch }}
-          secret: ${{ secrets.github_token }}
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-modulo-control
+      base_tag: ${{ needs.check-hash.outputs.image_tag }}
+      output_tag: ${{ needs.check-hash.outputs.image_tag }}
+      dockerfile_extension: .humble
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}

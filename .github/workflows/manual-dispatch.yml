@@ -5,69 +5,55 @@ on:
   workflow_dispatch:
     inputs:
       workspace:
-        description: 'The desired workspace (e.g. ros2-control-libraries)'
+        description: 'The desired workspace'
         required: true
+        type: choice
         options:
-          - 'ros2-ws'
-          - 'ros2-control-libraries'
-          - 'ros2-modulo'
-          - 'ros2-modulo-control'
-      architecture:
-        description: 'The desired architecture to build [`amd64` or `amd64 & arm64`]'
+          - ros2-ws
+          - ros2-control-libraries
+          - ros2-modulo
+          - ros2-modulo-control
+      platforms:
+        description: 'The desired build platform(s) as comma-separated list (for example "linux/amd64,linux/arm64")'
         required: true
-        default: 'amd64'
-        options:
-          - 'amd64'
-          - 'amd64 & arm64'
+        default: 'linux/amd64'
       base_tag:
         description: 'The tag of the base image to use'
         required: false
         default: 'humble'
+      output_tag:
+        description: 'The tag for the output image (if left empty, the base tag is used)'
+        required: false
+        default: ''
       cl_branch:
         description: 'The branch of control libraries'
+        required: false
+        default: 'main'
+      modulo_branch:
+        description: 'The branch of modulo'
         required: false
         default: 'main'
       dockerfile_extension:
         description: 'The optional extension of the Dockerfile for variant images'
         required: false
         default: ''
-      modulo_branch:
-        description: 'The branch of modulo'
+      write_hashes:
+        description: 'Write image SHA256 and library dependency hashes to file (set to false for temporary or test images)'
         required: false
-        default: 'main'
-      output_tag:
-        description: 'The tag for the output image (if left empty, the base tag is used)'
-        required: false
-        default: ''
-      write_image_hash:
-        description: 'Write image SHA256 hash to file (set to false for temporary or test images)'
-        required: false
-        default: 'true'
-        options:
-          - 'true'
-          - 'false'
-
-env:
-  CI_BRANCH: 'ci'
+        default: true
+        type: boolean
 
 jobs:
-  build-publish:
-    runs-on: ubuntu-latest
-    name: Build and publish image
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Build and Push
-        uses: ./.github/actions/build-push-multi-arch
-        with:
-          architecture: ${{ github.event.inputs.architecture }}
-          workspace: ${{ github.event.inputs.workspace }}
-          base_tag: ${{ github.event.inputs.base_tag }}
-          cl_branch: ${{ github.event.inputs.cl_branch }}
-          dockerfile_extension: ${{ github.event.inputs.dockerfile_extension }}
-          modulo_branch: ${{ github.event.inputs.modulo_branch }}
-          output_tag: ${{ github.event.inputs.output_tag }}
-          write_image_hash: ${{ github.event.inputs.write_image_hash }}
-          ci_branch: ${{ env.CI_BRANCH }}
-          secret: ${{ secrets.GITHUB_TOKEN }}
+  build-push:
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ${{ inputs.workspace }}
+      base_tag: ${{ inputs.base_tag }}
+      output_tag: ${{ inputs.output_tag }}
+      cl_branch: ${{ inputs.cl_branch }}
+      modulo_branch: ${{ inputs.modulo_branch }}
+      dockerfile_extension: ${{ inputs.dockerfile_extension }}
+      platforms: ${{ inputs.platforms }}
+      write_hashes: ${{ inputs.write_hashes }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}

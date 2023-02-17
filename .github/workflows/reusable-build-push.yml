@@ -134,13 +134,13 @@ jobs:
   build-push:
     needs: [ parse-inputs, prepare-workspace ]
     name: Build and push
-    uses: aica-technology/.github/.github/workflows/build-push-multi-arch.yml@main
+    uses: aica-technology/.github/.github/workflows/build-push-multi-arch.yml@v0.1
     with:
       image_name: ${{ needs.parse-inputs.outputs.image_name }}
       image_tags: ${{ needs.parse-inputs.outputs.output_tag }}
+      platforms: ${{ inputs.platforms }}
       build_context_path: ${{ needs.parse-inputs.outputs.path }}
       dockerfile_path: ${{ needs.parse-inputs.outputs.file }}
-      platforms: ${{ inputs.platforms }}
       build_flags: ${{ needs.parse-inputs.outputs.build_flags }}
       artifact_name: ${{ needs.prepare-workspace.outputs.artifact_name }}
       artifact_path: ${{ needs.prepare-workspace.outputs.artifact_path }}
@@ -151,7 +151,7 @@ jobs:
     needs: [ parse-inputs, build-push ]
     if: inputs.write_hashes == 'true'
     name: Write image hash
-    uses: aica-technology/.github/.github/workflows/write-file.yml@main
+    uses: aica-technology/.github/.github/workflows/write-file.yml@v0.1
     with:
       content: ${{ needs.build-push.outputs.image_hash }}
       filepath: ./${{ needs.parse-inputs.outputs.path }}/${{ needs.parse-inputs.outputs.output_tag }}-hash
@@ -168,6 +168,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          ref: ${{ env.CI_BRANCH }}
 
       - name: Get hash
         id: get-hash
@@ -183,14 +185,18 @@ jobs:
             HASH_FILENAME="./modulo-${BRANCH}-hash"
             HASH=$(git ls-remote https://github.com/aica-technology/modulo.git ${BRANCH} | awk '{ print $1 }')
           fi
-          echo "hash_filename=${HASH_FILENAME}" >> $GITHUB_OUTPUT
-          echo "hash=${HASH}" >> $GITHUB_OUTPUT
+          OLD_HASH=$(cat ${HASH_FILENAME} || echo '')
+          if [ "${OLD_HASH}" != "${HASH}" ]; then
+            echo "hash_filename=${HASH_FILENAME}" >> $GITHUB_OUTPUT
+            echo "hash=${HASH}" >> $GITHUB_OUTPUT
+          fi
         shell: bash
 
   write-dependency-hash:
     needs: [ parse-inputs, get-dependency-hash ]
+    if: needs.get-dependency-hash.outputs.hash
     name: Write dependency hash
-    uses: aica-technology/.github/.github/workflows/write-file.yml@main
+    uses: aica-technology/.github/.github/workflows/write-file.yml@v0.1
     with:
       content: ${{ needs.get-dependency-hash.outputs.hash }}
       filepath: ${{ needs.get-dependency-hash.outputs.hash_filename }}
