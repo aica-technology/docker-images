@@ -45,8 +45,8 @@ while true; do
   read -r -p "Do you with to install auto completion for aica-docker to '${SHELL_RC_PATH}'? [YES|no]
 >>>" yn
   case $yn in
-    "" | yes) source_completion_script "${SHELL_RC_PATH}"; break;;
-    no) exit;;
-    *) echo "Please answer 'yes' or 'no'.";;
+    "" | yes | YES | y) source_completion_script "${SHELL_RC_PATH}"; break;;
+    no | n) exit;;
+    *) echo "Please answer 'yes/y' or 'no/n'.";;
   esac
 done
