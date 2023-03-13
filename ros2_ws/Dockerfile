@@ -69,6 +69,18 @@ RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_apt
 COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
 RUN chmod 744 /sshd_entrypoint.sh
 
+# configure entrypoint to remap UID and GID with 'fixuid' if requested user is not root
+# this helps with permission issues of shared volumes
+ARG TARGETPLATFORM
+COPY ./config/entrypoint.sh /entrypoint.sh
+RUN chmod 745 /entrypoint.sh
+RUN /bin/bash -c 'ARCH=${TARGETPLATFORM/\//-} && \
+    curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.5.1/fixuid-0.5.1-${ARCH}.tar.gz | tar -C /usr/local/bin -xzf -' \
+RUN chown root:root /usr/local/bin/fixuid && \
+    chmod 4755 /usr/local/bin/fixuid && \
+    mkdir -p /etc/fixuid && \
+    printf "user: ${USER}\ngroup: ${USER}\n" > /etc/fixuid/config.yml
+
 # configure colcon defaults and utilities
 USER ${USER}
 WORKDIR ${HOME}
