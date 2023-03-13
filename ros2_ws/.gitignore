@@ -1,1 +1,2 @@
 config/sshd_entrypoint.sh
+config/entrypoint.sh

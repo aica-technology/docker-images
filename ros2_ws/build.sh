@@ -8,6 +8,10 @@ if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
   mkdir -p "${SCRIPT_DIR}"/config
   cp "$(dirname "${SCRIPT_DIR}")"/common/sshd_entrypoint.sh "${SCRIPT_DIR}"/config/ || exit 1
 fi
+if [[ ! -f "${SCRIPT_DIR}"/config/entrypoint.sh ]]; then
+  mkdir -p "${SCRIPT_DIR}"/config
+  cp "$(dirname "${SCRIPT_DIR}")"/common/entrypoint.sh "${SCRIPT_DIR}"/config/ || exit 1
+fi
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do

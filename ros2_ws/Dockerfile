@@ -106,6 +106,8 @@ RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-sessi
 # enable colorized output from ros logging
 RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
 
+COPY ./config/entrypoint.sh /entrypoint.sh
+
 # FIXME(#76): Remove once dependencies are fixed again
 RUN add-apt-repository ppa:kisak/kisak-mesa && apt update && apt upgrade -y && rm -rf /var/lib/apt/lists/*
 
@@ -116,3 +118,5 @@ COPY --from=base-workspace / /
 # start as ROS user
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
+
+ENTRYPOINT ["/entrypoint.sh"]
