@@ -108,8 +108,10 @@ if [ -z "${CONTAINER_NAME}" ]; then
   CONTAINER_NAME="${CONTAINER_NAME/:/-}-runtime"
 fi
 
-if [ -n "${USERNAME}" ]; then
-  RUN_FLAGS+=(-u "${USERNAME}")
+if [[ "${USERNAME}" == "root" ]]; then
+  RUN_FLAGS+=(-u "root:root")
+else
+  RUN_FLAGS+=(-u "$(id -u "${USER}")":"$(id -g "${USER}")")
 fi
 
 if [ $GENERATE_HOST_NAME == true ]; then
