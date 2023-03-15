@@ -1,8 +1,8 @@
 #!/bin/bash
 
 SCRIPTS=("connect" "interactive" "server")
-CONTAINERS=$(docker ps --format "{{ .Names }}")
-IMAGES=$(docker images --format "{{.Repository}}:{{.Tag}}")
+CONTAINERS=$(docker ps --format "{{ .Names }}" 2> /dev/null)
+IMAGES=$(docker images --format "{{.Repository}}:{{.Tag}}" 2> /dev/null)
 IMAGES=${IMAGES//"<none>:<none>"/}
 
 _aica_docker () {
@@ -12,8 +12,8 @@ _aica_docker () {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   if [[ ${COMP_CWORD} -eq 2 ]]; then
-    CONTAINERS=$(docker ps --format "{{ .Names }}")
-    IMAGES=$(docker images --format "{{.Repository}}:{{.Tag}}")
+    CONTAINERS=$(docker ps --format "{{ .Names }}" 2> /dev/null)
+    IMAGES=$(docker images --format "{{.Repository}}:{{.Tag}}" 2> /dev/null)
     IMAGES=${IMAGES//"<none>:<none>"/}
   fi
 
