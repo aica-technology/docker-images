@@ -1,5 +1,17 @@
 #!/bin/bash
 
+function connect () {
+  source "${SCRIPT_DIR}"/src/connect.sh "$@"
+}
+
+function interactive () {
+  source "${SCRIPT_DIR}"/src/interactive.sh "$@"
+}
+
+function server () {
+  source "${SCRIPT_DIR}"/src/server.sh "$@"
+}
+
 HELP_MESSAGE="Usage: aica-docker [server | interactive | connect]"
 
 if [ -z "$1" ]; then
@@ -18,17 +30,17 @@ fi
 case "$1" in
 connect)
   shift 1
-  source "${SCRIPT_DIR}"/src/connect.sh "$@"
+  connect "$@"
   exit $?
   ;;
 interactive)
   shift 1
-  source "${SCRIPT_DIR}"/src/interactive.sh "$@"
+  interactive "$@"
   exit $?
   ;;
 server)
   shift 1
-  source "${SCRIPT_DIR}"/src/server.sh "$@"
+  server "$@"
   exit $?
   ;;
 *)
