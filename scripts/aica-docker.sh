@@ -1,15 +1,8 @@
 #!/bin/bash
 
-function connect () {
-  source "${SCRIPT_DIR}"/src/connect.sh "$@"
-}
-
-function interactive () {
-  source "${SCRIPT_DIR}"/src/interactive.sh "$@"
-}
-
-function server () {
-  source "${SCRIPT_DIR}"/src/server.sh "$@"
+function fn_exists () {
+  declare -f "$1" > /dev/null
+  echo $?
 }
 
 HELP_MESSAGE="Usage: aica-docker [server | interactive | connect]"
@@ -30,17 +23,29 @@ fi
 case "$1" in
 connect)
   shift 1
-  connect "$@"
+  if [ $(fn_exists "connect") == 0 ]; then
+    connect "$@"
+  else
+    source "${SCRIPT_DIR}"/src/connect.sh "$@"
+  fi
   exit $?
   ;;
 interactive)
   shift 1
-  interactive "$@"
+  if [ $(fn_exists "interactive") == 0 ]; then
+    interactive "$@"
+  else
+    source "${SCRIPT_DIR}"/src/interactive.sh "$@"
+  fi
   exit $?
   ;;
 server)
   shift 1
-  server "$@"
+  if [ $(fn_exists "server") == 0 ]; then
+    server "$@"
+  else
+    source "${SCRIPT_DIR}"/src/server.sh "$@"
+  fi
   exit $?
   ;;
 *)
