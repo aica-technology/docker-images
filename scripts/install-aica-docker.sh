@@ -52,8 +52,11 @@ fi
 sudo mv "${SCRIPT_DIR}/tmpfile" ${BIN_PATH} && sudo chmod +x ${BIN_PATH} || exit 1
 
 SHELL_RC_PATH=$(get_shell_rc_path)
+if [ $? == 1 ]; then
+  echo "${SHELL_RC_PATH}" && exit 1
+fi
 while true; do
-  read -r -p "Do you with to install auto completion for aica-docker to '${SHELL_RC_PATH}'? [YES|no]
+  read -r -p "Do you wish to install auto completion for aica-docker to '${SHELL_RC_PATH}'? [YES|no]
 >>>" yn
   case $yn in
     "" | yes | YES | y) source_completion_script "${SHELL_RC_PATH}"; break;;
