@@ -30,19 +30,33 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-SYMLINK="/usr/local/bin/aica-docker"
+echo "#!/bin/bash
+function connect () {" > "${SCRIPT_DIR}/tmpfile"
+echo "$(cat ${SCRIPT_DIR}/src/connect.sh)" >> "${SCRIPT_DIR}/tmpfile"
+echo "}
+function interactive () {" >> "${SCRIPT_DIR}/tmpfile"
+echo "$(cat ${SCRIPT_DIR}/src/interactive.sh)" >> "${SCRIPT_DIR}/tmpfile"
+echo "}
+function server () {" >> "${SCRIPT_DIR}/tmpfile"
+echo "$(cat ${SCRIPT_DIR}/src/server.sh)" >> "${SCRIPT_DIR}/tmpfile"
+echo "}" >> "${SCRIPT_DIR}/tmpfile"
+echo "$(cat ${SCRIPT_DIR}/aica-docker.sh)" >> "${SCRIPT_DIR}/tmpfile"
+BIN_PATH="/usr/local/bin/aica-docker"
 
-if test -f "$SYMLINK"; then
-  echo "Updating symbolic link from ${SYMLINK} to ${SCRIPT_DIR}/aica-docker.sh;"
-  sudo rm "${SYMLINK}" || exit 1
+if test -f "$BIN_PATH"; then
+  echo "Updating script at ${BIN_PATH};"
+  sudo rm "${BIN_PATH}" || exit 1
 else
-  echo "Creating a symbolic link from ${SYMLINK} to ${SCRIPT_DIR}/aica-docker.sh;"
+  echo "Copying script to ${BIN_PATH};"
 fi
-sudo ln -s "${SCRIPT_DIR}/aica-docker.sh" ${SYMLINK}
+sudo mv "${SCRIPT_DIR}/tmpfile" ${BIN_PATH} && sudo chmod +x ${BIN_PATH} || exit 1
 
 SHELL_RC_PATH=$(get_shell_rc_path)
+if [ $? == 1 ]; then
+  echo "${SHELL_RC_PATH}" && exit 1
+fi
 while true; do
-  read -r -p "Do you with to install auto completion for aica-docker to '${SHELL_RC_PATH}'? [YES|no]
+  read -r -p "Do you wish to install auto completion for aica-docker to '${SHELL_RC_PATH}'? [YES|no]
 >>>" yn
   case $yn in
     "" | yes | YES | y) source_completion_script "${SHELL_RC_PATH}"; break;;
