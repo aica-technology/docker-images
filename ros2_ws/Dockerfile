@@ -82,17 +82,16 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN rosdep update
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
 
-# create the credentials to be able to pull private repos using ssh
-USER root
-RUN mkdir /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
-
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
 source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
-RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
-
 # enable colorized output from ros logging
 RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
+
+# create the credentials to be able to pull private repos using ssh
+USER root
+RUN mkdir /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
+RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
 # FIXME(#76): Remove once dependencies are fixed again
 RUN add-apt-repository ppa:kisak/kisak-mesa && apt update && apt upgrade -y && rm -rf /var/lib/apt/lists/*
