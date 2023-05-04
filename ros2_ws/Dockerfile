@@ -93,9 +93,6 @@ USER root
 RUN mkdir /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
-# FIXME(#76): Remove once dependencies are fixed again
-RUN add-apt-repository ppa:kisak/kisak-mesa && apt update && apt upgrade -y && rm -rf /var/lib/apt/lists/*
-
 
 FROM environment-variables as final
 COPY --from=base-workspace / /
