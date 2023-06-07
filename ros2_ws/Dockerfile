@@ -69,6 +69,11 @@ RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_apt
 COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
 RUN chmod 744 /sshd_entrypoint.sh
 
+# crete user group with realtime permissions and add user to it
+RUN groupadd realtime && usermod -aG realtime ${USER}
+RUN echo "@realtime        soft    rtprio          99\n@realtime        hard    rtprio          99\n" > \
+    /etc/security/limits.d/realtime.conf
+
 # configure colcon defaults and utilities
 USER ${USER}
 WORKDIR ${HOME}
