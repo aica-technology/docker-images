@@ -70,7 +70,7 @@ COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
 RUN chmod 744 /sshd_entrypoint.sh
 
 # crete user group with realtime permissions and add user to it
-RUN groupadd realtime && usermod -aG realtime ${USER}
+RUN groupadd -g 3719 realtime && usermod -aG realtime ${USER}
 RUN echo "@realtime        soft    rtprio          99\n@realtime        hard    rtprio          99\n" > \
     /etc/security/limits.d/realtime.conf
 
