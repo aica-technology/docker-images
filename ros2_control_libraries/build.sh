@@ -3,7 +3,7 @@
 IMAGE_NAME=aica-technology/ros2-control-libraries
 
 LOCAL_BASE_IMAGE=false
-BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
+BASE_IMAGE=ghcr.io/aica-technology/ros2-control
 BASE_TAG=humble
 OUTPUT_TAG=""
 CL_BRANCH=main
@@ -48,7 +48,7 @@ if [ -z "${OUTPUT_TAG}" ]; then
 fi
 
 if [ "${LOCAL_BASE_IMAGE}" == true ]; then
-  BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-ws)
+  BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-control)
 else
   docker pull "${BASE_IMAGE}:${BASE_TAG}"
 fi
