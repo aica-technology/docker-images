@@ -35,9 +35,20 @@ jobs:
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
 
-  build-publish-humble-control-libraries-devel:
+  build-publish-humble-control:
     needs: [ create-new-ci-branch, build-publish-humble-workspace ]
-    name: Build and publish development ROS2 humble workspace image with control libraries installed
+    name: Build and publish ROS2 humble workspace image with ros2 control installed
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      workspace: ros2-control
+      base_tag: humble
+      dockerfile_extension: .humble
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-publish-humble-control-libraries-devel:
+    needs: [ create-new-ci-branch, build-publish-humble-control ]
+    name: Build and publish development ROS2 humble ros2 control image with control libraries installed
     uses: ./.github/workflows/reusable-build-push.yml
     with:
       workspace: ros2-control-libraries
@@ -48,8 +59,8 @@ jobs:
       token: ${{ secrets.GITHUB_TOKEN }}
 
   build-publish-humble-control-libraries:
-    needs: [ create-new-ci-branch, build-publish-humble-workspace ]
-    name: Build and publish ROS2 humble workspace image with control libraries installed
+    needs: [ create-new-ci-branch, build-publish-humble-control ]
+    name: Build and publish ROS2 humble ros2 control image with control libraries installed
     uses: ./.github/workflows/reusable-build-push.yml
     with:
       workspace: ros2-control-libraries
@@ -60,10 +71,10 @@ jobs:
 
   build-publish-humble-modulo-devel:
     needs: [ create-new-ci-branch, build-publish-humble-control-libraries-devel ]
-    name: Build and publish development ROS2 humble workspace image with modulo installed
+    name: Build and publish development ROS2 humble ros2 control image with modulo installed
     uses: ./.github/workflows/reusable-build-push.yml
     with:
-      workspace: ros2-modulo
+      workspace: ros2-modulo-control
       base_tag: humble-devel
       modulo_branch: develop
     secrets:
@@ -71,32 +82,10 @@ jobs:
 
   build-publish-humble-modulo:
     needs: [ create-new-ci-branch, build-publish-humble-control-libraries ]
-    name: Build and publish ROS2 humble workspace image with modulo installed
-    uses: ./.github/workflows/reusable-build-push.yml
-    with:
-      workspace: ros2-modulo
-      base_tag: humble
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-publish-humble-modulo-control-devel:
-    needs: [ create-new-ci-branch, build-publish-humble-modulo-devel ]
-    name: Build and publish development ROS2 humble workspace image with modulo and ros2 control installed
-    uses: ./.github/workflows/reusable-build-push.yml
-    with:
-      workspace: ros2-modulo-control
-      base_tag: humble-devel
-      dockerfile_extension: .humble
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-publish-humble-modulo-control:
-    needs: [ create-new-ci-branch, build-publish-humble-modulo ]
-    name: Build and publish ROS2 humble workspace image with modulo and ros2 control installed
+    name: Build and publish ROS2 humble ros2 control image with modulo installed
     uses: ./.github/workflows/reusable-build-push.yml
     with:
       workspace: ros2-modulo-control
       base_tag: humble
-      dockerfile_extension: .humble
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}

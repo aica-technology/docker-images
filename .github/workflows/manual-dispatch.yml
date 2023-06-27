@@ -10,8 +10,8 @@ on:
         type: choice
         options:
           - ros2-ws
+          - ros2-control
           - ros2-control-libraries
-          - ros2-modulo
           - ros2-modulo-control
       platforms:
         description: 'The desired build platform(s) as comma-separated list (for example "linux/amd64,linux/arm64")'

@@ -85,25 +85,12 @@ jobs:
       always() &&
       (needs.rebuild-cl-humble-image.result == 'success' || needs.rebuild-cl-humble-image.result == 'skipped') &&
       (needs.check-hash.outputs.cl_rebuild == 'true' || needs.check-hash.outputs.modulo_rebuild == 'true')
-    name: Rebuild ros2-modulo humble image
-    uses: ./.github/workflows/reusable-build-push.yml
-    with:
-      workspace: ros2-modulo
-      base_tag: ${{ needs.check-hash.outputs.image_tag }}
-      output_tag: ${{ needs.check-hash.outputs.image_tag }}
-      modulo_branch: ${{ inputs.upstream_branch }}
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
-  rebuild-modulo-control-humble-image:
-    needs: [ check-hash, rebuild-modulo-humble-image ]
-    if: always() && needs.rebuild-modulo-humble-image.result == 'success'
     name: Rebuild ros2-modulo-control humble image
     uses: ./.github/workflows/reusable-build-push.yml
     with:
       workspace: ros2-modulo-control
       base_tag: ${{ needs.check-hash.outputs.image_tag }}
       output_tag: ${{ needs.check-hash.outputs.image_tag }}
-      dockerfile_extension: .humble
+      modulo_branch: ${{ inputs.upstream_branch }}
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
