@@ -1,12 +1,11 @@
 #!/bin/bash
 
-IMAGE_NAME=aica-technology/ros2-modulo
+IMAGE_NAME=aica-technology/ros2-control
 
 LOCAL_BASE_IMAGE=false
-BASE_IMAGE=ghcr.io/aica-technology/ros2-control-libraries
+BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
 BASE_TAG=humble
 OUTPUT_TAG=""
-MODULO_BRANCH=main
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
@@ -17,10 +16,6 @@ while [ "$#" -gt 0 ]; do
     ;;
   --base-tag)
     BASE_TAG=$2
-    shift 2
-    ;;
-  --modulo-branch)
-    MODULO_BRANCH=$2
     shift 2
     ;;
   --output-tag)
@@ -48,13 +43,21 @@ if [ -z "${OUTPUT_TAG}" ]; then
 fi
 
 if [ "${LOCAL_BASE_IMAGE}" = true ]; then
-  BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-control-libraries)
+  BUILD_FLAGS+=(--build-arg BASE_IMAGE=aica-technology/ros2-ws)
 else
   docker pull "${BASE_IMAGE}:${BASE_TAG}"
 fi
 
 BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
-BUILD_FLAGS+=(--build-arg MODULO_BRANCH="${MODULO_BRANCH}")
 BUILD_FLAGS+=(-t "${IMAGE_NAME}:${OUTPUT_TAG}")
 
-DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .
+if [[ "${BASE_TAG}" == *"galactic"* ]]; then
+  DOCKERFILE=Dockerfile.galactic
+elif [[ "${BASE_TAG}" == *"humble"* ]]; then
+  DOCKERFILE=Dockerfile.humble
+else
+  echo "Invalid base tag. Base tag needs to contain either 'galactic' or 'humble'."
+  exit 1
+fi
+
+DOCKER_BUILDKIT=1 docker build -f "${DOCKERFILE}" "${BUILD_FLAGS[@]}" .
