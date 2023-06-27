@@ -59,13 +59,9 @@ jobs:
           BUILD_FLAGS=()
           # parse base tag     
           BASE_TAG=${{ inputs.base_tag }}
-          if [[ "${BASE_TAG}" == *"noetic"* ]]; then
+          if [[ "${BASE_TAG}" == *"noetic"* || "${BASE_TAG}" == *"galactic"* ]]; then
             UBUNTU_VERSION=focal-fossa
-          elif [[ "${BASE_TAG}" == *"galactic"* ]]; then
-            UBUNTU_VERSION=focal-fossa
-          elif [[ "${BASE_TAG}" == *"humble"* ]]; then
-            UBUNTU_VERSION=jammy-jellyfish
-          elif [[ "${BASE_TAG}" == *"iron"* ]]; then
+          elif [[ "${BASE_TAG}" == *"humble"* || "${BASE_TAG}" == *"iron"* ]]; then
             UBUNTU_VERSION=jammy-jellyfish
           else
             echo "::error::Invalid base tag. Base tag needs to contain either 'noetic', 'galactic', 'humble' or 'iron'."
