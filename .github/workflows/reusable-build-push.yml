@@ -65,8 +65,10 @@ jobs:
             UBUNTU_VERSION=focal-fossa
           elif [[ "${BASE_TAG}" == *"humble"* ]]; then
             UBUNTU_VERSION=jammy-jellyfish
+          elif [[ "${BASE_TAG}" == *"iron"* ]]; then
+            UBUNTU_VERSION=jammy-jellyfish
           else
-            echo "::error::Invalid base tag. Base tag needs to contain either 'noetic', 'galactic' or 'humble'."
+            echo "::error::Invalid base tag. Base tag needs to contain either 'noetic', 'galactic', 'humble' or 'iron'."
             exit 1
           fi
           BUILD_FLAGS+=(--build-arg BASE_TAG=${BASE_TAG})
