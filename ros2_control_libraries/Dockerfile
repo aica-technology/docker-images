@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-ws
+ARG BASE_IMAGE=ghcr.io/aica-technology/ros2-control
 ARG BASE_TAG=humble
 ARG UBUNTU_VERSION=jammy-jellyfish
 FROM ${BASE_IMAGE}:${BASE_TAG} as jammy-jellyfish
@@ -20,7 +20,7 @@ COPY --from=ghcr.io/aica-technology/control-libraries/development-dependencies:2
 
 
 FROM ${UBUNTU_VERSION} as control-libraries-build
-WORKDIR ${HOME}
+WORKDIR /tmp
 
 RUN sudo ldconfig
 
@@ -37,7 +37,7 @@ RUN sudo ./control-libraries/protocol/install.sh -y
 RUN sudo pip3 install ./control-libraries/python
 
 # clean image
-RUN sudo rm -rf ./control-libraries && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+RUN sudo rm -rf /tmp/* && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as final
 RUN sudo rm -rf /usr/include/eigen3

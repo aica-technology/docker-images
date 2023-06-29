@@ -11,8 +11,7 @@ RUN cp -r /tmp/modulo/source ${ROS2_WORKSPACE}/src/modulo
 
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
-
-RUN sudo rm -rf /tmp/*
+RUN sudo rm -rf /tmp/* ./src
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as final
 COPY --from=modulo-build ${ROS2_WORKSPACE} ${ROS2_WORKSPACE}
