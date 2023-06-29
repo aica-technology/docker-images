@@ -53,10 +53,10 @@ BUILD_FLAGS+=(-t "${IMAGE_NAME}:${OUTPUT_TAG}")
 
 if [[ "${BASE_TAG}" == *"galactic"* ]]; then
   DOCKERFILE=Dockerfile.galactic
-elif [[ "${BASE_TAG}" == *"humble"* ]]; then
+elif [[ "${BASE_TAG}" == *"humble"* || "${BASE_TAG}" == *"iron"* ]]; then
   DOCKERFILE=Dockerfile.humble
 else
-  echo "Invalid base tag. Base tag needs to contain either 'galactic' or 'humble'."
+  echo "Invalid base tag. Base tag needs to contain either 'galactic', 'humble' or 'iron'."
   exit 1
 fi
 
