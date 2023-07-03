@@ -157,7 +157,7 @@ jobs:
 
   get-dependency-hash:
     needs: [ write-image-hash ]
-    if: inputs.workspace == 'ros2-control-libraries' || inputs.workspace == 'ros2-modulo'
+    if: inputs.workspace == 'ros2-control-libraries' || inputs.workspace == 'ros2-modulo-control'
     runs-on: ubuntu-latest
     name: Get hash of installed library
     outputs:
@@ -178,7 +178,7 @@ jobs:
             BRANCH=${{ inputs.cl_branch }}
             HASH_FILENAME="./control-libraries-${BRANCH}-hash"
             HASH=$(git ls-remote https://github.com/aica-technology/control-libraries.git ${BRANCH} | awk '{ print $1 }')
-          elif [[ "${{ inputs.workspace }}" == "ros2-modulo" ]]; then
+          elif [[ "${{ inputs.workspace }}" == "ros2-modulo-control" ]]; then
             BRANCH=${{ inputs.modulo_branch }}
             HASH_FILENAME="./modulo-${BRANCH}-hash"
             HASH=$(git ls-remote https://github.com/aica-technology/modulo.git ${BRANCH} | awk '{ print $1 }')
