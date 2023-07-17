@@ -35,4 +35,4 @@ RUN rm -rf ./src
 
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as final
-COPY --from=ros2-control-build ${ROS2_WORKSPACE} ${ROS2_WORKSPACE}
+COPY --from=ros2-control-build / /
