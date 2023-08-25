@@ -10,7 +10,7 @@ RUN git clone -b 2.11.0 --depth 1 https://github.com/ros-controls/ros2_controlle
 
 # get additional interface dependencies manually
 RUN git clone -b humble --depth 1 https://github.com/ros-controls/control_msgs.git
-RUN git clone -b ros2-master --depth 1 https://github.com/ros-controls/control_toolbox.git
+RUN git clone -b 3.1.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
 RUN git clone -b 2.2.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
 RUN git clone -b humble --depth 1 https://github.com/ros2/rcl_interfaces.git
 RUN git clone -b humble --depth 1 https://github.com/ros2/test_interface_files.git
