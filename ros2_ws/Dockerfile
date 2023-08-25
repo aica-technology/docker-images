@@ -77,6 +77,7 @@ RUN echo "@realtime        soft    rtprio          99\n@realtime        hard    
 # configure colcon defaults and utilities
 USER ${USER}
 WORKDIR ${HOME}
+RUN wget https://raw.githubusercontent.com/aica-technology/.github/v0.9.0/guidelines/.clang-format
 RUN mkdir -p ${COLCON_HOME}
 COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
