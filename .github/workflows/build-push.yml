@@ -7,85 +7,31 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  CI_BRANCH: 'ci'
-
 jobs:
+  build-ws:
+    strategy:
+      matrix:
+        ros2_distro: [ humble, iron ]
 
-  create-new-ci-branch:
-    runs-on: ubuntu-latest
-    name: Create new ci branch from main
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Recreate ci branch
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email github-actions[bot]@users.noreply.github.com
-          git checkout -b ${{ env.CI_BRANCH }} origin/main && git push -f -u origin ${{ env.CI_BRANCH }}
-
-  build-publish-humble-workspace:
-    needs: create-new-ci-branch
-    name: Build and publish ROS2 humble workspace image
+    name: Build and publish ros2-ws:${{ matrix.ros2_distro }}
     uses: ./.github/workflows/reusable-build-push.yml
     with:
       workspace: ros2-ws
-      base_tag: humble
+      base_tag: ${{ matrix.ros2_distro }}
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
 
-  build-publish-humble-control:
-    needs: [ create-new-ci-branch, build-publish-humble-workspace ]
-    name: Build and publish ROS2 humble workspace image with ros2 control installed
+  build-control:
+    needs: build-ws
+    strategy:
+      matrix:
+        ros2_distro: [ humble, iron ]
+
+    name: Build and publish ros2-control:${{ matrix.ros2_distro }}
     uses: ./.github/workflows/reusable-build-push.yml
     with:
       workspace: ros2-control
-      base_tag: humble
-      dockerfile_extension: .humble
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-publish-humble-control-libraries-devel:
-    needs: [ create-new-ci-branch, build-publish-humble-control ]
-    name: Build and publish development ROS2 humble ros2 control image with control libraries installed
-    uses: ./.github/workflows/reusable-build-push.yml
-    with:
-      workspace: ros2-control-libraries
-      base_tag: humble
-      output_tag: humble-devel
-      cl_branch: develop
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-publish-humble-control-libraries:
-    needs: [ create-new-ci-branch, build-publish-humble-control ]
-    name: Build and publish ROS2 humble ros2 control image with control libraries installed
-    uses: ./.github/workflows/reusable-build-push.yml
-    with:
-      workspace: ros2-control-libraries
-      base_tag: humble
-      cl_branch: main
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-publish-humble-modulo-devel:
-    needs: [ create-new-ci-branch, build-publish-humble-control-libraries-devel ]
-    name: Build and publish development ROS2 humble ros2 control image with modulo installed
-    uses: ./.github/workflows/reusable-build-push.yml
-    with:
-      workspace: ros2-modulo-control
-      base_tag: humble-devel
-      modulo_branch: develop
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-publish-humble-modulo:
-    needs: [ create-new-ci-branch, build-publish-humble-control-libraries ]
-    name: Build and publish ROS2 humble ros2 control image with modulo installed
-    uses: ./.github/workflows/reusable-build-push.yml
-    with:
-      workspace: ros2-modulo-control
-      base_tag: humble
+      base_tag: ${{ matrix.ros2_distro }}
+      dockerfile_extension: .${{ matrix.ros2_distro }}
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}

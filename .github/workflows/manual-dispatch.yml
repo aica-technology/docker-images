@@ -11,12 +11,6 @@ on:
         options:
           - ros2-ws
           - ros2-control
-          - ros2-control-libraries
-          - ros2-modulo-control
-      platforms:
-        description: 'The desired build platform(s) as comma-separated list (for example "linux/amd64,linux/arm64")'
-        required: true
-        default: 'linux/amd64'
       base_tag:
         description: 'The tag of the base image to use'
         required: false
@@ -25,23 +19,10 @@ on:
         description: 'The tag for the output image (if left empty, the base tag is used)'
         required: false
         default: ''
-      cl_branch:
-        description: 'The branch of control libraries'
-        required: false
-        default: 'main'
-      modulo_branch:
-        description: 'The branch of modulo'
-        required: false
-        default: 'main'
       dockerfile_extension:
         description: 'The optional extension of the Dockerfile for variant images'
         required: false
         default: ''
-      write_hashes:
-        description: 'Write image SHA256 and library dependency hashes to file (set to false for temporary or test images)'
-        required: false
-        default: true
-        type: boolean
 
 jobs:
   build-push:
@@ -50,10 +31,6 @@ jobs:
       workspace: ${{ inputs.workspace }}
       base_tag: ${{ inputs.base_tag }}
       output_tag: ${{ inputs.output_tag }}
-      cl_branch: ${{ inputs.cl_branch }}
-      modulo_branch: ${{ inputs.modulo_branch }}
       dockerfile_extension: ${{ inputs.dockerfile_extension }}
-      platforms: ${{ inputs.platforms }}
-      write_hashes: ${{ inputs.write_hashes }}
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
