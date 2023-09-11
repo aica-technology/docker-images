@@ -30,7 +30,7 @@ jobs:
     name: Build and publish ros2-control:${{ matrix.ros2_distro }}
     uses: ./.github/workflows/reusable-build-push.yml
     with:
-      workspace: ros2-ws
+      workspace: ros2-control
       base_tag: ${{ matrix.ros2_distro }}
       dockerfile_extension: .${{ matrix.ros2_distro }}
     secrets:
