@@ -1,37 +1,26 @@
 name: Build and Push Multi-Arch Images
 
-# Run workflow on pushes to main branch
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      force:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-ws:
     strategy:
       matrix:
-        ros2_distro: [ humble, iron ]
+        ros2_distro: [ iron ]
 
     name: Build and publish ros2-ws:${{ matrix.ros2_distro }}
     uses: ./.github/workflows/reusable-build-push.yml
     with:
-      workspace: ros2-ws
-      base_tag: ${{ matrix.ros2_distro }}
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
-  build-control:
-    needs: build-ws
-    strategy:
-      matrix:
-        ros2_distro: [ humble, iron ]
-
-    name: Build and publish ros2-control:${{ matrix.ros2_distro }}
-    uses: ./.github/workflows/reusable-build-push.yml
-    with:
-      workspace: ros2-control
-      base_tag: ${{ matrix.ros2_distro }}
-      dockerfile_extension: .${{ matrix.ros2_distro }}
+      ros_distro: ${{ matrix.ros2_distro }}
+      force: ${{ inputs.force }}
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
