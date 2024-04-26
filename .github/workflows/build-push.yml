@@ -21,6 +21,6 @@ jobs:
     uses: ./.github/workflows/reusable-build-push.yml
     with:
       ros_distro: ${{ matrix.ros2_distro }}
-      force: ${{ inputs.force }}
+      force: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}

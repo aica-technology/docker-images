@@ -16,6 +16,9 @@ on:
         description: "The GitHub token passed from the caller workflow"
         required: true
 
+env:
+  ROS2_WS_PATH: ros2_ws
+
 jobs:
   check-version:
     name: Check if the version has been updated
@@ -29,8 +32,14 @@ jobs:
           fetch-depth: 2
       - id: versions
         run: |
-          PREV_VERSION=$(git show HEAD^:VERSION.${{ inputs.ros_distro }})
-          NEW_VERSION=$(git show HEAD:VERSION.${{ inputs.ros_distro }})
+          git show HEAD^:$ROS2_WS_PATH/VERSION.${{ inputs.ros_distro }} 2>/dev/null
+          if [[ $? == 0 ]]; then
+            PREV_VERSION=$(git show HEAD^:$ROS2_WS_PATH/VERSION.${{ inputs.ros_distro }})
+          else
+            PREV_VERSION=0.0.0
+          fi
+          NEW_VERSION=$(git show HEAD:$ROS2_WS_PATH/VERSION.${{ inputs.ros_distro }})
+
           echo "prev_version=${PREV_VERSION}" >> $GITHUB_OUTPUT
           echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
         shell: bash
@@ -44,7 +53,7 @@ jobs:
     needs: check-version
     if: ${{ needs.check-version.outputs.has_changed == 'true' || inputs.force }}
     runs-on: ubuntu-latest
-    name: Parse inputs
+    name: Metadata
     outputs:
       image_name: ${{ steps.ensure-image.outputs.image_name }}
       image_tags: ${{ steps.tags.outputs.image_tags }}
@@ -88,7 +97,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - run: |
-          CONFIG_PATH=ros2_ws/config
+          CONFIG_PATH=$ROS2_WS_PATH/config
           mkdir -p ${CONFIG_PATH}
           cp common/sshd_entrypoint.sh ${CONFIG_PATH}/
 
@@ -103,7 +112,7 @@ jobs:
         with:
           image_name: ${{ needs.metadata.outputs.image_name }}
           image_tags: ${{ steps.merge-tags.outputs.list }}
-          build_context_path: ros2_ws
+          build_context_path: $ROS2_WS_PATH
           dockerfile_path: ros2_ws/Dockerfile
           build_flags: ${{ needs.metadata.outputs.build_flags }}
           token: ${{ secrets.GITHUB_TOKEN }}
