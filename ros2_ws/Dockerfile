@@ -147,4 +147,4 @@ LABEL org.opencontainers.image.description="AICA base ROS2 image (includes ros2_
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.ref.name="ghcr.io/aica-technology/ros2-control:${VERSION}"
 LABEL org.opencontainers.image.base.name="docker.io/library/ros:${BASE_TAG}"
-LABEL tech.aica.image.metadata='{"type":"base","base":{"name":"docker.io/library/ros","version":"'${BASE_TAG}'"}}'
+LABEL tech.aica.image.metadata='{"type":"base/ws","base":{"name":"docker.io/library/ros","version":"'${BASE_TAG}'"}}'
