@@ -74,7 +74,7 @@ jobs:
           echo "build_flags=${BUILD_FLAGS[@]}" >> $GITHUB_OUTPUT
 
           VERSION_TAG="v${{ needs.check-version.outputs.version }}"
-          IMAGE_TAGS="${{ inputs.ros_distro}}-${VERSION_TAG}","${{ inputs.ros_distro}}"
+          IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${{ inputs.ros_distro}}","${{ inputs.ros_distro}}"
           GIT_TAG="${{ inputs.ros_distro}}-${VERSION_TAG}"
           echo "Image tags: ${IMAGE_TAGS}"
           echo "Git tag: ${GIT_TAG}"
