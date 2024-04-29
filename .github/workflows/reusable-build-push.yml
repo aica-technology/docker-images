@@ -3,71 +3,89 @@ name: Reusable workflow to build and push multi-arch images
 on:
   workflow_call:
     inputs:
-      workspace:
-        required: true
-        type: string
-      base_tag:
+      ros_distro:
         required: false
         type: string
-        default: 'humble'
-      output_tag:
+        default: "iron"
+      force:
         required: false
-        type: string
-      dockerfile_extension:
-        required: false
-        type: string
+        type: boolean
+        default: false
     secrets:
       token:
-        description: 'The GitHub token passed from the caller workflow'
+        description: "The GitHub token passed from the caller workflow"
         required: true
 
+env:
+  ROS2_WS_PATH: ros2_ws
+
 jobs:
-  metadata:
-    runs-on: ubuntu-latest
-    name: Parse inputs
+  check-version:
+    name: Check if the version has been updated
     outputs:
-      output_tag: ${{ steps.parse.outputs.output_tag }}
-      image_name: ${{ steps.parse.outputs.image_name }}
-      path: ${{ steps.parse.outputs.path }}
-      file: ${{ steps.parse.outputs.file }}
-      build_flags: ${{ steps.parse.outputs.build_flags }}
+      has_changed: ${{ steps.check.outputs.has_changed }}
+      version: ${{ steps.versions.outputs.new_version }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Parse inputs
-        id: parse
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - id: versions
         run: |
-          BUILD_FLAGS=()
-          # parse base tag     
-          BASE_TAG=${{ inputs.base_tag }}
+          git show HEAD^:$ROS2_WS_PATH/VERSION.${{ inputs.ros_distro }} 2>/dev/null
+          if [[ $? == 0 ]]; then
+            PREV_VERSION=$(git show HEAD^:$ROS2_WS_PATH/VERSION.${{ inputs.ros_distro }})
+          else
+            PREV_VERSION=0.0.0
+          fi
+          NEW_VERSION=$(git show HEAD:$ROS2_WS_PATH/VERSION.${{ inputs.ros_distro }})
+
+          echo "prev_version=${PREV_VERSION}" >> $GITHUB_OUTPUT
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+        shell: bash
+      - uses: aica-technology/.github/.github/actions/compare-versions@v0.11.0
+        id: check
+        with:
+          previous_version: ${{ steps.versions.outputs.prev_version }}
+          new_version: ${{ steps.versions.outputs.new_version }}
+
+  metadata:
+    needs: check-version
+    if: ${{ needs.check-version.outputs.has_changed == 'true' || inputs.force }}
+    runs-on: ubuntu-latest
+    name: Metadata
+    outputs:
+      image_name: ${{ steps.ensure-image.outputs.image_name }}
+      image_tags: ${{ steps.tags.outputs.image_tags }}
+      build_flags: ${{ steps.tags.outputs.build_flags }}
+      git_tag: ${{ steps.tags.outputs.git_tag }}
+    steps:
+      - uses: aica-technology/.github/.github/actions/ghcr-ensure-prefix@v0.6.0
+        id: ensure-image
+        with:
+          image_name: aica-technology/ros2-ws
+
+      - id: tags
+        run: |
+          BUILD_FLAGS=()    
+          BASE_TAG=${{ inputs.ros_distro }}
           BUILD_FLAGS+=(--build-arg BASE_TAG=${BASE_TAG})
           echo "::debug::Using base image tag ${BASE_TAG}"
-          # parse output tag
-          OUTPUT_TAG=${{ inputs.output_tag }}
-          if [ -z ${OUTPUT_TAG} ]; then
-            OUTPUT_TAG=${BASE_TAG}
-          fi
-          echo "output_tag=${OUTPUT_TAG}" >> $GITHUB_OUTPUT
-          echo "::debug::Generated image tag will be ${OUTPUT_TAG}"
-          
-          # parse image name
-          IMAGE_NAME=${{ inputs.workspace }}
-          IMAGE_NAME=${{ github.repository_owner }}/${IMAGE_NAME//[_]/-}
-          echo "::debug::Generated image name will be ${IMAGE_NAME}"
-          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
-          
-          # parse docker path and file
-          WS_PATH=${{ inputs.workspace }}
-          WS_PATH=${WS_PATH//[-]/_}
-          echo "path=${WS_PATH}" >> $GITHUB_OUTPUT
-          FILE=${WS_PATH}/Dockerfile${{ inputs.dockerfile_extension }}
-          echo "file=${FILE}" >> $GITHUB_OUTPUT
-
           echo "build_flags=${BUILD_FLAGS[@]}" >> $GITHUB_OUTPUT
+
+          VERSION_TAG="v${{ needs.check-version.outputs.version }}"
+          IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${{ inputs.ros_distro}}","${{ inputs.ros_distro}}"
+          GIT_TAG="${{ inputs.ros_distro}}-${VERSION_TAG}"
+          echo "Image tags: ${IMAGE_TAGS}"
+          echo "Git tag: ${GIT_TAG}"
+          echo "image_tags=${IMAGE_TAGS}" >> $GITHUB_OUTPUT
+          echo "git_tag=${GIT_TAG}" >> $GITHUB_OUTPUT
 
   build:
     needs: metadata
     strategy:
       matrix:
-        arch: [ amd64, arm64 ]
+        arch: [amd64, arm64]
         include:
           - image: ubuntu-latest
           - image: buildjet-2vcpu-ubuntu-2204-arm
@@ -78,29 +96,40 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - if: needs.metadata.outputs.path == 'ros2_ws' || needs.metadata.outputs.path == 'ros_ws'
-        run: |
-          CONFIG_PATH=${{ needs.metadata.outputs.path }}/config
+      - run: |
+          CONFIG_PATH=$ROS2_WS_PATH/config
           mkdir -p ${CONFIG_PATH}
           cp common/sshd_entrypoint.sh ${CONFIG_PATH}/
-      
+
+      - uses: aica-technology/.github/.github/actions/list-add-suffixes@v0.6.1
+        id: merge-tags
+        with:
+          list: ${{ needs.metadata.outputs.image_tags }}
+          suffixes: ${{ matrix.arch }}
+          glue_separator: "-"
+
       - uses: aica-technology/.github/.github/actions/ghcr-build@v0.6.1
         with:
           image_name: ${{ needs.metadata.outputs.image_name }}
-          image_tags: ${{ needs.metadata.outputs.output_tag }}-${{ matrix.arch }}
-          build_context_path: ${{ needs.metadata.outputs.path }}
-          dockerfile_path: ${{ needs.metadata.outputs.file }}
+          image_tags: ${{ steps.merge-tags.outputs.list }}
+          build_context_path: $ROS2_WS_PATH
+          dockerfile_path: ros2_ws/Dockerfile
           build_flags: ${{ needs.metadata.outputs.build_flags }}
           token: ${{ secrets.GITHUB_TOKEN }}
-  
+
   multi-arch:
     runs-on: ubuntu-latest
     name: Merge into a multi-arch image
-    needs: [ metadata, build ]
+    needs: [metadata, build]
     steps:
       - uses: aica-technology/.github/.github/actions/ghcr-manifest-merge@v0.6.1
         with:
           image_name: ${{ needs.metadata.outputs.image_name }}
-          image_tags: ${{ needs.metadata.outputs.output_tag }}
+          image_tags: ${{ needs.metadata.outputs.image_tags }}
           archs: amd64,arm64
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create git tag
+        uses: aica-technology/.github/.github/actions/git-tag@v0.8.1
+        with:
+          tag: ${{ needs.metadata.outputs.git_tag }}
