@@ -2,44 +2,33 @@
 
 ![Build and Push ROS and ROS2 images](https://github.com/aica-technology/docker-images/actions/workflows/build-push.yml/badge.svg)
 
-## Images
+This repository is used to produce pre-configured and versioned Docker images with ROS 2 and `ros2_control` packages and
+other dependencies pre-installed. The images can be used as workspaces for development containers or as base images for
+downstream targets.
 
-### ROS workspace (noetic)
+## ROS 2 workspace (ros2-ws)
 
-The ros_ws image provides a ROS workspace (noetic). Build it by running the 
-[build script](ros_ws/build.sh) while in the [ros_ws](ros_ws) directory.
+The `ros2_ws` image provides a ROS 2 workspace with pre-installed ros2-control packages.
 
-The username that should be supplied at login is `ros`.
+### Deprecated images
 
-### ROS workspace with pre-installed control libraries
+1. ROS workspace (noetic): the ros_ws image provides a ROS workspace (noetic). Build it by running the
+   [build script](ros_ws/build.sh) while in the [ros_ws](ros_ws) directory. The username that should be supplied at
+   login is `ros`.
 
-The ros_control_libraries image provides the same ROS workspace as ros_ws but
-comes with the pre-installed [control libraries](https://github.com/aica-technology/control-libraries).
+2. ROS workspace with pre-installed control libraries: the ros_control_libraries image provides the same ROS workspace
+   as ros_ws but comes with the pre-installed [control libraries](https://github.com/aica-technology/control-libraries).
 
-### ROS2 workspace
+3. ROS 2 workspace with pre-installed control libraries: the ros2_control_libraries image provides the a ROS 2 workspace
+   and comes with the pre-installed [control libraries](https://github.com/aica-technology/control-libraries).
 
-Similar to the ROS workspace, the ros2_ws image provides a ROS2 workspace.
-Build it by running the [build script](ros2_ws/build.sh) while
-in the [ros2_ws](ros2_ws) directory. Modify the ROS2 distribution
-in the script as desired.
+4. ROS 2 workspace with pre-installed control libraries and modulo: the ros2_modulo image provides a ROS 2 workspace with
+   [modulo](https://github.com/aica-technology/modulo) already built and comes with pre-installed
+   [control libraries](https://github.com/aica-technology/control-libraries).
 
-The username that should be supplied at login is `ros2`.
-
-### ROS2 workspace with pre-installed control libraries
-
-The ros2_control_libraries image provides the same ROS2 workspace as ros2_ws but
-comes with the pre-installed [control libraries](https://github.com/aica-technology/control-libraries).
-
-### ROS2 workspace with pre-installed control libraries and modulo
-
-The ros2_modulo image provides a ROS2 workspace with [modulo](https://github.com/aica-technology/modulo)
-already built and comes with pre-installed [control libraries](https://github.com/aica-technology/control-libraries).
-
-### ROS2 workspace with pre-installed control libraries, modulo, and ROS2 control
-
-The ros2_modulo_control image provides a ROS2 workspace with [modulo](https://github.com/aica-technology/modulo)
-already built and comes with pre-installed [control libraries](https://github.com/aica-technology/control-libraries)
-and ROS2 control packages.
+5. ROS 2 workspace with pre-installed control libraries, modulo, and ROS 2 control: the ros2_modulo_control image provides
+   a ROS 2 workspace with [modulo](https://github.com/aica-technology/modulo) already built and comes with pre-installed
+   [control libraries](https://github.com/aica-technology/control-libraries) and ROS 2 control packages.
 
 ## Scripts
 
