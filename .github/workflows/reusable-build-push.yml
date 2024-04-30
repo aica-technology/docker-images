@@ -74,7 +74,7 @@ jobs:
 
           VERSION_TAG="v${{ needs.check-version.outputs.version }}"
           IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${{ inputs.ros_distro}}","${{ inputs.ros_distro}}"
-          GIT_TAG="${{ inputs.ros_distro}}-${VERSION_TAG}"
+          GIT_TAG="${VERSION_TAG}-${{ inputs.ros_distro}}"
           BUILD_FLAGS+=(--build-arg VERSION=${GIT_TAG})
 
           echo "::debug::Using base image tag ${BASE_TAG}"
