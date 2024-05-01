@@ -108,6 +108,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   python3-typeguard \
   && rm -rf /var/lib/apt/lists/*
 
+# build as ROS user
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}/src
 
