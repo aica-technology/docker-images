@@ -1,7 +1,7 @@
 #!/bin/bash
 
-IMAGE_NAME=gchr.io/aica-technology/ros2-ws
-BASE_TAG=iron
+IMAGE_NAME=aica-technology/ros2-ws
+BASE_TAG=humble
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
@@ -31,5 +31,16 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-BUILD_FLAGS+=(--build-arg=BASE_TAG=${BASE_TAG})
-docker buildx build -t "${IMAGE_NAME}":"${BASE_TAG}" "${BUILD_FLAGS[@]}" .
+docker pull "ros:${BASE_TAG}"
+BUILD_FLAGS+=(--build-arg BASE_TAG="${BASE_TAG}")
+
+if [[ "$OSTYPE" != "darwin"* ]]; then
+  USER_ID="$(id -u "${USER}")"
+  GROUP_ID="$(id -g "${USER}")"
+  BUILD_FLAGS+=(--build-arg UID="${USER_ID}")
+  BUILD_FLAGS+=(--build-arg GID="${GROUP_ID}")
+fi
+
+BUILD_FLAGS+=(-t "${IMAGE_NAME}":"${BASE_TAG}")
+
+DOCKER_BUILDKIT=1 docker build "${BUILD_FLAGS[@]}" .
