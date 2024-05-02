@@ -1,5 +1,5 @@
 ARG BASE_TAG=iron
-FROM ghcr.io/aica-technology/ros2-control:${BASE_TAG}}
+FROM ghcr.io/aica-technology/ros2-control:${BASE_TAG}
 
 ARG VERSION=v0.0.0
 ARG BASE_TAG=iron
