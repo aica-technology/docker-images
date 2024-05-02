@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMAGE_NAME=ghcr.io/aica-technology/ros2-ws
+IMAGE_NAME=gchr.io/aica-technology/ros2-ws
 BASE_TAG=iron
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
