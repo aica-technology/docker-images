@@ -108,6 +108,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   python3-typeguard \
   && rm -rf /var/lib/apt/lists/*
 
+# build as ROS user
+USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}/src
 
 RUN git clone -b 3.18.0 --depth 1 https://github.com/ros-controls/ros2_control.git
@@ -138,6 +140,7 @@ COPY --from=ros2-control / /
 
 # start as ROS user
 USER ${USER}
+WORKDIR ${ROS2_WORKSPACE}
 
 # Metadata
 ARG VERSION
