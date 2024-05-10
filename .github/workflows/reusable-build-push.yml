@@ -67,17 +67,21 @@ jobs:
 
       - id: tags
         run: |
-          BUILD_FLAGS=()    
+          BUILD_FLAGS=()
+
           BASE_TAG=${{ inputs.ros_distro }}
           BUILD_FLAGS+=(--build-arg BASE_TAG=${BASE_TAG})
-          echo "::debug::Using base image tag ${BASE_TAG}"
-          echo "build_flags=${BUILD_FLAGS[@]}" >> $GITHUB_OUTPUT
 
           VERSION_TAG="v${{ needs.check-version.outputs.version }}"
           IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${{ inputs.ros_distro}}","${{ inputs.ros_distro}}"
           GIT_TAG="${VERSION_TAG}-${{ inputs.ros_distro}}"
+          BUILD_FLAGS+=(--build-arg VERSION=${GIT_TAG})
+
+          echo "::debug::Using base image tag ${BASE_TAG}"
+          echo "Build flags: ${BUILD_FLAGS[@]}"
           echo "Image tags: ${IMAGE_TAGS}"
           echo "Git tag: ${GIT_TAG}"
+          echo "build_flags=${BUILD_FLAGS[@]}" >> $GITHUB_OUTPUT
           echo "image_tags=${IMAGE_TAGS}" >> $GITHUB_OUTPUT
           echo "git_tag=${GIT_TAG}" >> $GITHUB_OUTPUT
 
