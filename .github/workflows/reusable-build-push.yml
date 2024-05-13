@@ -69,11 +69,24 @@ jobs:
         run: |
           BUILD_FLAGS=()
 
-          BASE_TAG=${{ inputs.ros_distro }}
+          ROS_DISTRO=${{ inputs.ros_distro }}
+          BUILD_FLAGS+=(--build-arg ROS_DISTRO=${ROS_DISTRO})
+
+          if [ ${ROS_DISTRO} == iron ]; then
+            # use a specific SHA256 digest for repeatability
+            # -> ros:iron from September 02, 2023
+            BASE_IMAGE=docker.io/library/ros@sha256
+            BASE_TAG=6df9b084cb7e918455df628126b2b647d2ad2e4b0e979fb8fbc525a610573bbb
+          else
+            BASE_IMAGE=docker.io/library/ros
+            BASE_TAG=${ROS_DISTRO}
+          fi
+
+          BUILD_FLAGS+=(--build-arg BASE_IMAGE=${BASE_IMAGE})
           BUILD_FLAGS+=(--build-arg BASE_TAG=${BASE_TAG})
 
           VERSION_TAG="v${{ needs.check-version.outputs.version }}"
-          IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${{ inputs.ros_distro}}","${{ inputs.ros_distro}}"
+          IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${ROS_DISTRO}","${ROS_DISTRO}"
           GIT_TAG="${VERSION_TAG}-${{ inputs.ros_distro}}"
           BUILD_FLAGS+=(--build-arg VERSION=${GIT_TAG})
 
