@@ -147,9 +147,13 @@ USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
 
 # Metadata
+ARG BASE_IMAGE=docker.io/library/ros
+ARG BASE_TAG=iron
+ARG ROS_DISTRO=iron
+ARG VERSION=v0.0.0
 LABEL org.opencontainers.image.title="AICA ROS 2 image"
 LABEL org.opencontainers.image.description="AICA base ROS 2 image (includes ros2_control)"
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.base.name="${BASE_IMAGE}:${BASE_TAG}"
-LABEL tech.aica.image.metadata='{"type":"base/ws","base":{"name":"${BASE_IMAGE}:${BASE_TAG}","version":"${VERSION}"}}'
+LABEL tech.aica.image.metadata='{"type":"base/ws","base":{"name":"'${BASE_IMAGE}':'${BASE_TAG}'","version":"'${VERSION}'"}}'
 LABEL devcontainer.metadata='[{"containerUser": "ros2"}]'
