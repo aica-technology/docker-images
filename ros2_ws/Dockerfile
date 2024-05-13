@@ -1,5 +1,8 @@
 ARG BASE_IMAGE=docker.io/library/ros
 ARG BASE_TAG=iron
+ARG ROS_DISTRO=iron
+ARG VERSION=v0.0.0
+
 FROM ${BASE_IMAGE}:${BASE_TAG} as environment-variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources
@@ -134,7 +137,6 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
 
-ARG ROS_DISTRO=iron
 FROM ros2-control-${ROS_DISTRO} as ros2-control
 
 FROM environment-variables as final
@@ -145,9 +147,6 @@ USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
 
 # Metadata
-ARG BASE_IMAGE=docker.io/library/ros
-ARG BASE_TAG=iron
-ARG VERSION=v0.0.0
 LABEL org.opencontainers.image.title="AICA ROS 2 image"
 LABEL org.opencontainers.image.description="AICA base ROS 2 image (includes ros2_control)"
 LABEL org.opencontainers.image.version="${VERSION}"
