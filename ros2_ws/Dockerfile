@@ -1,6 +1,5 @@
 ARG BASE_IMAGE=docker.io/library/ros
 ARG BASE_TAG=iron
-ARG ROS_DISTRO=iron
 ARG VERSION=v0.0.0
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as environment-variables
@@ -56,14 +55,22 @@ RUN ( \
   ) > /etc/ssh/sshd_config_development \
   && mkdir /run/sshd
 
-
-FROM base-dependencies as base-workspace
+FROM base-dependencies as base-user-iron
 
 # create and configure a new user
-ARG UID=1000
-ARG GID=1000
-RUN addgroup --gid ${GID} ${USER}
-RUN adduser --gecos "ROS2 User" --uid ${UID} --gid ${GID} ${USER} && yes | passwd ${USER}
+RUN addgroup --gid 1000 ${USER}
+RUN adduser --gecos "ROS2 User" --uid 1000 --gid 1000 ${USER} && yes | passwd ${USER}
+
+FROM base-dependencies as base-user-jazzy
+
+# rename existing ubuntu user
+RUN usermod -l ${USER} ubuntu
+RUN groupmod -n ${USER} ubuntu
+RUN usermod -d ${HOME} -m ros2
+RUN chfn -f "ROS2 User" ros2
+
+FROM base-user-${BASE_TAG} as base-workspace
+
 RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
 RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
@@ -100,7 +107,7 @@ RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
 
 # create the credentials to be able to pull private repos using ssh
 USER root
-RUN mkdir /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
+RUN mkdir -p /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
 FROM base-workspace as ros2-control-iron
@@ -137,10 +144,45 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
 
-FROM ros2-control-${ROS_DISTRO} as ros2-control
+FROM base-workspace as ros2-control-jazzy
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  # doxygen \
+  # librange-v3-dev \
+  python3-jinja2 \
+  python3-typeguard \
+  && rm -rf /var/lib/apt/lists/*
+
+# build as ROS user
+USER ${USER}
+WORKDIR ${ROS2_WORKSPACE}/src
+
+RUN git clone -b 4.11.0 --depth 1 https://github.com/ros-controls/ros2_control.git
+RUN git clone -b 4.8.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
+# get additional interface dependencies manually
+RUN git clone -b 5.1.0 --depth 1 https://github.com/ros-controls/control_msgs.git
+RUN git clone -b 1.0.5 --depth 1 https://github.com/pal-robotics/backward_ros.git
+RUN git clone -b 4.0.0 --depth 1 https://github.com/ros/diagnostics.git
+RUN git clone -b 2.5.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
+RUN git clone -b 2.1.0 --depth 1 https://github.com/ros2/rcl_interfaces.git
+RUN git clone -b 0.12.0 --depth 1 https://github.com/ros2/test_interface_files.git
+RUN git clone -b 1.16.0 --depth 1 https://github.com/ros/angles.git
+RUN git clone -b ros2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.git
+RUN git clone -b 0.3.8 --depth 1 https://github.com/PickNikRobotics/generate_parameter_library.git
+RUN git clone -b 1.1.0 --depth 1 https://github.com/PickNikRobotics/RSL.git
+RUN git clone -b 1.0.2 --depth 1 https://github.com/PickNikRobotics/cpp_polyfills.git
+RUN git clone -b 3.2.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
+RUN git clone -b 2.1.2 --depth 1 https://github.com/ros/filters.git
+RUN git clone -b 1.1.0 --depth 1 https://github.com/ros-controls/kinematics_interface.git
+
+WORKDIR ${ROS2_WORKSPACE}
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
+RUN rm -rf ./src
+
+FROM ros2-control-${BASE_TAG} as ros2-control
 
 FROM environment-variables as final
 COPY --from=ros2-control / /
+RUN rm -rf /home/ubuntu
 
 # start as ROS user
 USER ${USER}
@@ -149,7 +191,6 @@ WORKDIR ${ROS2_WORKSPACE}
 # Metadata
 ARG BASE_IMAGE=docker.io/library/ros
 ARG BASE_TAG=iron
-ARG ROS_DISTRO=iron
 ARG VERSION=v0.0.0
 LABEL org.opencontainers.image.title="AICA ROS 2 image"
 LABEL org.opencontainers.image.description="AICA base ROS 2 image (includes ros2_control)"
