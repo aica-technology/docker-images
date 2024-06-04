@@ -1,5 +1,6 @@
 ARG BASE_IMAGE=docker.io/library/ros
 ARG BASE_TAG=iron
+ARG ROS_DISTRO=iron
 ARG VERSION=v0.0.0
 
 FROM ${BASE_IMAGE}:${BASE_TAG} as environment-variables
@@ -69,7 +70,7 @@ RUN groupmod -n ${USER} ubuntu
 RUN usermod -d ${HOME} -m ros2
 RUN chfn -f "ROS2 User" ros2
 
-FROM base-user-${BASE_TAG} as base-workspace
+FROM base-user-${ROS_DISTRO} as base-workspace
 
 RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
@@ -178,7 +179,7 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
 
-FROM ros2-control-${BASE_TAG} as ros2-control
+FROM ros2-control-${ROS_DISTRO} as ros2-control
 
 FROM environment-variables as final
 COPY --from=ros2-control / /

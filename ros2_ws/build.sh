@@ -2,6 +2,7 @@
 
 IMAGE_NAME=ghcr.io/aica-technology/ros2-ws
 BASE_TAG=iron
+ROS_DISTRO=iron
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
@@ -14,6 +15,10 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
   --base-tag)
     BASE_TAG=$2
+    shift 2
+    ;;
+  --ros-distro)
+    ROS_DISTRO=$2
     shift 2
     ;;
   -r | --rebuild)
@@ -32,4 +37,5 @@ while [ "$#" -gt 0 ]; do
 done
 
 BUILD_FLAGS+=(--build-arg=BASE_TAG=${BASE_TAG})
+BUILD_FLAGS+=(--build-arg=ROS_DISTRO=${ROS_DISTRO})
 docker buildx build -t "${IMAGE_NAME}":"${BASE_TAG}" "${BUILD_FLAGS[@]}" .
