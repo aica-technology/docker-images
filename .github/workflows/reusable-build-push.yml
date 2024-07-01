@@ -86,7 +86,7 @@ jobs:
           BUILD_FLAGS+=(--build-arg BASE_TAG=${BASE_TAG})
 
           VERSION_TAG="v${{ needs.check-version.outputs.version }}"
-          IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${ROS_DISTRO}","${ROS_DISTRO}"
+          IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${ROS_DISTRO}"
           GIT_TAG="${VERSION_TAG}-${{ inputs.ros_distro}}"
           BUILD_FLAGS+=(--build-arg VERSION=${GIT_TAG})
 
