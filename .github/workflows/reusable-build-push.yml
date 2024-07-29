@@ -86,8 +86,13 @@ jobs:
           BUILD_FLAGS+=(--build-arg BASE_TAG=${BASE_TAG})
 
           VERSION_TAG="v${{ needs.check-version.outputs.version }}"
-          IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${ROS_DISTRO}","${ROS_DISTRO}"
-          GIT_TAG="${VERSION_TAG}-${{ inputs.ros_distro}}"
+          if [[ "${VERSION_TAG}" == *"-"* ]]; then
+            IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${ROS_DISTRO}"
+            GIT_TAG=""
+          else
+            IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${ROS_DISTRO}","${ROS_DISTRO}"
+            GIT_TAG="${VERSION_TAG}-${{ inputs.ros_distro}}"
+          fi
           BUILD_FLAGS+=(--build-arg VERSION=${GIT_TAG})
 
           echo "::debug::Using base image tag ${BASE_TAG}"
@@ -147,6 +152,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create git tag
+        if: ${{ needs.metadata.outputs.git_tag }} != ""
         uses: aica-technology/.github/.github/actions/git-tag@v0.8.1
         with:
           tag: ${{ needs.metadata.outputs.git_tag }}

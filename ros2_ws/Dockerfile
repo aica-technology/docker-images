@@ -1,22 +1,22 @@
 ARG BASE_IMAGE=docker.io/library/ros
-ARG BASE_TAG=iron
-ARG ROS_DISTRO=iron
+ARG BASE_TAG=jazzy
+ARG ROS_DISTRO=jazzy
 ARG VERSION=v0.0.0
 
-FROM ${BASE_IMAGE}:${BASE_TAG} as environment-variables
+FROM ${BASE_IMAGE}:${BASE_TAG} AS environment-variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources
-ENV PIP_NO_CACHE_DIR 1
-ENV USER ros2
-ENV HOME /home/${USER}
-ENV ROS2_WORKSPACE /home/${USER}/ros2_ws
-ENV COLCON_HOME ${HOME}/.colcon
-ENV COLCON_DEFAULTS_FILE ${COLCON_HOME}/defaults.yaml
+ENV PIP_NO_CACHE_DIR=1
+ENV USER=ros2
+ENV HOME=/home/${USER}
+ENV ROS2_WORKSPACE=/home/${USER}/ros2_ws
+ENV COLCON_HOME=${HOME}/.colcon
+ENV COLCON_DEFAULTS_FILE=${COLCON_HOME}/defaults.yaml
 ENV COLCON_WORKSPACE=${ROS2_WORKSPACE}
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 
-FROM environment-variables as base-dependencies
+FROM environment-variables AS base-dependencies
 
 # disable suggested and recommended install
 RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
@@ -56,13 +56,13 @@ RUN ( \
   ) > /etc/ssh/sshd_config_development \
   && mkdir /run/sshd
 
-FROM base-dependencies as base-user-iron
+FROM base-dependencies AS base-user-iron
 
 # create and configure a new user
 RUN addgroup --gid 1000 ${USER}
 RUN adduser --gecos "ROS2 User" --uid 1000 --gid 1000 ${USER} && yes | passwd ${USER}
 
-FROM base-dependencies as base-user-jazzy
+FROM base-dependencies AS base-user-jazzy
 
 # rename existing ubuntu user
 RUN usermod -l ${USER} ubuntu
@@ -70,7 +70,7 @@ RUN groupmod -n ${USER} ubuntu
 RUN usermod -d ${HOME} -m ros2
 RUN chfn -f "ROS2 User" ros2
 
-FROM base-user-${ROS_DISTRO} as base-workspace
+FROM base-user-${ROS_DISTRO} AS base-workspace
 
 RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
@@ -111,7 +111,7 @@ USER root
 RUN mkdir -p /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
-FROM base-workspace as ros2-control-iron
+FROM base-workspace AS ros2-control-iron
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
   doxygen \
@@ -145,7 +145,7 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
 
-FROM base-workspace as ros2-control-jazzy
+FROM base-workspace AS ros2-control-jazzy
 RUN apt-get update && apt-get install --no-install-recommends -y \
   # doxygen \
   # librange-v3-dev \
@@ -161,7 +161,7 @@ RUN git clone -b 4.11.0 --depth 1 https://github.com/ros-controls/ros2_control.g
 RUN git clone -b 4.8.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
 # get additional interface dependencies manually
 RUN git clone -b 5.1.0 --depth 1 https://github.com/ros-controls/control_msgs.git
-RUN git clone -b 1.0.5 --depth 1 https://github.com/pal-robotics/backward_ros.git
+RUN git clone -b 1.0.3 --depth 1 https://github.com/pal-robotics/backward_ros.git
 RUN git clone -b 4.0.0 --depth 1 https://github.com/ros/diagnostics.git
 RUN git clone -b 2.5.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
 RUN git clone -b 2.1.0 --depth 1 https://github.com/ros2/rcl_interfaces.git
@@ -179,9 +179,9 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
 
-FROM ros2-control-${ROS_DISTRO} as ros2-control
+FROM ros2-control-${ROS_DISTRO} AS ros2-control
 
-FROM environment-variables as final
+FROM environment-variables AS final
 COPY --from=ros2-control / /
 RUN rm -rf /home/ubuntu
 

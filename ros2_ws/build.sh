@@ -1,8 +1,8 @@
 #!/bin/bash
 
 IMAGE_NAME=ghcr.io/aica-technology/ros2-ws
-BASE_TAG=iron
-ROS_DISTRO=iron
+BASE_TAG=jazzy
+ROS_DISTRO=jazzy
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
