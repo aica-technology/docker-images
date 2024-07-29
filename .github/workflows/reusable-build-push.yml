@@ -43,7 +43,7 @@ jobs:
           echo "prev_version=${PREV_VERSION}" >> $GITHUB_OUTPUT
           echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
         shell: bash
-      - uses: aica-technology/.github/.github/actions/compare-versions@v0.11.0
+      - uses: aica-technology/.github/.github/actions/compare-versions@v1.0.2
         id: check
         with:
           previous_version: ${{ steps.versions.outputs.prev_version }}
@@ -152,7 +152,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create git tag
-        if: ${{ needs.metadata.outputs.git_tag }} != ""
+        if: ${{ needs.metadata.outputs.git_tag != '' }}
         uses: aica-technology/.github/.github/actions/git-tag@v0.8.1
         with:
           tag: ${{ needs.metadata.outputs.git_tag }}
