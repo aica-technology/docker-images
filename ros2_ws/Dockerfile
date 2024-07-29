@@ -161,7 +161,7 @@ RUN git clone -b 4.11.0 --depth 1 https://github.com/ros-controls/ros2_control.g
 RUN git clone -b 4.8.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
 # get additional interface dependencies manually
 RUN git clone -b 5.1.0 --depth 1 https://github.com/ros-controls/control_msgs.git
-RUN git clone -b 1.0.5 --depth 1 https://github.com/pal-robotics/backward_ros.git
+RUN git clone -b 1.0.3 --depth 1 https://github.com/pal-robotics/backward_ros.git
 RUN git clone -b 4.0.0 --depth 1 https://github.com/ros/diagnostics.git
 RUN git clone -b 2.5.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
 RUN git clone -b 2.1.0 --depth 1 https://github.com/ros2/rcl_interfaces.git
