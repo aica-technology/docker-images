@@ -93,7 +93,7 @@ jobs:
             IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${ROS_DISTRO}","${ROS_DISTRO}"
             GIT_TAG=${VERSION_TAG}-${ROS_DISTRO}"
           fi
-          BUILD_FLAGS+=(--build-arg VERSION=${VERSION_TAG}-${ROS_DISTRO}")
+          BUILD_FLAGS+=(--build-arg VERSION=${VERSION_TAG}-${ROS_DISTRO})
 
           echo "::debug::Using base image tag ${BASE_TAG}"
           echo "Build flags: ${BUILD_FLAGS[@]}"
