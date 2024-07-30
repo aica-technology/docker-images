@@ -91,7 +91,7 @@ jobs:
             GIT_TAG=""
           else
             IMAGE_TAGS="${VERSION_TAG},${VERSION_TAG}-${ROS_DISTRO}","${ROS_DISTRO}"
-            GIT_TAG=${VERSION_TAG}-${ROS_DISTRO}"
+            GIT_TAG="${VERSION_TAG}-${ROS_DISTRO}"
           fi
           BUILD_FLAGS+=(--build-arg VERSION=${VERSION_TAG}-${ROS_DISTRO})
 
