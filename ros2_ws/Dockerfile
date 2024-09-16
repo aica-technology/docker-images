@@ -13,7 +13,6 @@ ENV ROS2_WORKSPACE=/home/${USER}/ros2_ws
 ENV COLCON_HOME=${HOME}/.colcon
 ENV COLCON_DEFAULTS_FILE=${COLCON_HOME}/defaults.yaml
 ENV COLCON_WORKSPACE=${ROS2_WORKSPACE}
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 
 FROM environment-variables AS base-dependencies
@@ -158,14 +157,14 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}/src
 
-RUN git clone -b 4.11.0 --depth 1 https://github.com/ros-controls/ros2_control.git
-RUN git clone -b 4.8.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
+RUN git clone -b 4.16.1 --depth 1 https://github.com/ros-controls/ros2_control.git
+RUN git clone -b 4.13.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
 # get additional interface dependencies manually
-RUN git clone -b 5.1.0 --depth 1 https://github.com/ros-controls/control_msgs.git
+RUN git clone -b 5.2.0 --depth 1 https://github.com/ros-controls/control_msgs.git
 RUN git clone -b 1.0.3 --depth 1 https://github.com/pal-robotics/backward_ros.git
-RUN git clone -b 4.0.0 --depth 1 https://github.com/ros/diagnostics.git
-RUN git clone -b 2.5.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
-RUN git clone -b 2.1.0 --depth 1 https://github.com/ros2/rcl_interfaces.git
+RUN git clone -b 4.3.1 --depth 1 https://github.com/ros/diagnostics.git
+RUN git clone -b 2.6.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
+RUN git clone -b 2.2.0 --depth 1 https://github.com/ros2/rcl_interfaces.git
 RUN git clone -b 0.12.0 --depth 1 https://github.com/ros2/test_interface_files.git
 RUN git clone -b 1.16.0 --depth 1 https://github.com/ros/angles.git
 RUN git clone -b ros2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.git
