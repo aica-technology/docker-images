@@ -122,6 +122,7 @@ jobs:
           CONFIG_PATH=$ROS2_WS_PATH/config
           mkdir -p ${CONFIG_PATH}
           cp common/sshd_entrypoint.sh ${CONFIG_PATH}/
+          cp common/config.rviz ${CONFIG_PATH}/
 
       - uses: aica-technology/.github/.github/actions/list-add-suffixes@v0.6.1
         id: merge-tags
