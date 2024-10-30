@@ -49,13 +49,15 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/TF
       Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: true
       Marker Scale: 0.6000000238418579
       Name: TF
       Show Arrows: false
-      Show Axes: true
+      Show Axes: false
       Show Names: false
       Tree:
         {}
