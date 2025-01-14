@@ -157,8 +157,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}/src
 
-RUN git clone -b 4.23.0 --depth 1 https://github.com/ros-controls/ros2_control.git
-RUN git clone -b 4.18.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
+RUN git clone -b 4.24.0 --depth 1 https://github.com/ros-controls/ros2_control.git
+RUN git clone -b 4.19.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
 # get additional interface dependencies manually
 RUN git clone -b 5.3.0 --depth 1 https://github.com/ros-controls/control_msgs.git
 RUN git clone -b 1.0.6 --depth 1 https://github.com/pal-robotics/backward_ros.git
