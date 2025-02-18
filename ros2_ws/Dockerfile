@@ -56,6 +56,12 @@ RUN ( \
   ) > /etc/ssh/sshd_config_development \
   && mkdir /run/sshd
 
+FROM base-dependencies AS base-user-humble
+
+# create and configure a new user
+RUN addgroup --gid 1000 ${USER}
+RUN adduser --gecos "ROS2 User" --uid 1000 --gid 1000 ${USER} && yes | passwd ${USER}
+
 FROM base-dependencies AS base-user-iron
 
 # create and configure a new user
@@ -111,6 +117,38 @@ RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
 USER root
 RUN mkdir -p /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
+
+FROM base-workspace AS ros2-control-humble
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  ros-humble-ros2-control \
+  ros-humble-ros2-controllers \
+  && rm -rf /var/lib/apt/lists/*
+
+# build as ROS user
+USER ${USER}
+# WORKDIR ${ROS2_WORKSPACE}/src
+
+# RUN git clone -b 3.18.0 --depth 1 https://github.com/ros-controls/ros2_control.git
+# RUN git clone -b 3.14.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
+# # get additional interface dependencies manually
+# RUN git clone -b 5.0.0 --depth 1 https://github.com/ros-controls/control_msgs.git
+# RUN git clone -b 1.0.2 --depth 1 https://github.com/pal-robotics/backward_ros.git
+# RUN git clone -b 3.1.2 --depth 1 https://github.com/ros/diagnostics.git
+# RUN git clone -b 2.5.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
+# RUN git clone -b 1.7.0 --depth 1 https://github.com/ros2/rcl_interfaces.git
+# RUN git clone -b 0.11.0 --depth 1 https://github.com/ros2/test_interface_files.git
+# RUN git clone -b 1.16.0 --depth 1 https://github.com/ros/angles.git
+# RUN git clone -b ros2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.git
+# RUN git clone -b 0.3.3 --depth 1 https://github.com/PickNikRobotics/generate_parameter_library.git
+# RUN git clone -b 0.2.2 --depth 1 https://github.com/PickNikRobotics/RSL.git
+# RUN git clone -b 1.0.2 --depth 1 https://github.com/PickNikRobotics/cpp_polyfills.git
+# RUN git clone -b 3.1.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
+# RUN git clone -b 0.1.0 --depth 1 https://github.com/ros-controls/kinematics_interface.git
+
+WORKDIR ${ROS2_WORKSPACE}
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
+RUN rm -rf ./src
 
 FROM base-workspace AS ros2-control-iron
 
