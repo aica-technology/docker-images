@@ -125,6 +125,152 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   ros-humble-ros2-controllers \
   && rm -rf /var/lib/apt/lists/*
 
+
+ENV RELEASE=r36.3
+
+RUN apt-get update && apt-get upgrade -y && apt-get install -qq -y --no-install-recommends     bc     bzip2     can-utils     ca-certificates     freeglut3-dev     gnupg2     gstreamer1.0-alsa     gstreamer1.0-libav     gstreamer1.0-plugins-bad     gstreamer1.0-plugins-base     gstreamer1.0-plugins-good     gstreamer1.0-plugins-ugly     gstreamer1.0-tools     i2c-tools     iw     kbd     kmod     language-pack-en-base     libapt-pkg-dev     libcanberra-gtk3-module     libgles2     libglu1-mesa-dev     libglvnd-dev     libgtk-3-0     libpython2.7     libudev1     libvulkan1     libzmq5     mtd-utils     parted     pciutils     python3     python3-pexpect     python3-distutils     python3-numpy     sox     udev     vulkan-tools     wget     wireless-tools wpasupplicant
+
+RUN wget https://repo.download.nvidia.com/jetson/jetson-ota-public.asc -O /tmp/jetson-ota-public.asc
+RUN apt-key add /tmp/jetson-ota-public.asc
+RUN echo "deb https://repo.download.nvidia.com/jetson/common $RELEASE main" >> /etc/apt/sources.list
+
+RUN echo "/usr/lib/aarch64-linux-gnu/tegra" >> /etc/ld.so.conf.d/nvidia-tegra.conf &&     echo "/usr/lib/aarch64-linux-gnu/tegra-egl" >> /etc/ld.so.conf.d/nvidia-tegra.conf
+
+RUN rm /usr/share/glvnd/egl_vendor.d/50_mesa.json
+RUN mkdir -p /usr/share/glvnd/egl_vendor.d/ && echo '{    "file_format_version" : "1.0.0",    "ICD" : {        "library_path" : "libEGL_nvidia.so.0"    }}' > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+RUN mkdir -p /usr/share/egl/egl_external_platform.d/ && echo '{    "file_format_version" : "1.0.0",    "ICD" : {        "library_path" : "libnvidia-egl-wayland.so.1"    }}' > /usr/share/egl/egl_external_platform.d/nvidia_wayland.json
+
+RUN ldconfig
+
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=all
+ENV NVARCH=arm64
+ENV NVIDIA_REQUIRE_CUDA=cuda>=12.2
+ENV NV_CUDA_CUDART_VERSION=12.2.140-1
+ENV NVIDIA_REQUIRE_JETPACK_HOST_MOUNTS=base-only
+ENV CUDA_VERSION=12.2.12
+
+RUN apt-get update && apt-get install -y --no-install-recommends     cuda-cudart-12-2=${NV_CUDA_CUDART_VERSION}     ${NV_CUDA_COMPAT_PACKAGE}
+RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf     && echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+
+ENV PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib:$LD_LIBRARY_PATH
+ENV NV_LIBCUBLAS_PACKAGE=libcublas-12-2=12.2.5.6-1
+ENV NV_LIBCUBLAS_VERSION=12.2.5.6-1
+ENV NV_LIBCUBLAS_PACKAGE_NAME=libcublas-12-2
+ENV NV_LIBCUSPARSE_VERSION=12.1.2.141-1
+ENV NV_LIBNPP_PACKAGE=libnpp-12-2=12.2.1.4-1
+ENV NV_LIBNPP_VERSION=12.2.1.4-1
+ENV NV_NVTX_VERSION=12.2.140-1
+ENV NV_CUDA_LIB_VERSION=12.2.12-1
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+ENV NVIDIA_VISIBLE_DEVICES=all
+
+RUN apt-get update && apt-get install -y --no-install-recommends     cuda-libraries-12-2=${NV_CUDA_LIB_VERSION}     ${NV_LIBNPP_PACKAGE}     cuda-nvtx-12-2=${NV_NVTX_VERSION}     libcusparse-12-2=${NV_LIBCUSPARSE_VERSION}     ${NV_LIBCUBLAS_PACKAGE}
+RUN apt-mark hold ${NV_LIBCUBLAS_PACKAGE_NAME}
+
+ENV NVIDIA_PRODUCT_NAME=CUDA
+ENV NV_LIBCUBLAS_DEV_PACKAGE=libcublas-dev-12-2=12.2.5.6-1
+ENV NV_LIBCUBLAS_DEV_VERSION=12.2.5.6-1
+ENV NV_LIBCUBLAS_DEV_PACKAGE_NAME=libcublas-dev-12-2
+ENV NV_LIBNPP_DEV_PACKAGE=libnpp-dev-12-2=12.2.1.4-1
+ENV NV_LIBNPP_DEV_VERSION=12.2.1.4-1
+ENV NV_LIBCUSPARSE_DEV_VERSION=12.1.2.141-1
+ENV NV_NVML_DEV_VERSION=12.2.140-1
+ENV NV_CUDA_CUDART_DEV_VERSION=12.2.140-1
+ENV NV_CUDA_LIB_VERSION=12.2.12-1
+
+RUN apt-get update && apt-get install -y --no-install-recommends     cuda-cudart-dev-12-2=${NV_CUDA_CUDART_DEV_VERSION}     cuda-command-line-tools-12-2=${NV_CUDA_LIB_VERSION}     cuda-minimal-build-12-2=${NV_CUDA_LIB_VERSION}     cuda-libraries-dev-12-2=${NV_CUDA_LIB_VERSION}     cuda-nvml-dev-12-2=${NV_NVML_DEV_VERSION}     ${NV_LIBNPP_DEV_PACKAGE}     libcusparse-dev-12-2=${NV_LIBCUSPARSE_DEV_VERSION}     ${NV_LIBCUBLAS_DEV_PACKAGE}
+RUN apt-mark hold ${NV_LIBCUBLAS_DEV_PACKAGE_NAME}
+
+ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs:$LD_LIBRARY_PATH
+
+# Add Isaac apt repository
+RUN wget -qO - https://isaac.download.nvidia.com/isaac-ros/repos.key | apt-key add - && \
+    grep -qxF "deb https://isaac.download.nvidia.com/isaac-ros/release-3 $(lsb_release -cs) legacy-release-3.1" /etc/apt/sources.list || \
+    echo "deb https://isaac.download.nvidia.com/isaac-ros/release-3 $(lsb_release -cs) legacy-release-3.1" | tee -a /etc/apt/sources.list \
+    && apt-get update
+
+# Setup Jetson debian repositories
+RUN apt-key adv --fetch-keys https://repo.download.nvidia.com/jetson/jetson-ota-public.asc \
+    && apt-key adv --fetch-keys http://l4t-repo.nvidia.com/jetson-ota-internal.key \
+    && echo 'deb https://repo.download.nvidia.com/jetson/common r36.3 main' > /etc/apt/sources.list.d/nvidia-l4t-apt-source.list \
+    && echo 'deb https://repo.download.nvidia.com/jetson/t234 r36.3 main' >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list \
+    && apt-get update
+
+RUN apt-get update && apt-get install -y \
+    python3-dev \
+    python3-distutils \
+    python3-flake8 \
+    python3-pip \
+    python3-pytest-cov \
+    python3-venv \
+    python3-zmq \
+    python3.10 \
+    python3.10-venv
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    gfortran \
+    graphicsmagick-libmagick-dev-compat \
+    jq \
+    kmod \
+    lcov \
+    libasio-dev \
+    libassimp-dev \
+    libatlas-base-dev \
+    libblas3 \
+    libatlas3-base \
+    libboost-all-dev \
+    libboost-dev \
+    libceres-dev \
+    libbullet-dev \
+    libcunit1-dev \
+    libffi7 \
+    libfreetype6 \
+    libgraphicsmagick++1-dev \
+    libhidapi-libusb0 \
+    libinput10 \
+    libjpeg8 \
+    liblapack3 \
+    libmnl0 \
+    libmnl-dev \
+    libncurses5-dev \
+    libode-dev \
+    libopenblas0 \
+    libopencv-dev=4.5.4+dfsg-9ubuntu4 \
+    libopenmpi3 \
+    libpcap-dev \
+    libpcl-dev \
+    libsuitesparse-dev \
+    libtinyxml2-dev \
+    libturbojpeg \
+    linuxptp \
+    libunwind8 \
+    libv4l-0 \
+    libx264-dev \
+    libxaw7-dev \
+    libyaml-cpp-dev \
+    llvm-14 \
+    nlohmann-json3-dev \
+    python3-opencv=4.5.4+dfsg-9ubuntu4 \
+    python3-scipy \
+    ninja-build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    cuda-cudart-12-2 \
+    cuda-libraries-12-2 \
+    cuda-nvml-dev-12-2 \
+    cuda-sanitizer-12-2 \
+    cuda-toolkit-12-2 \
+    libcublas-12-2 \
+    libcudnn8 \
+    libcusparse-12-2 \
+    libnpp-12-2
+
+        
 # build as ROS user
 USER ${USER}
 # WORKDIR ${ROS2_WORKSPACE}/src
