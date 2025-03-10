@@ -19,32 +19,32 @@ FROM environment-variables AS base-dependencies
 
 # disable suggested and recommended install
 RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
-    | sudo tee /etc/apt/apt.conf.d/999norecommend
+  | sudo tee /etc/apt/apt.conf.d/999norecommend
 
 # install base dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    autoconf \
-    automake \
-    curl \
-    featherpad \
-    gdb \
-    git \
-    iputils-ping \
-    libboost-all-dev \
-    libtool \
-    mesa-utils \
-    nano \
-    python3-pip \
-    ros-${ROS_DISTRO}-xacro \
-    ros-${ROS_DISTRO}-robot-state-publisher \
-    ros-${ROS_DISTRO}-rviz2 \
-    rsync \
-    software-properties-common \
-    ssh \
-    unzip \
-    wget \
-    && apt-get upgrade -y \
-    && rm -rf /var/lib/apt/lists/*
+  autoconf \
+  automake \
+  curl \
+  featherpad \
+  gdb \
+  git \
+  iputils-ping \
+  libboost-all-dev \
+  libtool \
+  mesa-utils \
+  nano \
+  python3-pip \
+  ros-${ROS_DISTRO}-xacro \
+  ros-${ROS_DISTRO}-robot-state-publisher \
+  ros-${ROS_DISTRO}-rviz2 \
+  rsync \
+  software-properties-common \
+  ssh \
+  unzip \
+  wget \
+  && apt-get upgrade -y \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
@@ -53,8 +53,8 @@ RUN ( \
     echo 'LogLevel DEBUG2'; \
     echo 'PubkeyAuthentication yes'; \
     echo 'Subsystem sftp /usr/lib/openssh/sftp-server'; \
-    ) > /etc/ssh/sshd_config_development \
-    && mkdir /run/sshd
+  ) > /etc/ssh/sshd_config_development \
+  && mkdir /run/sshd
 
 FROM base-dependencies AS base-user-iron
 
@@ -103,7 +103,7 @@ RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symli
 
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
-    source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
+source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
 # enable colorized output from ros logging
 RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
 
@@ -115,11 +115,11 @@ RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-sessi
 FROM base-workspace AS ros2-control-iron
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    doxygen \
-    librange-v3-dev \
-    python3-jinja2 \
-    python3-typeguard \
-    && rm -rf /var/lib/apt/lists/*
+  doxygen \
+  librange-v3-dev \
+  python3-jinja2 \
+  python3-typeguard \
+  && rm -rf /var/lib/apt/lists/*
 
 # build as ROS user
 USER ${USER}
@@ -148,10 +148,10 @@ RUN rm -rf ./src
 
 FROM base-workspace AS ros2-control-jazzy
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    libcap-dev \
-    python3-jinja2 \
-    python3-typeguard \
-    && rm -rf /var/lib/apt/lists/*
+  libcap-dev \
+  python3-jinja2 \
+  python3-typeguard \
+  && rm -rf /var/lib/apt/lists/*
 
 # build as ROS user
 USER ${USER}
