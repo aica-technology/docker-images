@@ -54,7 +54,11 @@ for PACKAGE in $PACKAGES; do
     sleep 1
     TIMER=$((TIMER + 1))
   done
-  jq -s 'add' compile_commands.json build/$PACKAGE/compile_commands.json > tmp && mv tmp compile_commands.json
+  if ! [ -s build/$PACKAGE/compile_commands.json ]; then
+    echo "Failed to generate compile commands for package $PACKAGE"
+  else 
+    jq -s 'add' compile_commands.json build/$PACKAGE/compile_commands.json > tmp && mv tmp compile_commands.json
+  fi
 done
 kill -INT $COLCON_PID
 cp compile_commands.json ~/.devcontainer
