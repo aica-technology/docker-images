@@ -91,6 +91,7 @@ USER ${USER}
 WORKDIR ${HOME}
 RUN wget https://raw.githubusercontent.com/aica-technology/.github/v0.9.0/guidelines/.clang-format
 COPY ./config/config.rviz config.rviz
+COPY --chown=${USER}:${USER} ./config/generate_compile_commands.sh /usr/local/bin/generate_compile_commands
 RUN mkdir -p ${COLCON_HOME}
 COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
@@ -189,8 +190,6 @@ RUN rm -rf /home/ubuntu
 # start as ROS user
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
-
-COPY ./scripts/generate_compile_commands.sh /tmp/generate_compile_commands
 
 # Metadata
 ARG BASE_IMAGE=docker.io/library/ros
