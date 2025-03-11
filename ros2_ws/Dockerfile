@@ -92,6 +92,9 @@ WORKDIR ${HOME}
 RUN wget https://raw.githubusercontent.com/aica-technology/.github/v0.9.0/guidelines/.clang-format
 COPY ./config/config.rviz config.rviz
 COPY --chown=${USER}:${USER} ./config/generate_compile_commands.sh /usr/local/bin/generate_compile_commands
+COPY ./config/general_aliases.sh /tmp
+RUN /bin/bash /tmp/general_aliases.sh
+RUN rm /tmp/general_aliases.sh
 RUN mkdir -p ${COLCON_HOME}
 COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
