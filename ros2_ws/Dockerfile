@@ -92,12 +92,23 @@ WORKDIR ${HOME}
 RUN wget https://raw.githubusercontent.com/aica-technology/.github/v0.9.0/guidelines/.clang-format
 COPY ./config/config.rviz config.rviz
 COPY --chown=${USER}:${USER} ./config/generate_compile_commands.sh /usr/local/bin/generate_compile_commands
-COPY --chown=${USER}:${USER} ./config/general_aliases.sh /tmp
-RUN /bin/bash /tmp/general_aliases.sh
-RUN rm /tmp/general_aliases.sh
 RUN mkdir -p ${COLCON_HOME}
 COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
+
+# create a bash alias to print the encoded topic w/ autocomplete
+RUN <<EOC
+cat << 'EOF' >> "${HOME}/.bash_aliases"
+alias print_encoded_topic='export ROS2_WORKSPACE; ros2 run aica_core_components print_encoded_topic'
+_print_encoded_topic_completion() {
+  local cur_word topics
+  cur_word="${COMP_WORDS[COMP_CWORD]}"
+  topics=$(ros2 topic list -t | grep modulo_interfaces/msg/EncodedState | sed 's/ \[modulo_interfaces\/msg\/EncodedState\]//')
+  COMPREPLY=( $(compgen -W "$topics" -- "$cur_word") )
+}
+complete -F _print_encoded_topic_completion print_encoded_topic
+EOF
+EOC
 
 # build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src
