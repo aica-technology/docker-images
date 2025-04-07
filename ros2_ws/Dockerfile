@@ -77,6 +77,12 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
   --mount=type=cache,target=/go/pkg/mod \
   go build
 
+FROM base-dependencies AS base-user-humble
+
+# create and configure a new user
+RUN addgroup --gid 1000 ${USER}
+RUN adduser --gecos "ROS2 User" --uid 1000 --gid 1000 ${USER} && yes | passwd ${USER}
+
 FROM base-dependencies AS base-user-iron
 
 # create and configure a new user
@@ -135,6 +141,14 @@ RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
 USER root
 RUN mkdir -p /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hosts
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
+
+FROM base-workspace AS ros2-control-humble
+
+# build as ROS user
+USER ${USER}
+WORKDIR ${ROS2_WORKSPACE}
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
+RUN rm -rf ./src
 
 FROM base-workspace AS ros2-control-iron
 
