@@ -15,7 +15,7 @@ jobs:
   build-ws:
     strategy:
       matrix:
-        ros2_distro: [ jazzy ]
+        ros2_distro: [ humble ]
 
     name: Build and publish ros2-ws:${{ matrix.ros2_distro }}
     uses: ./.github/workflows/reusable-build-push.yml
