@@ -2,6 +2,7 @@
 
 PACKAGES=""
 CMAKE_ARGS="-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+OUTPUT_DIR="~/.devcontainer"
 TIMEOUT=30
 
 HELP_MESSAGE="
@@ -32,6 +33,7 @@ while [ "$#" -gt 0 ]; do
       done
       ;;
     -t|--timeout) TIMEOUT=$2; shift 2;;
+    -o|--output-dir) OUTPUT_DIR=$2; shift 2;;
     -h|--help) echo "$HELP_MESSAGE"; exit 0;;
     *)
       echo "Unknown option: $1"
@@ -61,4 +63,4 @@ for PACKAGE in $PACKAGES; do
   fi
 done
 kill -INT $COLCON_PID
-cp compile_commands.json ~/.devcontainer
+cp compile_commands.json $OUTPUT_DIR
