@@ -180,6 +180,9 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
 
+RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y pipx && sudo rm -rf /var/lib/apt/lists/*
+RUN pipx install check-jsonschema && pipx ensurepath
+
 FROM ros2-control-${ROS_DISTRO} AS ros2-control
 
 FROM environment-variables AS final
