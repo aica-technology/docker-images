@@ -175,6 +175,11 @@ RUN git clone -b 1.0.2 --depth 1 https://github.com/PickNikRobotics/cpp_polyfill
 RUN git clone -b 3.2.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
 RUN git clone -b 2.1.2 --depth 1 https://github.com/ros/filters.git
 RUN git clone -b 1.1.0 --depth 1 https://github.com/ros-controls/kinematics_interface.git
+RUN git clone -b 2.13.0 --depth 1 https://github.com/moveit/moveit2.git
+RUN git clone -b 2.3.2 --depth 1 https://github.com/moveit/geometric_shapes.git
+RUN git clone -b 2.6.0 --depth 1 https://github.com/moveit/moveit_msgs.git
+RUN git clone -b 3.1.0 --depth 1 https://github.com/moveit/moveit_resources.git
+RUN git clone -b 2.0.7 --depth 1 https://github.com/moveit/srdfdom.git
 
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
