@@ -1,0 +1,16 @@
+macro(install_aica_descriptions)
+    if(NOT ${ARGC} EQUAL 2)
+        message(SEND_ERROR "The 'install_aica_descriptions' macro requires exactly two arguments, the descriptions directory and the installation directory.")
+    endif()
+    message("Validating and installing descriptions")
+    file(GLOB DESC ${ARGV0}/*.json)
+    foreach(FILE ${DESC})
+        execute_process(COMMAND validate_json ${FILE}
+                        OUTPUT_VARIABLE VALIDATION_OUTPUT
+                        RESULT_VARIABLE VALIDATION_RESULT)
+        if(NOT VALIDATION_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to validate file ${FILE}:\n${VALIDATION_OUTPUT}")
+        endif()
+        install(FILES ${FILE} DESTINATION ${ARGV1})
+    endforeach()
+endmacro()
