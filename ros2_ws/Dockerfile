@@ -65,12 +65,10 @@ RUN wget https://go.dev/dl/go${GOVERSION}.linux-${TARGETPLATFORM#*/}.tar.gz -O /
   rm /tmp/go.tar.gz
 ENV PATH="${PATH}:/usr/local/go/bin"
 WORKDIR /go
-COPY config/validate_json.go .
-RUN --mount=type=cache,target=/go/pkg/mod \
-  go mod init validate_json.go && go mod tidy
+COPY config/validate_json ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
   --mount=type=cache,target=/go/pkg/mod \
-  go build -o validate_json
+  go build
 
 FROM base-dependencies AS base-user-iron
 
@@ -108,8 +106,8 @@ WORKDIR ${HOME}
 RUN wget https://raw.githubusercontent.com/aica-technology/.github/v0.9.0/guidelines/.clang-format
 COPY ./config/config.rviz config.rviz
 COPY --chown=${USER}:${USER} ./config/generate_compile_commands.sh /usr/local/bin/generate_compile_commands
-RUN mkdir -p ${HOME}/.cmake
-COPY --chown=${USER}:${USER} ./config/InstallAicaDescriptions.cmake .cmake/
+COPY --chown=${USER}:${USER} ./config/InstallAicaDescriptions.cmake /tmp
+RUN sudo mv /tmp/InstallAicaDescriptions.cmake /usr/share/cmake-$(cmake --version | awk '/cmake version/ {split($3, v, "."); print v[1]"."v[2]}')/Modules
 RUN mkdir -p ${COLCON_HOME}
 COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
