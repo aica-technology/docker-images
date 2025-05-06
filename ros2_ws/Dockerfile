@@ -55,6 +55,20 @@ RUN ( \
   ) > /etc/ssh/sshd_config_development \
   && mkdir /run/sshd
 
+FROM base-dependencies AS build-go
+ARG TARGETPLATFORM
+ARG GOVERSION=1.24.2
+
+RUN wget https://go.dev/dl/go${GOVERSION}.linux-${TARGETPLATFORM#*/}.tar.gz -O /tmp/go.tar.gz && \
+  sudo tar -C /usr/local -xzf /tmp/go.tar.gz && \
+  rm /tmp/go.tar.gz
+ENV PATH="${PATH}:/usr/local/go/bin"
+WORKDIR /go
+COPY config/validate_json ./
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  --mount=type=cache,target=/go/pkg/mod \
+  go build
+
 FROM base-dependencies AS base-user-iron
 
 # create and configure a new user
@@ -91,6 +105,8 @@ WORKDIR ${HOME}
 RUN wget https://raw.githubusercontent.com/aica-technology/.github/v0.9.0/guidelines/.clang-format
 COPY ./config/config.rviz config.rviz
 COPY --chown=${USER}:${USER} ./config/generate_compile_commands.sh /usr/local/bin/generate_compile_commands
+COPY --chown=${USER}:${USER} ./config/InstallAicaDescriptions.cmake /tmp
+RUN sudo mv /tmp/InstallAicaDescriptions.cmake /usr/share/cmake-$(cmake --version | awk '/cmake version/ {split($3, v, "."); print v[1]"."v[2]}')/Modules
 RUN mkdir -p ${COLCON_HOME}
 COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
@@ -184,6 +200,7 @@ FROM ros2-control-${ROS_DISTRO} AS ros2-control
 
 FROM environment-variables AS final
 COPY --from=ros2-control / /
+COPY --from=build-go /go/validate_json /usr/bin/
 RUN rm -rf /home/ubuntu
 
 # start as ROS user
