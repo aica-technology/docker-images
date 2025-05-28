@@ -2,7 +2,7 @@
 
 PACKAGES=""
 CMAKE_ARGS="-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
-OUTPUT_DIR="~/.devcontainer"
+OUTPUT_DIR="$HOME/.devcontainer"
 TIMEOUT=30
 
 HELP_MESSAGE="
@@ -13,6 +13,7 @@ Generate compile commands for clangd. The following options are supported:
   -p|--packages <packages>  The ROS packages to build (space-separated).
   --cmake-args <args>       Additional CMake arguments (space-separated).
   -t|--timeout <seconds>    Timeout in seconds (default: 30).
+  -o|--output-dir <dir>     Directory to save the compile_commands.json file (default: $OUTPUT_DIR).
   -h|--help                 Show this help message.
 "
 
