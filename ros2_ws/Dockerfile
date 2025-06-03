@@ -150,6 +150,10 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
 
+RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
+  libcap-dev \
+  && sudo rm -rf /var/lib/apt/lists/*
+
 FROM base-workspace AS ros2-control-iron
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
