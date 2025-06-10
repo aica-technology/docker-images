@@ -17,8 +17,6 @@ ENV COLCON_WORKSPACE=${ROS2_WORKSPACE}
 
 FROM environment-variables AS base-dependencies
 
-# FIXME: remove after new ros images are released
-RUN rm /etc/apt/sources.list.d/ros2-latest.list && rm /usr/share/keyrings/ros2-latest-archive-keyring.gpg
 RUN apt-get update && apt-get install --no-install-recommends -y curl && rm -rf /var/lib/apt/lists/*
 RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') ;\
   curl -L -s -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo $VERSION_CODENAME)_all.deb" \
@@ -210,7 +208,24 @@ FROM environment-variables AS final
 COPY --from=ros2-control / /
 COPY --from=build-go /go/validate_json /usr/bin/
 RUN rm -rf /home/ubuntu
-RUN rm /etc/apt/sources.list.d/ros2-latest.list && rm /usr/share/keyrings/ros2-latest-archive-keyring.gpg
+
+# install ONNX runtime library
+WORKDIR /tmp/onnxruntime
+RUN git clone -b v1.14.1 --recursive https://github.com/microsoft/onnxruntime .
+RUN git submodule update --init --recursive
+RUN ./build.sh \
+  --config Release \
+  --build_shared_lib \
+  --parallel \
+  --skip_tests \
+  --compile_no_warning_as_error \
+  --skip_submodule_sync \
+  --cmake_extra_defines onnxruntime_BUILD_UNIT_TESTS=OFF \
+  --cmake_extra_defines onnxruntime_BUILD_TESTS=OFF \
+  --cmake_extra_defines CMAKE_CXX_FLAGS="-Wno-stringop-overflow"
+RUN cd /tmp/onnxruntime && \
+    sudo cmake --install build/Linux/Release --prefix /usr
+RUN rm -rf /tmp/onnxruntime
 
 # start as ROS user
 USER ${USER}
