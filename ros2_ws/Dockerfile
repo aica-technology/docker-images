@@ -45,6 +45,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   ros-${ROS_DISTRO}-xacro \
   ros-${ROS_DISTRO}-robot-state-publisher \
   ros-${ROS_DISTRO}-rviz2 \
+  python3-semver \
+  ros-jazzy-image-geometry \
+  ros-jazzy-cv-bridge \
+  ros-jazzy-vision-opencv \
   rsync \
   software-properties-common \
   ssh \
@@ -224,6 +228,15 @@ RUN rm -rf /home/ubuntu
 # start as ROS user
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
+
+RUN echo '#!/bin/bash\n\
+  set -e\n\
+  source /opt/ros/jazzy/setup.bash\n\
+  source /home/ros2/ros2_ws/install/setup.bash\n\
+  exec "$@"' > ${HOME}/ros_entrypoint.sh &&  chmod +x ${HOME}/ros_entrypoint.sh
+
+ENTRYPOINT ["/home/ros2/ros_entrypoint.sh"]
+CMD ["/usr/local/bin/camera_calibration"]
 
 # Metadata
 ARG BASE_IMAGE=docker.io/library/ros
