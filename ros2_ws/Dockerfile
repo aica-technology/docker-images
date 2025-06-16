@@ -171,11 +171,13 @@ RUN git clone -b 1.0.2 --depth 1 https://github.com/PickNikRobotics/cpp_polyfill
 RUN git clone -b 3.1.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
 RUN git clone -b 0.1.0 --depth 1 https://github.com/ros-controls/kinematics_interface.git
 
+RUN sudo mkdir /export && sudo chown ${USER}:${USER} /export
 RUN git clone --filter=blob:none --no-checkout -b iron https://github.com/ros-perception/image_pipeline.git && \
   cd image_pipeline && \
   git sparse-checkout init --no-cone && \
   echo "camera_calibration/" > .git/info/sparse-checkout && \
-  git checkout && mv camera_calibration .. && cd .. && rm -rf image_pipeline
+  git checkout && mv camera_calibration .. && cd .. && rm -rf image_pipeline && \
+  find ./camera_calibration/src/camera_calibration/calibrator.py -type f -exec sed -i 's|/tmp/calibrationdata.tar.gz|/export/calibrationdata.tar.gz|g' {} \;
 
 WORKDIR ${ROS2_WORKSPACE}
 FROM base-workspace AS ros2-control-jazzy
@@ -208,11 +210,13 @@ RUN git clone -b 3.4.0 --depth 1 https://github.com/ros-controls/control_toolbox
 RUN git clone -b 2.1.2 --depth 1 https://github.com/ros/filters.git
 RUN git clone -b 1.2.1 --depth 1 https://github.com/ros-controls/kinematics_interface.git
 
+RUN sudo mkdir /export && sudo chown ${USER}:${USER} /export
 RUN git clone --filter=blob:none --no-checkout -b jazzy https://github.com/ros-perception/image_pipeline.git && \
   cd image_pipeline && \
   git sparse-checkout init --no-cone && \
   echo "camera_calibration/" > .git/info/sparse-checkout && \
-  git checkout && mv camera_calibration .. && cd .. && rm -rf image_pipeline
+  git checkout && mv camera_calibration .. && cd .. && rm -rf image_pipeline && \
+  find ./camera_calibration/src/camera_calibration/calibrator.py -type f -exec sed -i 's|/tmp/calibrationdata.tar.gz|/export/calibrationdata.tar.gz|g' {} \;
 
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
