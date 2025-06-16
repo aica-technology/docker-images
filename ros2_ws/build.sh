@@ -44,4 +44,4 @@ VERSION=$(cat "${SCRIPT_DIR}"/VERSION."${ROS_DISTRO}")
 BUILD_FLAGS+=(--build-arg=BASE_TAG=${BASE_TAG})
 BUILD_FLAGS+=(--build-arg=ROS_DISTRO=${ROS_DISTRO})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION}-${ROS_DISTRO})
-docker buildx build -t "${IMAGE_NAME}":v"${VERSION}"-"${ROS_DISTRO}" "${BUILD_FLAGS[@]}" .
+docker buildx build -t "${IMAGE_NAME}":"${VERSION}"-"${ROS_DISTRO}" "${BUILD_FLAGS[@]}" .
