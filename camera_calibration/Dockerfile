@@ -19,6 +19,7 @@ RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
 
 # install base dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
+    sudo \
     git \
     python3-semver \
     ros-${ROS_DISTRO}-image-geometry \
@@ -28,15 +29,10 @@ RUN apt-get clean
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
-FROM base-dependencies AS base-user-jazzy
-
-# rename existing ubuntu user
 RUN usermod -l ${USER} ubuntu
 RUN groupmod -n ${USER} ubuntu
 RUN usermod -d ${HOME} -m ros2
 RUN chfn -f "ROS2 User" ros2
-
-FROM base-user-${ROS_DISTRO} AS base-workspace
 
 RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
@@ -45,10 +41,8 @@ RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_apt
 # configure colcon defaults and utilities
 USER ${USER}
 WORKDIR ${HOME}
-COPY --chown=${USER}:${USER} ./config/camera_calibration.sh /usr/local/bin/camera_calibration
+COPY --chown=${USER}:${USER} ./scripts/camera_calibration.sh /usr/local/bin/camera_calibration
 RUN mkdir -p ${COLCON_HOME}
-COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
-RUN /bin/bash ${COLCON_HOME}/setup.sh
 
 # build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src
@@ -61,9 +55,6 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
     source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
 # enable colorized output from ros logging
 RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
-
-WORKDIR ${ROS2_WORKSPACE}
-FROM base-workspace AS ros2-ws
 
 # build as ROS user
 USER ${USER}
@@ -82,7 +73,7 @@ RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
 
 FROM environment-variables AS final
-COPY --from=ros2-ws / /
+COPY --from=base-dependencies / /
 RUN rm -rf /home/ubuntu
 
 # start as ROS user
