@@ -3,6 +3,7 @@
 IMAGE_NAME=ghcr.io/aica-technology/ros2-ws
 BASE_TAG=jazzy
 ROS_DISTRO=jazzy
+BUILD_CAMERA_CALIBRATION=false
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
@@ -33,6 +34,10 @@ while [ "$#" -gt 0 ]; do
     BUILD_FLAGS+=(--progress=plain)
     shift 1
     ;;
+  --camera-calibration)
+    BUILD_CAMERA_CALIBRATION=true
+    shift 1
+    ;;
   *)
     echo "Unknown option: $1" >&2
     exit 1
@@ -44,4 +49,10 @@ VERSION=$(cat "${SCRIPT_DIR}"/VERSION."${ROS_DISTRO}")
 BUILD_FLAGS+=(--build-arg=BASE_TAG=${BASE_TAG})
 BUILD_FLAGS+=(--build-arg=ROS_DISTRO=${ROS_DISTRO})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION}-${ROS_DISTRO})
-docker buildx build -t "${IMAGE_NAME}":"${VERSION}"-"${ROS_DISTRO}" "${BUILD_FLAGS[@]}" .
+
+if [[ "${BUILD_CAMERA_CALIBRATION}" == true ]]; then
+  VERSION=camera-calibration
+  docker buildx build -f Dockerfile.camera-calibration -t "${IMAGE_NAME}":"${VERSION}"-"${ROS_DISTRO}" "${BUILD_FLAGS[@]}" .
+else
+  docker buildx build -t "${IMAGE_NAME}":v"${VERSION}"-"${ROS_DISTRO}" "${BUILD_FLAGS[@]}" .
+fi
