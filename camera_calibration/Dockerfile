@@ -5,68 +5,44 @@ ARG VERSION=v0.0.0
 
 FROM ${BASE_IMAGE}:${BASE_TAG} AS environment-variables
 ENV DEBIAN_FRONTEND=noninteractive
-ENV USER=ros2
-ENV HOME=/home/${USER}
-ENV ROS2_WORKSPACE=/home/${USER}/ros2_ws
-ENV COLCON_HOME=${HOME}/.colcon
-
+ENV ROS2_WORKSPACE=/ws
+ENV UID=1000
+ENV GID=1000
 
 FROM environment-variables AS base-dependencies
 
 # disable suggested and recommended install
 RUN apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ \
-    | sudo tee /etc/apt/apt.conf.d/999norecommend
+    > /etc/apt/apt.conf.d/999norecommend
 
 # install base dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    sudo \
     git \
     python3-semver \
+    python3-rosdep \
+    python3-colcon-common-extensions \
+    python3-colcon-ros \
     ros-${ROS_DISTRO}-image-geometry \
     ros-${ROS_DISTRO}-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 RUN apt-get clean
 
-RUN echo "Set disable_coredump false" >> /etc/sudo.conf
+COPY --chown=${UID}:${GID} ./scripts/camera_calibration.sh /usr/local/bin/camera_calibration
 
-RUN usermod -l ${USER} ubuntu
-RUN groupmod -n ${USER} ubuntu
-RUN usermod -d ${HOME} -m ros2
-RUN chfn -f "ROS2 User" ros2
-
-RUN usermod -a -G dialout ${USER}
-RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
-RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
-
-# configure colcon defaults and utilities
-USER ${USER}
-WORKDIR ${HOME}
-COPY --chown=${USER}:${USER} ./scripts/camera_calibration.sh /usr/local/bin/camera_calibration
-RUN mkdir -p ${COLCON_HOME}
-
-# build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src
 WORKDIR ${ROS2_WORKSPACE}
+RUN rosdep init
 RUN rosdep update
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
 
-# prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
-RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
-    source ${ROS2_WORKSPACE}/install/setup.bash" | cat - ${HOME}/.bashrc > tmp && mv tmp ${HOME}/.bashrc
-# enable colorized output from ros logging
-RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
-
-# build as ROS user
-USER ${USER}
-WORKDIR ${ROS2_WORKSPACE}/src
-
-RUN sudo mkdir /export && sudo chown ${USER}:${USER} /export
 RUN git clone --filter=blob:none --no-checkout -b jazzy https://github.com/ros-perception/image_pipeline.git && \
     cd image_pipeline && \
     git sparse-checkout init --no-cone && \
     echo "camera_calibration/" > .git/info/sparse-checkout && \
     git checkout && mv camera_calibration .. && cd .. && rm -rf image_pipeline && \
     find ./camera_calibration/src/camera_calibration/calibrator.py -type f -exec sed -i 's|/tmp/calibrationdata.tar.gz|/export/calibrationdata.tar.gz|g' {} \;
+
+RUN mkdir /export && chown ${UID}:${GID} /export
 
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
@@ -77,7 +53,6 @@ COPY --from=base-dependencies / /
 RUN rm -rf /home/ubuntu
 
 # start as ROS user
-USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
 
 RUN echo '#!/bin/bash\n\
