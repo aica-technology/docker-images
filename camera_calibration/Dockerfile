@@ -41,9 +41,6 @@ RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
 RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
 
-COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
-RUN chmod 744 /sshd_entrypoint.sh
-
 USER ${USER}
 WORKDIR ${HOME}
 COPY --chown=${USER}:${USER} ./config/camera_calibration.sh /usr/local/bin/camera_calibration
@@ -59,7 +56,7 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash; \
 RUN echo "export RCUTILS_COLORIZED_OUTPUT=1" >> ${HOME}/.bashrc
 
 # clone sparse camera_calibration
-RUN git clone --filter=blob:none --no-checkout -b jazzy https://github.com/ros-perception/image_pipeline.git && \
+RUN git clone --filter=blob:none --no-checkout -b ${ROS_DISTRO} https://github.com/ros-perception/image_pipeline.git && \
     cd image_pipeline && \
     git sparse-checkout init --no-cone && \
     echo "camera_calibration/" > .git/info/sparse-checkout && \
