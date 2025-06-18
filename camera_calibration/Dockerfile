@@ -22,19 +22,23 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     python3-rosdep \
     python3-colcon-common-extensions \
     python3-colcon-ros \
+    ros-${ROS_DISTRO}-rclpy \
+    ros-${ROS_DISTRO}-message-filters \
     ros-${ROS_DISTRO}-image-geometry \
     ros-${ROS_DISTRO}-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 RUN apt-get clean
 
-COPY --chown=${UID}:${GID} ./scripts/camera_calibration.sh /usr/local/bin/camera_calibration
+COPY ./config/camera_calibration.sh /usr/local/bin/camera_calibration
 
-RUN mkdir -p ${ROS2_WORKSPACE}/src
 WORKDIR ${ROS2_WORKSPACE}
 RUN rosdep init
 RUN rosdep update
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
+COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
+RUN chmod 744 /sshd_entrypoint.sh
 
+WORKDIR ${ROS2_WORKSPACE}/src
 RUN git clone --filter=blob:none --no-checkout -b jazzy https://github.com/ros-perception/image_pipeline.git && \
     cd image_pipeline && \
     git sparse-checkout init --no-cone && \
@@ -42,7 +46,7 @@ RUN git clone --filter=blob:none --no-checkout -b jazzy https://github.com/ros-p
     git checkout && mv camera_calibration .. && cd .. && rm -rf image_pipeline && \
     find ./camera_calibration/src/camera_calibration/calibrator.py -type f -exec sed -i 's|/tmp/calibrationdata.tar.gz|/export/calibrationdata.tar.gz|g' {} \;
 
-RUN mkdir /export && chown ${UID}:${GID} /export
+RUN mkdir /export
 
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
@@ -58,10 +62,10 @@ WORKDIR ${ROS2_WORKSPACE}
 RUN echo '#!/bin/bash\n\
     set -e\n\
     source /opt/ros/jazzy/setup.bash\n\
-    source /home/ros2/ros2_ws/install/setup.bash\n\
-    exec "$@"' > ${HOME}/ros_entrypoint.sh &&  chmod +x ${HOME}/ros_entrypoint.sh
+    source /ws/install/setup.bash\n\
+    exec "$@"' > /ros_entrypoint.sh &&  chmod +x /ros_entrypoint.sh
 
-ENTRYPOINT ["/home/ros2/ros_entrypoint.sh"]
+ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["/usr/local/bin/camera_calibration"]
 
 # Metadata
