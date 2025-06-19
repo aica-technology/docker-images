@@ -3,6 +3,7 @@ OUTPUT_DIR=calibration
 CALIB_WIDTH=7
 CALIB_HEIGHT=9
 CALIB_SQUARE=0.015
+CALIB_TOPIC=/camera_streamer/image
 
 ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
 echo "Using ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}"
@@ -19,6 +20,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   --calibration-square)
     CALIB_SQUARE=$2
+    shift 2
+    ;;
+  --calibration-topic)
+    CALIB_TOPIC=$2
     shift 2
     ;;
   --output-dir)
@@ -46,7 +51,7 @@ docker run -it --rm \
     -e CALIB_WIDTH="${CALIB_WIDTH}" \
     -e CALIB_HEIGHT="${CALIB_HEIGHT}" \
     -e CALIB_SQUARE="${CALIB_SQUARE}" \
-    -e CALIB_TOPIC=/camera_streamer/image \
+    -e CALIB_TOPIC=${CALIB_TOPIC} \
     -v $OUTPUT_DIR:/export \
     -v /dev:/dev:rw \
     --privileged \
