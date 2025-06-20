@@ -1,5 +1,9 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
 VERSION=$(cat VERSION)
-OUTPUT_DIR=calibration
+OUTPUT_DIR="${SCRIPT_DIR}"/calibration
 CALIB_WIDTH=7
 CALIB_HEIGHT=9
 CALIB_SQUARE=0.015
