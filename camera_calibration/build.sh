@@ -22,4 +22,4 @@ while [ "$#" -gt 0 ]; do
 done
 
 VERSION=$(cat "${SCRIPT_DIR}"/VERSION)
-docker buildx build -t "${IMAGE_NAME}":"${VERSION}" "${BUILD_FLAGS[@]}" .
+docker buildx build -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
