@@ -43,6 +43,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   ssh \
   unzip \
   wget \
+  ninja-build \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
