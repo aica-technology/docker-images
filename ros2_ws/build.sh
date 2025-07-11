@@ -47,6 +47,9 @@ while [ "$#" -gt 0 ]; do
 done
 
 if [[ "${WITH_NVIDIA}" == true ]]; then
+  if [[ "${ROS_DISTRO}" == "humble" ]]; then
+    NVIDIA_BASE_TAG=24.11-py3
+  fi
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.nvidia)
   BUILD_FLAGS+=(--build-arg=NVIDIA_BASE_TAG=${NVIDIA_BASE_TAG})
   BUILD_FLAGS+=(--build-arg=ROS_DISTRO=${ROS_DISTRO})
