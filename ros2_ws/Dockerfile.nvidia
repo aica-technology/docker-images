@@ -4,6 +4,7 @@ ARG ROS_DISTRO=jazzy
 ARG VERSION=v0.0.0
 
 FROM ${NVIDIA_BASE_IMAGE}:${NVIDIA_BASE_TAG} AS environment-variables
+ARG ROS_DISTRO=jazzy
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONWARNINGS=ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources
@@ -14,6 +15,7 @@ ENV ROS2_WORKSPACE=/home/${USER}/ros2_ws
 ENV COLCON_HOME=${HOME}/.colcon
 ENV COLCON_DEFAULTS_FILE=${COLCON_HOME}/defaults.yaml
 ENV COLCON_WORKSPACE=${ROS2_WORKSPACE}
+ENV ROS_DISTRO=${ROS_DISTRO}
 
 FROM environment-variables AS base-dependencies
 ARG ROS_DISTRO
@@ -60,6 +62,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     wget \
     ninja-build \
     && rm -rf /var/lib/apt/lists/*
+# manage rosdep deprecation warning
+RUN pip install setuptools==68.1.2
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
@@ -141,6 +145,8 @@ RUN mkdir -p ${ROS2_WORKSPACE}/src
 WORKDIR ${ROS2_WORKSPACE}
 RUN sudo rosdep init
 RUN rosdep update
+RUN sudo rosdep fix-permissions
+RUN sudo chown -R ${USER}:${USER} /home/ros2/.ros/
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
 
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
@@ -277,9 +283,10 @@ WORKDIR ${ROS2_WORKSPACE}
 # Metadata
 ARG VERSION=v0.0.0
 ARG NVIDIA_BASE_IMAGE=nvcr.io/nvidia/pytorch
-ARG NVIDIA_BASE_TAG=24.04-py3
-LABEL org.opencontainers.image.title="AICA ROS 2 image"
+ARG NVIDIA_BASE_TAG=25.06-py3
+LABEL org.opencontainers.image.title="AICA ROS 2 image with Nvidia dependencies"
 LABEL org.opencontainers.image.description="AICA base ROS 2 image (includes ros2_control)"
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.base.name="${NVIDIA_BASE_IMAGE}:${NVIDIA_BASE_TAG}"
 LABEL tech.aica.image.metadata='{"type":"base/ws","base":{"name":"'${NVIDIA_BASE_IMAGE}':'${NVIDIA_BASE_TAG}'","version":"'${VERSION}'"}}'
+LABEL devcontainer.metadata='[{"containerUser": "ros2"}]'
