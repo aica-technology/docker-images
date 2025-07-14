@@ -55,6 +55,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     ros-${ROS_DISTRO}-rviz2 \
     ros-dev-tools \
     python3-colcon-common-extensions \
+    python3-colcon-mixin \
+    python3-rosdep \
+    python3-setuptools \
+    python3-vcstool \
     rsync \
     software-properties-common \
     ssh \
@@ -63,7 +67,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     ninja-build \
     && rm -rf /var/lib/apt/lists/*
 # manage rosdep deprecation warning
-RUN pip install setuptools==68.1.2
+RUN pip install setuptools==66.1.1
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
@@ -111,7 +115,6 @@ RUN chfn -f "ROS2 User" ros2
 
 FROM base-user-${ROS_DISTRO} AS base-workspace
 
-
 RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
 RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
@@ -140,13 +143,22 @@ RUN mkdir -p ${COLCON_HOME}
 COPY --chown=${USER}:${USER} ./config/colcon ${COLCON_HOME}
 RUN /bin/bash ${COLCON_HOME}/setup.sh
 
+# setup colcon mixin and metadata
+# TODO: not sure this is really needed, but it is in the base osrf image
+RUN colcon mixin add default \
+      https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml \
+    && colcon mixin update \
+    && colcon metadata add default \
+      https://raw.githubusercontent.com/colcon/colcon-metadata-repository/master/index.yaml \
+    && colcon metadata update
+
 # build ROS workspace
 RUN mkdir -p ${ROS2_WORKSPACE}/src
 WORKDIR ${ROS2_WORKSPACE}
 RUN sudo rosdep init
+RUN sudo rosdep update
+RUN rosdep fix-permissions
 RUN rosdep update
-RUN sudo rosdep fix-permissions
-RUN sudo chown -R ${USER}:${USER} /home/ros2/.ros/
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --symlink-install"
 
 # prepend the environment sourcing to bashrc (appending will fail for non-interactive sessions)
@@ -199,7 +211,7 @@ WORKDIR ${ROS2_WORKSPACE}/src
 
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
-RUN rm -rf ./src
+# RUN rm -rf ./src
 
 FROM base-workspace AS ros2-control-iron
 

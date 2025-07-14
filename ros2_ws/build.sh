@@ -48,7 +48,7 @@ done
 
 if [[ "${WITH_NVIDIA}" == true ]]; then
   if [[ "${ROS_DISTRO}" == "humble" ]]; then
-    NVIDIA_BASE_TAG=24.10-py3
+    NVIDIA_BASE_TAG=23.10-py3
   fi
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.nvidia)
   BUILD_FLAGS+=(--build-arg=NVIDIA_BASE_TAG=${NVIDIA_BASE_TAG})
