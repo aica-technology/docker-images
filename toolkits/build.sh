@@ -70,12 +70,17 @@ done
 
 if [ $CUDA_TOOLKIT -eq 0 ] && [ $ML_TOOLKIT -eq 0 ]; then
   echo "No toolkit selected to build, nothing to do."
+elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
+  echo "CUDA and ML toolkits can not be built simultaneously. Please choose one."
+  exit 1
 elif [ $CUDA_TOOLKIT -eq 1 ]; then
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.cuda)
   IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
+  TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.ml)
   IMAGE_NAME="ghcr.io/aica-technology/ml-toolkit"
+  TYPE="ml"
 
   BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})
   BUILD_FLAGS+=(--build-arg=PYTHON_VERSION=${PYTHON_VERSION})
@@ -85,4 +90,4 @@ fi
 
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
-docker buildx build -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
+docker buildx build -f Dockerfile."${TYPE}" -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
