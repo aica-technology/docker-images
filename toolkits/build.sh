@@ -42,6 +42,7 @@ while [ "$#" -gt 0 ]; do
       echo "Invalid torch variant specified. Use 'cpu' or 'gpu'."
       exit 1
     fi
+    ;;
   --target)
     if [[ "$2" == "cpu" || "$2" == "gpu" ]]; then
       TARGET=$2
@@ -50,7 +51,6 @@ while [ "$#" -gt 0 ]; do
       echo "Invalid target specified. Use 'cpu' or 'gpu'."
       exit 1
     fi
-    ;;
     shift 2
     ;;
   -r | --rebuild)
