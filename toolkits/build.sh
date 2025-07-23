@@ -88,9 +88,9 @@ elif [ $CUDA_TOOLKIT -eq 1 ]; then
   IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
   TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
-  POSTFIX=${TARGET}
+  POSTFIX=${TARGET}-${TRT_IMAGE_TAG}
   if [ $TORCH_VARIANT != $TARGET ]; then
-    POSTFIX=${TARGET}-${TORCH_VARIANT}
+    POSTFIX=${POSTFIX}-${TORCH_VARIANT}
   fi
   if [ $TORCH_VARIANT = "jetson" ]; then
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$JETSON_TORCH_VERSION)
