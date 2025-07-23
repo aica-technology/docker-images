@@ -4,14 +4,12 @@ ARG PYTHON_VERSION=3.12
 ARG UBUNTU_VERSION=24.04
 
 ARG TRT_IMAGE_TAG=24.12-py3
-ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt:${TRT_IMAGE_TAG}
+ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
+
+FROM ubuntu:${UBUNTU_VERSION} AS cpp-source
 
 # TODO: newer versions have issues with eigen3 / main works, but we need a tag (use tag right after v1.22.1 when available)
-ARG ONNX_RUNTIME_VERSION=main 
-
-FROM ubuntu:${UBUNTU_VERSION} AS onnx-source
-
-ARG ONNX_RUNTIME_VERSION
+ARG ONNX_RUNTIME_VERSION=main
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -27,9 +25,6 @@ FROM ubuntu:${UBUNTU_VERSION} AS cpu-cpp-builder
 
 ARG CPP_DEPS
 ARG PY_DEPS
-ARG ONNX_RUNTIME_VERSION
-ARG USE_TENSORRT=OFF
-ARG USE_TENSORRT_BUILTIN_PARSER=OFF
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -55,7 +50,7 @@ RUN pip install --no-cache-dir --break-system-packages \
 
 WORKDIR /tmp
 # install ONNX runtime library
-COPY --from=onnx-source /tmp/onnxruntime/ /tmp/onnxruntime
+COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
 WORKDIR /tmp/onnxruntime
 RUN ./build.sh \
   --config Release \
@@ -76,15 +71,11 @@ RUN mkdir -p ${PY_DEPS} \
       --no-deps \
       onnxruntime*.whl
 
-FROM ${TENSORRT_IMAGE} AS cuda-cpp-builder
-ARG CPP_DEPS ONNX_RUNTIME_VERSION
+FROM ${TENSORRT_IMAGE}:${TRT_IMAGE_TAG} AS cuda-cpp-builder
 
 ARG CPP_DEPS
 ARG PY_DEPS
-ARG ONNX_RUNTIME_VERSION
 ARG USE_CUDA=ON
-ARG USE_TENSORRT=ON
-ARG USE_TENSORRT_BUILTIN_PARSER=OFF
 ARG CMAKE_VERSION=3.28
 ARG CMAKE_BUILD=2
 
@@ -125,7 +116,7 @@ RUN pip install --no-cache-dir --break-system-packages \
 
 WORKDIR /tmp
 # install ONNX runtime library
-COPY --from=onnx-source /tmp/onnxruntime/ /tmp/onnxruntime
+COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
 WORKDIR /tmp/onnxruntime
 RUN ./build.sh \
   --config Release \
@@ -170,9 +161,10 @@ RUN pip install --no-cache-dir \
       scipy==1.11.3 \
       supervision==0.25.1 \ 
       h5py==3.14.0 \
-      coloredlogs \
-      flatbuffers \
-      protobuf
+      coloredlogs==15.0.1 \
+      flatbuffers==25.2.10 \
+      protobuf==6.31.1 \
+      omegaconf==2.3.0
 
 RUN if [ "${TORCH_VARIANT}" = "cpu" ]; then \
       INDEX_URL="https://download.pytorch.org/whl/cpu"; \
@@ -182,9 +174,9 @@ RUN if [ "${TORCH_VARIANT}" = "cpu" ]; then \
     && pip install --no-cache-dir \
       --target=${PY_DEPS} \
       --extra-index-url ${INDEX_URL} \
-      torch==${TORCH_VERSION} \
+      torchaudio==${TORCHAUDIO_VERSION} \
       torchvision==${TORCHVISION_VERSION} \
-      torchaudio==${TORCHAUDIO_VERSION}
+      torch==${TORCH_VERSION}
 
 FROM scratch AS cpu
 

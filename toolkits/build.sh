@@ -1,5 +1,6 @@
 #!/bin/bash
 
+TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 TRT_IMAGE_TAG=24.12-py3
 TORCH_VARIANT=cpu
 PYTHON_VERSION=3.12
@@ -21,6 +22,10 @@ while [ "$#" -gt 0 ]; do
   --ml-toolkit)
     ML_TOOLKIT=1
     shift 1
+    ;;
+  --tensorrt-image)
+    TENSORRT_IMAGE=$2
+    shift 2
     ;;
   --tensorrt-image-tag)
     TRT_IMAGE_TAG=$2
@@ -88,6 +93,7 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
   BUILD_FLAGS+=(--target ${TARGET})
 fi
 
+BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
 docker buildx build -f Dockerfile."${TYPE}" -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .

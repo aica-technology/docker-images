@@ -1,8 +1,8 @@
 ARG TRT_IMAGE_TAG=24.12-py3
-ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt:${TRT_IMAGE_TAG}
+ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 ARG CUDA_DEPS=/tmp/cuda_deps/
 
-FROM ${TENSORRT_IMAGE} AS builder
+FROM ${TENSORRT_IMAGE}:${TRT_IMAGE_TAG} AS builder
 
 ARG CUDA_DEPS
 
