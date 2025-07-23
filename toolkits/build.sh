@@ -84,7 +84,7 @@ elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
   echo "CUDA and ML toolkits can not be built simultaneously. Please choose one."
   exit 1
 elif [ $CUDA_TOOLKIT -eq 1 ]; then
-  VERSION=$(cat "${SCRIPT_DIR}"/VERSION.cuda)
+  VERSION=$(cat "${SCRIPT_DIR}"/VERSION.cuda)-${TRT_IMAGE_TAG}
   IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
   TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
