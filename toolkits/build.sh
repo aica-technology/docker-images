@@ -3,6 +3,8 @@
 TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 TRT_IMAGE_TAG=24.12-py3
 TORCH_VARIANT=cpu
+# todo: for consistency, the pytorch version should default to Python 3.12 wheels when we generate them
+JETSON_TORCH_VERSION="https://developer.download.nvidia.com/compute/redist/jp/v60dp/pytorch/torch-2.2.0a0+6a974be.nv23.11-cp310-cp310-linux_aarch64.whl"
 PYTHON_VERSION=3.12
 UBUNTU_VERSION=24.04
 TARGET=cpu
@@ -40,7 +42,7 @@ while [ "$#" -gt 0 ]; do
     shift 2
     ;;
   --torch-variant)
-    if [[ "$2" == "cpu" || "$2" == "gpu" ]]; then
+    if [[ "$2" == "cpu" || "$2" == "gpu" || "$2" == "jetson" ]]; then
       TORCH_VARIANT=$2
       shift 2
     else
@@ -48,10 +50,13 @@ while [ "$#" -gt 0 ]; do
       exit 1
     fi
     ;;
+  --jetson-torch-version)
+    JETSON_TORCH_VERSION=$2
+    shift 2
+    ;;
   --target)
     if [[ "$2" == "cpu" || "$2" == "gpu" ]]; then
       TARGET=$2
-      shift 2
     else
       echo "Invalid target specified. Use 'cpu' or 'gpu'."
       exit 1
@@ -84,8 +89,11 @@ elif [ $CUDA_TOOLKIT -eq 1 ]; then
   TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
   POSTFIX=${TARGET}
-  if [ $TORCH_VARIANT -neq $TARGET ]; then
-    POSTFIX=${TARGET}+${TORCH_VARIANT}
+  if [ $TORCH_VARIANT != $TARGET ]; then
+    POSTFIX=${TARGET}-${TORCH_VARIANT}
+  fi
+  if [ $TORCH_VARIANT = "jetson" ]; then
+    BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$JETSON_TORCH_VERSION)
   fi
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.ml)-"${POSTFIX}"
   IMAGE_NAME="ghcr.io/aica-technology/ml-toolkit"

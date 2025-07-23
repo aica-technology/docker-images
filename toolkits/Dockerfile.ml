@@ -30,18 +30,26 @@ RUN pip install --no-cache-dir \
       protobuf==6.31.1 \
       omegaconf==2.3.0
 
-RUN if [ "${TORCH_VARIANT}" = "cpu" ]; then \
-      INDEX_URL="https://download.pytorch.org/whl/cpu"; \
+RUN if [ "${TORCH_VARIANT}" = "jetson" ]; then \
+      pip install --no-cache-dir \
+        --target=${PY_DEPS} \
+        ${TORCH_VERSION} \
+        torchaudio \
+        torchvision; \
     else \
-      INDEX_URL="https://download.pytorch.org/whl/${CU_VERSION}"; \
-    fi \
-    && pip install --no-cache-dir \
-      --target=${PY_DEPS} \
-      --extra-index-url ${INDEX_URL} \
-      torch==${TORCH_VERSION} \
-      torchaudio==${TORCHAUDIO_VERSION} \
-      torchvision==${TORCHVISION_VERSION}
-
+      if [ "${TORCH_VARIANT}" = "cpu" ]; then \
+        INDEX_URL="https://download.pytorch.org/whl/cpu"; \
+      else \
+        INDEX_URL="https://download.pytorch.org/whl/${CU_VERSION}"; \
+      fi; \
+      pip install --no-cache-dir \
+        --target=${PY_DEPS} \
+        --extra-index-url ${INDEX_URL} \
+        torch==${TORCH_VERSION} \
+        torchaudio==${TORCHAUDIO_VERSION} \
+        torchvision==${TORCHVISION_VERSION}; \
+    fi
+    
 FROM ubuntu:${UBUNTU_VERSION} AS cpp-source
 
 # TODO: newer versions have issues with eigen3 / main works, but we need a tag (use tag right after v1.22.1 when available)
@@ -131,6 +139,7 @@ RUN apt-get update \
     libffi-dev \
     flatbuffers-compiler \
     libeigen3-dev \
+    libopenblas-dev \
     tar \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
@@ -178,8 +187,8 @@ COPY --from=python-builder ${PY_DEPS} /usr/lib/python${PYTHON_VERSION}/dist-pack
 RUN pip install --no-cache-dir \
       --target=${PY_DEPS} \
       git+https://github.com/NVlabs/nvdiffrast.git@v0.3.3#egg=nvdiffrast \
-      # git+https://github.com/facebookresearch/pytorch3d.git@${TORCH3D_VERSION}
-      git+https://github.com/yrh012/pytorch3d.git@v0.1.1
+      git+https://github.com/facebookresearch/pytorch3d.git@${TORCH3D_VERSION}
+      # git+https://github.com/yrh012/pytorch3d.git@v0.1.1
 
 FROM scratch AS cpu
 
