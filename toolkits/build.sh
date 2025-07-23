@@ -83,7 +83,11 @@ elif [ $CUDA_TOOLKIT -eq 1 ]; then
   IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
   TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
-  VERSION=$(cat "${SCRIPT_DIR}"/VERSION.ml)
+  POSTFIX=${TARGET}
+  if [ $TORCH_VARIANT -neq $TARGET ]; then
+    POSTFIX=${TARGET}+${TORCH_VARIANT}
+  fi
+  VERSION=$(cat "${SCRIPT_DIR}"/VERSION.ml)-"${POSTFIX}"
   IMAGE_NAME="ghcr.io/aica-technology/ml-toolkit"
   TYPE="ml"
 
