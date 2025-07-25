@@ -110,6 +110,7 @@ RUN echo "@realtime        soft    rtprio          99\n@realtime        hard    
 USER ${USER}
 WORKDIR ${HOME}
 RUN wget https://raw.githubusercontent.com/aica-technology/.github/v0.9.0/guidelines/.clang-format
+RUN grep -v "InsertNewlineAtEOF" .clang-format > tmpfile && mv tmpfile .clang-format
 COPY ./config/config.rviz config.rviz
 COPY --chown=${USER}:${USER} ./config/generate_compile_commands.sh /usr/local/bin/generate_compile_commands
 COPY --chown=${USER}:${USER} ./config/InstallAicaDescriptions.cmake /tmp
@@ -137,15 +138,38 @@ RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-sessi
 
 FROM base-workspace AS ros2-control-humble
 
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  doxygen \
+  libcap-dev \
+  librange-v3-dev \
+  python3-jinja2 \
+  python3-typeguard \
+  && rm -rf /var/lib/apt/lists/*
+
 # build as ROS user
 USER ${USER}
+WORKDIR ${ROS2_WORKSPACE}/src
+
+RUN git clone -b 2.51.0 --depth 1 https://github.com/ros-controls/ros2_control.git
+RUN git clone -b 2.48.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
+# get additional interface dependencies manually
+RUN git clone -b 4.8.0 --depth 1 https://github.com/ros-controls/control_msgs.git
+RUN git clone -b 1.0.8 --depth 1 https://github.com/pal-robotics/backward_ros.git
+RUN git clone -b 2.14.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
+RUN git clone -b 1.2.2 --depth 1 https://github.com/ros2/rcl_interfaces.git
+RUN git clone -b 0.11.0 --depth 1 https://github.com/ros2/test_interface_files.git
+RUN git clone -b 1.15.0 --depth 1 https://github.com/ros/angles.git
+RUN git clone -b 2.0.2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.git
+RUN git clone -b 3.6.1 --depth 1 https://github.com/ros-controls/control_toolbox.git
+RUN git clone -b 2.2.1 --depth 1 https://github.com/ros/filters.git
+RUN git clone -b 0.5.0 --depth 1 https://github.com/PickNikRobotics/generate_parameter_library.git
+RUN git clone -b 1.2.0 --depth 1 https://github.com/PickNikRobotics/RSL.git
+RUN git clone -b 1.0.2 --depth 1 https://github.com/PickNikRobotics/cpp_polyfills.git
+RUN git clone -b 0.4.0 --depth 1 https://github.com/ros-controls/kinematics_interface.git
+
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
 RUN rm -rf ./src
-
-RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
-  libcap-dev \
-  && sudo rm -rf /var/lib/apt/lists/*
 
 FROM base-workspace AS ros2-control-iron
 

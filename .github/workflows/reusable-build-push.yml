@@ -110,7 +110,7 @@ jobs:
         arch: [amd64, arm64]
         include:
           - image: ubuntu-latest
-          - image: buildjet-2vcpu-ubuntu-2204-arm
+          - image: buildjet-4vcpu-ubuntu-2204-arm
             arch: arm64
 
     runs-on: ${{ matrix.image }}
