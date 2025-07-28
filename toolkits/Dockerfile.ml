@@ -6,8 +6,6 @@ ARG UBUNTU_VERSION=24.04
 ARG TRT_IMAGE_TAG=24.12-py3
 ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 
-ARG TARGET_APT_PKGS="ninja-build libopenblas-dev libopenmpi-dev"
-
 FROM python:${PYTHON_VERSION}-slim AS python-builder
 
 ARG TORCH_VARIANT=cpu
@@ -21,6 +19,9 @@ ARG TORCHAUDIO_SOURCE
 ARG CU_VERSION=cu126
 ARG PY_DEPS
 ENV PY_DEPS=${PY_DEPS}
+
+COPY install_dependencies/requirements.txt /tmp/requirements.txt
+COPY install_dependencies/pip-constraints.txt /tmp/constraints.txt
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -37,6 +38,7 @@ RUN if [ "${TORCH_VARIANT}" = "jetson" ]; then \
       wget -O ${TORCHAUDIO_VERSION} ${TORCHAUDIO_SOURCE} && \
       pip install --no-cache-dir \
         --target=${PY_DEPS} \
+        -c /tmp/constraints.txt \
         ${TORCH_VERSION} \
         ${TORCHVISION_VERSION} \
         ${TORCHAUDIO_VERSION}; \
@@ -54,23 +56,19 @@ RUN if [ "${TORCH_VARIANT}" = "jetson" ]; then \
         torchvision==${TORCHVISION_VERSION}; \
     fi
 
+RUN export PYTHONPATH=${PY_DEPS}:$PYTHONPATH && \
+    echo "\ntorch==$(pip show torch | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt
+
 RUN pip install --no-cache-dir \
       --target=${PY_DEPS} \
-      numpy==1.26.4 \
-      scipy==1.11.3 \
-      supervision==0.25.1 \ 
-      h5py==3.14.0 \
-      coloredlogs==15.0.1 \
-      flatbuffers==25.2.10 \
-      protobuf==6.31.1 \
-      omegaconf==2.3.0 \
-      xatlas==0.0.11 \
-      transformers[torch]==4.49.0  
+      -c /tmp/constraints.txt \
+      -r /tmp/requirements.txt
 
 FROM ubuntu:${UBUNTU_VERSION} AS apt-fetch
 
-ARG TARGET_APT_PKGS
-RUN set -eux \
+COPY install_dependencies/apt-packages.txt /tmp/apt-packages.txt
+RUN TARGET_APT_PKGS=$(cat /tmp/apt-packages.txt) && \
+    set -eux \
     && apt-get update \
     && mkdir -p /tmp/debs /opt/apt_root \
     && cd /tmp/debs \
@@ -220,10 +218,14 @@ RUN mkdir -p ${PY_DEPS} \
       --no-deps \
       onnxruntime*.whl
 
-COPY --from=python-builder ${PY_DEPS} /usr/lib/python${PYTHON_VERSION}/dist-packages/
-RUN mkdir -p ${PY_DEPS}
+COPY --from=python-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
+RUN export PYTHONPATH=${PY_DEPS}:$PYTHONPATH && \
+    echo "\ntorch==$(pip show torch | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt && \
+    echo "\nnumpy==$(pip show numpy | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt
+
 RUN pip install --no-cache-dir \
       --target=${PY_DEPS} \
+      -c /tmp/constraints.txt \
       git+https://github.com/NVlabs/nvdiffrast.git@v0.3.3#egg=nvdiffrast \
       git+https://github.com/facebookresearch/pytorch3d.git@${TORCH3D_VERSION}
 
@@ -237,8 +239,8 @@ COPY --from=apt-fetch /deps/lib /usr/local/lib
 COPY --from=apt-fetch /deps/bin /usr/bin
 COPY --from=cpu-builder ${CPP_DEPS}/lib/ /usr/lib/
 COPY --from=cpu-builder ${CPP_DEPS}/include/ /usr/include/
-COPY --from=cpu-builder ${PY_DEPS} /usr/lib/python${PYTHON_VERSION}/dist-packages/
-COPY --from=python-builder ${PY_DEPS} /usr/lib/python${PYTHON_VERSION}/dist-packages/
+COPY --from=cpu-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
+COPY --from=python-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
 
 ARG VERSION=0.0.0
 LABEL org.opencontainers.image.title="AICA Machine Learning Toolkit"
@@ -256,8 +258,8 @@ COPY --from=apt-fetch /deps/lib /usr/local/lib
 COPY --from=apt-fetch /deps/bin /usr/bin
 COPY --from=cuda-builder ${CPP_DEPS}/lib/ /usr/lib/
 COPY --from=cuda-builder ${CPP_DEPS}/include/ /usr/include/
-COPY --from=cuda-builder ${PY_DEPS} /usr/lib/python${PYTHON_VERSION}/dist-packages/
-COPY --from=python-builder ${PY_DEPS} /usr/lib/python${PYTHON_VERSION}/dist-packages/
+COPY --from=cuda-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
+COPY --from=python-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
 
 ARG VERSION=0.0.0
 LABEL org.opencontainers.image.title="AICA Machine Learning Tool`kit"

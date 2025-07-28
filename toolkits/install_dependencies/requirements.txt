@@ -1,0 +1,10 @@
+scipy==1.11.3
+supervision==0.25.1 
+h5py==3.14.0
+coloredlogs==15.0.1
+flatbuffers==25.2.10
+protobuf==6.31.1
+omegaconf==2.3.0
+xatlas==0.0.11
+transformers[torch]==4.49.0
+numpy==1.26.4
