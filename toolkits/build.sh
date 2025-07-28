@@ -2,9 +2,16 @@
 
 TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 TRT_IMAGE_TAG=24.12-py3
+
 TORCH_VARIANT=cpu
-# todo: for consistency, the pytorch version should default to Python 3.12 wheels when we generate them
-JETSON_TORCH_VERSION="https://developer.download.nvidia.com/compute/redist/jp/v60dp/pytorch/torch-2.2.0a0+6a974be.nv23.11-cp310-cp310-linux_aarch64.whl"
+TORCH_VERSION="2.6.0"
+JETSON_TORCH_VERSION="torch-2.3.0-cp310-cp310-linux_aarch64.whl"
+JETSON_TORCHVISION_VERSION="torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl"
+JETSON_TORCHAUDIO_VERSION="torchaudio-2.3.0+952ea74-cp310-cp310-linux_aarch64.whl"
+JETSON_TORCH_SOURCE="https://nvidia.box.com/shared/static/mp164asf3sceb570wvjsrezk1p4ftj8t.whl"
+JETSON_TORCHVISION_SOURCE="https://nvidia.box.com/shared/static/xpr06qe6ql3l6rj22cu3c45tz1wzi36p.whl"
+JETSON_TORCHAUDIO_SOURCE="https://nvidia.box.com/shared/static/9agsjfee0my4sxckdpuk9x9gt8agvjje.whl"
+
 PYTHON_VERSION=3.12
 UBUNTU_VERSION=24.04
 TARGET=cpu
@@ -25,6 +32,7 @@ while [ "$#" -gt 0 ]; do
     ML_TOOLKIT=1
     shift 1
     ;;
+
   --tensorrt-image)
     TENSORRT_IMAGE=$2
     shift 2
@@ -33,6 +41,7 @@ while [ "$#" -gt 0 ]; do
     TRT_IMAGE_TAG=$2
     shift 2
     ;;
+
   --python-version)
     PYTHON_VERSION=$2
     shift 2
@@ -50,10 +59,36 @@ while [ "$#" -gt 0 ]; do
       exit 1
     fi
     ;;
+  --torch-version)
+    TORCH_VERSION=$2
+    shift 2
+    ;;
+
   --jetson-torch-version)
     JETSON_TORCH_VERSION=$2
     shift 2
     ;;
+  --jetson-torch-source)
+    JETSON_TORCH_SOURCE=$2
+    shift 2
+    ;;
+  --jetson-torchvision-version)
+    JETSON_TORCHVISION_VERSION=$2
+    shift 2
+    ;;
+  --jetson-torchvision-source)
+    JETSON_TORCHVISION_SOURCE=$2
+    shift 2
+    ;;
+  --jetson-torchaudio-version)
+    JETSON_TORCHAUDIO_VERSION=$2
+    shift 2
+    ;;
+  --jetson-torchaudio-source)
+    JETSON_TORCHAUDIO_SOURCE=$2
+    shift 2
+    ;;
+
   --target)
     if [[ "$2" == "cpu" || "$2" == "gpu" ]]; then
       TARGET=$2
@@ -63,6 +98,7 @@ while [ "$#" -gt 0 ]; do
     fi
     shift 2
     ;;
+  
   -r | --rebuild)
     BUILD_FLAGS+=(--no-cache)
     shift 1
@@ -94,6 +130,13 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
   fi
   if [ $TORCH_VARIANT = "jetson" ]; then
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$JETSON_TORCH_VERSION)
+    BUILD_FLAGS+=(--build-arg=TORCH_SOURCE=$JETSON_TORCH_SOURCE)
+    BUILD_FLAGS+=(--build-arg=TORCHVISION_VERSION=$JETSON_TORCHVISION_VERSION)
+    BUILD_FLAGS+=(--build-arg=TORCHVISION_SOURCE=$JETSON_TORCHVISION_SOURCE)
+    BUILD_FLAGS+=(--build-arg=TORCHAUDIO_VERSION=$JETSON_TORCHAUDIO_VERSION)
+    BUILD_FLAGS+=(--build-arg=TORCHAUDIO_SOURCE=$JETSON_TORCHAUDIO_SOURCE)
+  else
+    BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$TORCH_VERSION)
   fi
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.ml)-"${POSTFIX}"
   IMAGE_NAME="ghcr.io/aica-technology/ml-toolkit"

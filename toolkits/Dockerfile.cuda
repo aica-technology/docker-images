@@ -1,16 +1,21 @@
 ARG TRT_IMAGE_TAG=24.12-py3
 ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
-ARG CUDA_DEPS=/tmp/cuda_deps/
+ARG CUDA_DEPS=/tmp/cuda_deps
 
 FROM ${TENSORRT_IMAGE}:${TRT_IMAGE_TAG} AS builder
 
 ARG CUDA_DEPS
 
-RUN mkdir -p ${CUDA_DEPS}/{bin,lib,include/cuda,include/tensorrt,opt/tensorrt,usr/local}
+RUN mkdir -p ${CUDA_DEPS}/bin
+RUN mkdir -p ${CUDA_DEPS}/lib
+RUN mkdir -p ${CUDA_DEPS}/include/cuda
+RUN mkdir -p ${CUDA_DEPS}/include/tensorrt
+RUN mkdir -p ${CUDA_DEPS}/opt/tensorrt
+RUN mkdir -p ${CUDA_DEPS}/usr/local
 
-RUN cp -r /usr/local/cuda ${CUDA_DEPS}/usr/local
-RUN cp -a /usr/local/cuda/lib64/*.so* ${CUDA_DEPS}/lib/
-RUN for lib in nvinfer nvonnxparser nvparsers nvinfer_plugin; do \
+RUN cp -a -L /usr/local/cuda/lib64/*.so* ${CUDA_DEPS}/lib
+RUN cp -r /usr/local/cuda* ${CUDA_DEPS}/usr/local/
+RUN for lib in nvinfer nvonnxparser nvparsers nvinfer_plugin cudnn; do \
       cp -a /usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/lib${lib}*.so* \
          ${CUDA_DEPS}/lib/ 2>/dev/null || : ; \
     done
@@ -63,7 +68,7 @@ COPY --from=builder ${CUDA_DEPS}/cuda_env.sh /ws/install/aica_event_engine/apt/o
 
 COPY --from=builder ${CUDA_DEPS}/bin/ /usr/bin
 COPY --from=builder ${CUDA_DEPS}/lib/ /usr/lib
-COPY --from=builder ${CUDA_DEPS}/usr/local/cuda/ /usr/local/cuda
+COPY --from=builder ${CUDA_DEPS}/usr/local/ /usr/local
 COPY --from=builder ${CUDA_DEPS}/include/ /usr/include
 COPY --from=builder ${CUDA_DEPS}/opt/ /opt
 COPY --from=builder ${CUDA_DEPS}/usr/lib/ /usr/lib
