@@ -1,6 +1,7 @@
 ARG TRT_IMAGE_TAG=24.12-py3
 ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 ARG CUDA_DEPS=/tmp/cuda_deps
+ARG ROS_DISTRO=jazzy
 
 FROM ${TENSORRT_IMAGE}:${TRT_IMAGE_TAG} AS builder
 
@@ -55,6 +56,68 @@ RUN echo 'export NVIDIA_VISIBLE_DEVICES=all' >> ${CUDA_DEPS}/cuda_env.sh \
 RUN chown -R 1000:1000 ${CUDA_DEPS}/cuda_env.sh
 RUN chmod +x ${CUDA_DEPS}/cuda_env.sh
 
+FROM ros:${ROS_DISTRO}-ros-base AS environment-variables
+
+ENV ROS_WS=/ros_ws
+RUN mkdir -p ${ROS_WS}/src
+WORKDIR ${ROS_WS}/src
+
+RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+  ros2 pkg create --build-type ament_cmake environment_variables"
+
+# package.xml
+RUN cat <<EOF > environment_variables/package.xml
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>environment_variables</name>
+  <version>0.0.0</version>
+  <description>Package to source hooks/scripts</description>
+  <maintainer email="support@aica.tech">root</maintainer>
+  <license>TODO: License declaration</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+EOF
+
+# CMakeLists.txt
+RUN sed -i \
+  -e '/ament_package()/i ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/00-environment-variables.sh")' \
+  -e '/ament_package()/i install(DIRECTORY scripts/ DESTINATION share/\${PROJECT_NAME}/scripts  FILES_MATCHING PATTERN "*.sh")' \
+  environment_variables/CMakeLists.txt
+
+# hook
+RUN mkdir -p environment_variables/hooks/ environment_variables/scripts/
+RUN cat <<EOF > environment_variables/hooks/00-environment-variables.sh
+#!/bin/bash
+ENV_SCRIPT_PATH=\$(readlink -f "\${BASH_SOURCE[0]}")
+PARENT="\$(dirname "\$ENV_SCRIPT_PATH")"
+SCRIPT_DIR="\${PARENT%/*}"
+for script in "\$SCRIPT_DIR"/scripts/*.sh; do
+  source "\$script"
+done
+EOF
+RUN chmod +x environment_variables/hooks/00-environment-variables.sh
+
+# colcon
+RUN cat <<EOF > environment_variables/colcon.pkg
+{
+  "hooks": ["share/environment_variables/environment/00-environment-variables.sh"]
+}
+EOF
+
+WORKDIR $ROS_WS
+RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+  colcon build"
+RUN cp -r $ROS_WS/install/environment_variables /environment_variables
+
 FROM scratch AS final-builder
 
 ARG CUDA_DEPS
@@ -62,10 +125,7 @@ WORKDIR /
 
 COPY --from=builder ${CUDA_DEPS} /deps
 
-# ! this is me exploiting a bug we have (it's ugly, I know), we need a much more consistent way to handle this
-# ! but helps for debugging and development for now...
-COPY --from=builder ${CUDA_DEPS}/cuda_env.sh /ws/install/aica_event_engine/apt/opt/ros/jazzy/setup.bash
-
+COPY --from=builder ${CUDA_DEPS}/cuda_env.sh /cuda-dependencies.sh
 COPY --from=builder ${CUDA_DEPS}/bin/ /usr/bin
 COPY --from=builder ${CUDA_DEPS}/lib/ /usr/lib
 COPY --from=builder ${CUDA_DEPS}/usr/local/ /usr/local
@@ -73,14 +133,18 @@ COPY --from=builder ${CUDA_DEPS}/include/ /usr/include
 COPY --from=builder ${CUDA_DEPS}/opt/ /opt
 COPY --from=builder ${CUDA_DEPS}/usr/lib/ /usr/lib
 
-FROM scratch  
+FROM scratch AS barebones
 
-COPY --from=final-builder /ws/ /ws
 COPY --from=final-builder /usr/ /usr
 COPY --from=final-builder /opt/ /opt
 
 ARG VERSION=0.0.0
-LABEL org.opencontainers.image.title="AICA Cuda libraries"
-LABEL org.opencontainers.image.description="AICA Cuda libraries"
+LABEL org.opencontainers.image.title="AICA CUDA libraries"
+LABEL org.opencontainers.image.description="AICA CUDA libraries"
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL tech.aica.image.metadata='{"type":"lib"}'
+
+FROM barebones AS env-vars
+
+COPY --from=environment-variables /environment_variables /ws/install/environment_variables
+COPY --from=final-builder /cuda-dependencies.sh /ws/install/environment_variables/share/environment_variables/scripts/

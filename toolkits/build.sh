@@ -90,12 +90,7 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   --target)
-    if [[ "$2" == "cpu" || "$2" == "gpu" ]]; then
-      TARGET=$2
-    else
-      echo "Invalid target specified. Use 'cpu' or 'gpu'."
-      exit 1
-    fi
+    TARGET=$2
     shift 2
     ;;
   
@@ -120,10 +115,20 @@ elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
   echo "CUDA and ML toolkits can not be built simultaneously. Please choose one."
   exit 1
 elif [ $CUDA_TOOLKIT -eq 1 ]; then
+  if [[ "$TARGET" != "barebones" && "$TARGET" != "env-vars" ]]; then
+    echo "Invalid target specified. Use 'barebones' or 'env-vars'."
+    exit 1
+  fi
+
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.cuda)-${TRT_IMAGE_TAG}
   IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
   TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
+  if [[ "$TARGET" != "cpu" && "$TARGET" != "gpu" ]]; then
+    echo "Invalid target specified. Use 'cpu' or 'gpu'."
+    exit 1
+  fi
+
   POSTFIX=${TARGET}-${TRT_IMAGE_TAG}
   if [ $TORCH_VARIANT != $TARGET ]; then
     POSTFIX=${POSTFIX}-${TORCH_VARIANT}
@@ -142,12 +147,12 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
   IMAGE_NAME="ghcr.io/aica-technology/ml-toolkit"
   TYPE="ml"
 
-  BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})
   BUILD_FLAGS+=(--build-arg=PYTHON_VERSION=${PYTHON_VERSION})
   BUILD_FLAGS+=(--build-arg=TORCH_VARIANT=${TORCH_VARIANT})
-  BUILD_FLAGS+=(--target ${TARGET})
 fi
 
+BUILD_FLAGS+=(--target ${TARGET})
+BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})
 BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
