@@ -124,7 +124,7 @@ RUN apt-get update \
 RUN pip install --no-cache-dir \
   flatbuffers==25.2.10 \
   packaging \
-  numpy==1.26.4 
+  numpy==1.26.4
 
 WORKDIR /tmp
 # install ONNX runtime library
