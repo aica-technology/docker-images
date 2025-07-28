@@ -195,30 +195,30 @@ RUN pip install --no-cache-dir \
 WORKDIR /tmp
 # install ONNX runtime library
 COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
-# WORKDIR /tmp/onnxruntime
-# RUN ./build.sh \
-#   --config Release \
-#   --build_shared_lib \
-#   --build_wheel \
-#   --parallel \
-#   --skip_tests \
-#   --compile_no_warning_as_error \
-#   --skip_submodule_sync \
-#   --use_cuda \
-#   --use_tensorrt \
-#   --enable_pybind \
-#   --cuda_home=/usr/local/cuda \
-#   --cudnn_home=/usr/local/cuda \
-#   --tensorrt_home=/usr \
-#   --allow_running_as_root
-# RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
-# # build python package too
-# RUN mkdir -p ${PY_DEPS} \ 
-#   && cd build/Linux/Release/dist/ \
-#   && pip install --no-cache-dir \
-#       --target=${PY_DEPS} \
-#       --no-deps \
-#       onnxruntime*.whl
+WORKDIR /tmp/onnxruntime
+RUN ./build.sh \
+  --config Release \
+  --build_shared_lib \
+  --build_wheel \
+  --parallel \
+  --skip_tests \
+  --compile_no_warning_as_error \
+  --skip_submodule_sync \
+  --use_cuda \
+  --use_tensorrt \
+  --enable_pybind \
+  --cuda_home=/usr/local/cuda \
+  --cudnn_home=/usr/local/cuda \
+  --tensorrt_home=/usr \
+  --allow_running_as_root
+RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
+# build python package too
+RUN mkdir -p ${PY_DEPS} \ 
+  && cd build/Linux/Release/dist/ \
+  && pip install --no-cache-dir \
+      --target=${PY_DEPS} \
+      --no-deps \
+      onnxruntime*.whl
 
 COPY --from=python-builder ${PY_DEPS} /usr/lib/python${PYTHON_VERSION}/dist-packages/
 RUN mkdir -p ${PY_DEPS}
