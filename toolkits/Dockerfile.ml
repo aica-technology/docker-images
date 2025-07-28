@@ -33,8 +33,8 @@ RUN pip install --upgrade pip \
  && mkdir -p ${PY_DEPS}
 
 RUN if [ "${TORCH_VARIANT}" = "jetson" ]; then \
-      wget -O ${TORCH_VERSION} ${TORCH_SOURCE} && \ 
-      wget -O ${TORCHVISION_VERSION} ${TORCHVISION_SOURCE} && \ 
+      wget -O ${TORCH_VERSION} ${TORCH_SOURCE} && \
+      wget -O ${TORCHVISION_VERSION} ${TORCHVISION_SOURCE} && \
       wget -O ${TORCHAUDIO_VERSION} ${TORCHAUDIO_SOURCE} && \
       pip install --no-cache-dir \
         --target=${PY_DEPS} \
@@ -142,7 +142,7 @@ RUN ./build.sh \
   --allow_running_as_root
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
 # build python package too
-RUN mkdir -p ${PY_DEPS} \ 
+RUN mkdir -p ${PY_DEPS} \
   && cd build/Linux/Release/dist/ \
   && pip install --no-cache-dir \
       --target=${PY_DEPS} \
@@ -188,7 +188,7 @@ RUN wget -O /tmp/cmake-installer.sh \
 RUN pip install --no-cache-dir \
   flatbuffers==25.2.10 \
   packaging \
-  numpy==1.26.4 
+  numpy==1.26.4
 
 WORKDIR /tmp
 # install ONNX runtime library
@@ -211,7 +211,7 @@ RUN ./build.sh \
   --allow_running_as_root
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
 # build python package too
-RUN mkdir -p ${PY_DEPS} \ 
+RUN mkdir -p ${PY_DEPS} \
   && cd build/Linux/Release/dist/ \
   && pip install --no-cache-dir \
       --target=${PY_DEPS} \

@@ -14,7 +14,7 @@ JETSON_TORCHAUDIO_SOURCE="https://nvidia.box.com/shared/static/9agsjfee0my4sxckd
 
 PYTHON_VERSION=3.12
 UBUNTU_VERSION=24.04
-TARGET=cpu
+ROS_DISTRO=jazzy
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
@@ -50,6 +50,11 @@ while [ "$#" -gt 0 ]; do
     UBUNTU_VERSION=$2
     shift 2
     ;;
+  --ros-distro)
+    ROS_DISTRO=$2
+    shift 2
+    ;;
+
   --torch-variant)
     if [[ "$2" == "cpu" || "$2" == "gpu" || "$2" == "jetson" ]]; then
       TORCH_VARIANT=$2
@@ -93,7 +98,7 @@ while [ "$#" -gt 0 ]; do
     TARGET=$2
     shift 2
     ;;
-  
+
   -r | --rebuild)
     BUILD_FLAGS+=(--no-cache)
     shift 1
@@ -119,6 +124,7 @@ elif [ $CUDA_TOOLKIT -eq 1 ]; then
     echo "Invalid target specified. Use 'barebones' or 'env-vars'."
     exit 1
   fi
+  BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
 
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.cuda)-${TRT_IMAGE_TAG}
   IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
