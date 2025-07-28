@@ -43,7 +43,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   ssh \
   unzip \
   wget \
-  && apt-get upgrade -y \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
@@ -165,7 +164,8 @@ RUN rm -rf ./src
 
 FROM base-workspace AS ros2-control-jazzy
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  libcap-dev \
+  # doxygen \
+  # librange-v3-dev \
   python3-jinja2 \
   python3-typeguard \
   && rm -rf /var/lib/apt/lists/*
@@ -174,24 +174,23 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}/src
 
-RUN git clone -b 4.24.0 --depth 1 https://github.com/ros-controls/ros2_control.git
-RUN git clone -b 4.19.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
+RUN git clone -b 4.17.0 --depth 1 https://github.com/ros-controls/ros2_control.git
+RUN git clone -b 4.14.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
 # get additional interface dependencies manually
-RUN git clone -b 5.3.0 --depth 1 https://github.com/ros-controls/control_msgs.git
-RUN git clone -b 1.0.6 --depth 1 https://github.com/pal-robotics/backward_ros.git
+RUN git clone -b 5.2.0 --depth 1 https://github.com/ros-controls/control_msgs.git
+RUN git clone -b 1.0.3 --depth 1 https://github.com/pal-robotics/backward_ros.git
 RUN git clone -b 4.3.1 --depth 1 https://github.com/ros/diagnostics.git
-RUN git clone -b 3.1.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
+RUN git clone -b 2.6.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
 RUN git clone -b 2.2.0 --depth 1 https://github.com/ros2/rcl_interfaces.git
-RUN git clone -b 0.13.0 --depth 1 https://github.com/ros2/test_interface_files.git
-RUN git clone -b 0.13.0 --depth 1 https://github.com/ros2/example_interfaces.git
+RUN git clone -b 0.12.0 --depth 1 https://github.com/ros2/test_interface_files.git
 RUN git clone -b 1.16.0 --depth 1 https://github.com/ros/angles.git
-RUN git clone -b 2.0.2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.git
-RUN git clone -b 0.3.9 --depth 1 https://github.com/PickNikRobotics/generate_parameter_library.git
+RUN git clone -b ros2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.git
+RUN git clone -b 0.3.8 --depth 1 https://github.com/PickNikRobotics/generate_parameter_library.git
 RUN git clone -b 1.1.0 --depth 1 https://github.com/PickNikRobotics/RSL.git
 RUN git clone -b 1.0.2 --depth 1 https://github.com/PickNikRobotics/cpp_polyfills.git
-RUN git clone -b 3.4.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
+RUN git clone -b 3.2.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
 RUN git clone -b 2.1.2 --depth 1 https://github.com/ros/filters.git
-RUN git clone -b 1.2.1 --depth 1 https://github.com/ros-controls/kinematics_interface.git
+RUN git clone -b 1.1.0 --depth 1 https://github.com/ros-controls/kinematics_interface.git
 
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
