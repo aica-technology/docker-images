@@ -34,8 +34,10 @@ Jetson's kernel.
 For GPU-dependent images, we currently use NVIDIA's registries to collect the necessary libraries and form the final
 toolkit image that can be used with AICA Core and/or custom AICA Components. As such, we also label our versions with
 respect to the TensorRT images that we use as our dependency base. If you are creating a custom image for the CUDA or ML
-toolkit, refer to the [TensorRT Release Notes](https://docs.nvidia.com/deeplearning/frameworks/container-release-notes/index.html) for image tags you can use to pull specific combinations of CUDA, TensorRT, and Python. A simple example of
-how you can achieve this can be found [here](#building-a-custom-image).
+toolkit, refer to the
+[TensorRT Release Notes](https://docs.nvidia.com/deeplearning/frameworks/container-release-notes/index.html) for image
+tags you can use to pull specific combinations of CUDA, TensorRT, and Python. A simple example of how you can achieve
+this can be found [here](#building-a-custom-image).
 
 > **NOTE**
 >
@@ -98,8 +100,8 @@ source = "./source/my_custom_component"
 
 ### Example 1
 
-In the simplest case, you may only want to specify a newer TensorRT tag that brings the corresponding CUDA dependencies. For
-example, if you specify:
+In the simplest case, you may only want to specify a newer TensorRT tag that brings the corresponding CUDA dependencies.
+For example, if you specify:
 
 ```shell
 ./build.sh --cuda-toolkit \
@@ -126,7 +128,8 @@ to obtain `ghcr.io/aica-technology/cuda-toolkit:vX.Y.Z-gpu-24.12-py3`.
 
 As one can imagine, there is a multitude of combinations of CUDA and machine learning libraries that may be needed for a
 given task. As such, we can not support all variations in our registry. Therefore, we open-source our library images
-and provide helper scripts to build custom configurations. For example, if you want to replicate the Jetson image from the registries you would have to specify quite a few options and run the build script as follows:
+and provide helper scripts to build custom configurations. For example, if you want to replicate the Jetson image from
+the registries you would have to specify quite a few options and run the build script as follows:
 
 ```shell
 # For ML libraries (torch for Tegra)
