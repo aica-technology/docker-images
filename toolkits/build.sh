@@ -56,7 +56,7 @@ while [ "$#" -gt 0 ]; do
     ;;
 
   --torch-variant)
-    if [[ "$2" == "cpu" || "$2" == "gpu" || "$2" == "jetson" ]]; then
+    if [[ "$2" =~ ^(cpu|gpu|jetson)$ ]]; then
       TORCH_VARIANT=$2
       shift 2
     else
@@ -107,12 +107,38 @@ while [ "$#" -gt 0 ]; do
     BUILD_FLAGS+=(--progress=plain)
     shift 1
     ;;
+
   *)
     echo "Unknown option: $1" >&2
     exit 1
     ;;
+  --) # we can use this to use more flags that are not named by default
+    shift
+    break
+    ;;
+
   esac
 done
+
+while [ "$#" -gt 0 ]; do
+  if [[ "$1" != --* ]]; then
+    echo "Expected build-arg in --key value form, got: $1" >&2
+    exit 1
+  fi
+
+  KEY="${1#--}"
+  VAL="$2"
+  if [ -z "$VAL" ] || [[ "$VAL" == --* ]]; then
+    echo "Missing value for build-arg '$KEY'" >&2
+    exit 1
+  fi
+
+  ENVKEY="${KEY^^}"
+  ENVKEY="${ENVKEY//-/_}"
+  BUILD_FLAGS+=( "--build-arg=${ENVKEY}=${VAL}" )
+  shift 2
+done
+
 
 if [ $CUDA_TOOLKIT -eq 0 ] && [ $ML_TOOLKIT -eq 0 ]; then
   echo "No toolkit selected to build, nothing to do."
