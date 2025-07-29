@@ -9,9 +9,9 @@ to generate customized libraries and/or change package versions to suite their n
 More specifically, we offer images for:
 
 - Run- and build-time CUDA tools
-- Common Machine Learning (ML) libraries with (Nvidia) GPU or CPU-only support
+- Common Machine Learning (ML) libraries with (NVIDIA) GPU or CPU-only support
 
-We also offer specialized images for Nvidia's Jetson machines, which often require customized builds for Nvidia
+We also offer specialized images for NVIDIA's Jetson machines, which often require customized builds for NVIDIA
 Jetson's kernel.
 
 ## Current AICA registry images
@@ -31,7 +31,7 @@ Jetson's kernel.
 
 ### On the use of GPUs
 
-For GPU-dependent images, we currently use Nvidia's registries to collect the necessary libraries and form the final
+For GPU-dependent images, we currently use NVIDIA's registries to collect the necessary libraries and form the final
 toolkit image that can be used with AICA Core and/or custom AICA Components. As such, we also label our versions with
 respect to the TensorRT images that we use as our dependency base. If you are creating a custom image for the CUDA or ML
 toolkit, refer to the [TensorRT Release Notes](https://docs.nvidia.com/deeplearning/frameworks/container-release-notes/index.html) for image tags you can use to pull specific combinations of CUDA, TensorRT, and Python. A simple example of
@@ -40,13 +40,13 @@ how you can achieve this can be found [here](#building-a-custom-image).
 > **NOTE**
 >
 > As previously discussed, the Jetson requires special handling for install dependencies due to its custom kernel that
-> facilitates interfacing with the GPU. Therefore, to ensure compatibility it is recommended that you use Nvidia's
+> facilitates interfacing with the GPU. Therefore, to ensure compatibility it is recommended that you use NVIDIA's
 > specialized Linux for Tegra (L4T) images, which you can browse
 > [here](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-tensorrt). AICA's Jetson images are also based on L4T
 > images.
 > 
 > You may also need to install custom versions of PyTorch that are built for Tegra (or compile wheels from source). You
-> may refer to the this [Nvidia](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) forum post.
+> may refer to the this [NVIDIA](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) forum post.
 
 ## Using registry images
 
