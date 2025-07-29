@@ -50,7 +50,7 @@ how you can achieve this can be found [here](#building-a-custom-image).
 
 ## Using registry images
 
-To use registry images you may simply add the following line(s) in your `aica-application.toml`:
+To use registry images at runtime you may simply add the following line(s) in your `aica-application.toml`:
 
 ```toml
 #syntax=ghcr.io/aica-technology/app-builder:v2
@@ -59,9 +59,39 @@ To use registry images you may simply add the following line(s) in your `aica-ap
 image = "v4.4.2"
 
 [packages]
-<YOUR PACKAGES OF CHOICE>
+<Other packages you wish to include>
 "@aica/toolkits/cuda-toolkit" = "v0.1.0-24.12-py3"
 "@aica/toolkits/ml-toolkit" = "v0.1.0-gpu-24.12-py3"
+```
+
+If your custom component is depending on some of the included packages (e.g., CUDA libraries, torch, ...), note that you
+can also include these libraries as build-time dependencies instead of manually adding each and every dependency you
+need. This is the suggested dependency handling methodology, as it allows for more precisely version controlling your
+components. Adding the toolkit images as build dependencies is also as simple as:
+
+```toml
+#syntax=ghcr.io/aica-technology/package-builder:v1.4.0
+
+[metadata]
+version = "0.0.1"
+
+[build]
+type = "ros"
+image = "v2.0.5-jazzy"
+
+[build.dependencies]
+"@aica/foss/control-libraries" = "v9.2.0"
+"@aica/foss/modulo" = "v5.2.0"
+
+# along with the above core libraries, you can also include these ancillary images
+"@aica/toolkits/cuda-toolkit" = "v0.1.0-24.12-py3"
+"@aica/toolkits/ml-toolkit" = "v0.1.0-gpu-24.12-py3"
+
+[build.packages.my_custom_component]
+source = "./source/my_custom_component"
+
+[build.packages.my_custom_component.dependencies.apt]
+<Add apt dependencies not included in the 2 toolkit images>
 ```
 
 ## Building a custom image
