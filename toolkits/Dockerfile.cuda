@@ -7,22 +7,21 @@ FROM ${TENSORRT_IMAGE}:${TRT_IMAGE_TAG} AS builder
 
 ARG CUDA_DEPS
 
-RUN mkdir -p ${CUDA_DEPS}/bin
-RUN mkdir -p ${CUDA_DEPS}/lib
-RUN mkdir -p ${CUDA_DEPS}/include/cuda
-RUN mkdir -p ${CUDA_DEPS}/include/tensorrt
-RUN mkdir -p ${CUDA_DEPS}/opt/tensorrt
+RUN mkdir -p ${CUDA_DEPS}/usr/lib
 RUN mkdir -p ${CUDA_DEPS}/usr/local
+RUN mkdir -p ${CUDA_DEPS}/usr/include/cuda
+RUN mkdir -p ${CUDA_DEPS}/usr/include/tensorrt
+RUN mkdir -p ${CUDA_DEPS}/opt/tensorrt
 
-RUN cp -a -L /usr/local/cuda/lib64/*.so* ${CUDA_DEPS}/lib
+RUN cp -a -L /usr/local/cuda/lib64/*.so* ${CUDA_DEPS}/usr/lib
 RUN cp -r /usr/local/cuda* ${CUDA_DEPS}/usr/local/
 RUN for lib in nvinfer nvonnxparser nvparsers nvinfer_plugin cudnn; do \
       cp -a /usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/lib${lib}*.so* \
-         ${CUDA_DEPS}/lib/ 2>/dev/null || : ; \
+         ${CUDA_DEPS}/usr/lib/ 2>/dev/null || : ; \
     done
 RUN for hdr in NvInfer NvOnnxParser NvParsers; do \
       cp -a /usr/include/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/${hdr}* \
-         ${CUDA_DEPS}/include/tensorrt/ 2>/dev/null || : ; \
+         ${CUDA_DEPS}/usr/include/tensorrt/ 2>/dev/null || : ; \
     done
 RUN cp -a /opt/tensorrt ${CUDA_DEPS}/opt/ 2>/dev/null || :
 RUN cp -a /opt/cuda ${CUDA_DEPS}/opt/ 2>/dev/null || :
@@ -49,12 +48,12 @@ RUN printenv | \
       else \
         printf 'export %s="%s"\n' "$key" "$val"; \
       fi; \
-    done > ${CUDA_DEPS}/cuda_env.sh
-RUN echo 'export NVIDIA_VISIBLE_DEVICES=all' >> ${CUDA_DEPS}/cuda_env.sh \
-  && echo 'export NVIDIA_DRIVER_CAPABILITIES=compute,utility' >> ${CUDA_DEPS}/cuda_env.sh
+    done > /tmp/cuda_env.sh
+RUN echo 'export NVIDIA_VISIBLE_DEVICES=all' >> /tmp/cuda_env.sh \
+  && echo 'export NVIDIA_DRIVER_CAPABILITIES=compute,utility' >> /tmp/cuda_env.sh
 
-RUN chown -R 1000:1000 ${CUDA_DEPS}/cuda_env.sh
-RUN chmod +x ${CUDA_DEPS}/cuda_env.sh
+RUN chown -R 1000:1000 /tmp/cuda_env.sh
+RUN chmod +x /tmp/cuda_env.sh
 
 FROM ros:${ROS_DISTRO}-ros-base AS environment-variables
 
@@ -118,25 +117,10 @@ RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
   colcon build"
 RUN cp -r $ROS_WS/install/environment_variables /environment_variables
 
-FROM scratch AS final-builder
-
-ARG CUDA_DEPS
-WORKDIR /
-
-COPY --from=builder ${CUDA_DEPS} /deps
-
-COPY --from=builder ${CUDA_DEPS}/cuda_env.sh /cuda-dependencies.sh
-COPY --from=builder ${CUDA_DEPS}/bin/ /usr/bin
-COPY --from=builder ${CUDA_DEPS}/lib/ /usr/lib
-COPY --from=builder ${CUDA_DEPS}/usr/local/ /usr/local
-COPY --from=builder ${CUDA_DEPS}/include/ /usr/include
-COPY --from=builder ${CUDA_DEPS}/opt/ /opt
-COPY --from=builder ${CUDA_DEPS}/usr/lib/ /usr/lib
-
 FROM scratch AS barebones
 
-COPY --from=final-builder /usr/ /usr
-COPY --from=final-builder /opt/ /opt
+ARG CUDA_DEPS
+COPY --from=builder ${CUDA_DEPS} /
 
 ARG VERSION=0.0.0
 LABEL org.opencontainers.image.title="AICA CUDA libraries"
@@ -147,4 +131,4 @@ LABEL tech.aica.image.metadata='{"type":"lib"}'
 FROM barebones AS env-vars
 
 COPY --from=environment-variables /environment_variables /ws/install/environment_variables
-COPY --from=final-builder /cuda-dependencies.sh /ws/install/environment_variables/share/environment_variables/scripts/
+COPY --from=builder /tmp/cuda_env.sh /ws/install/environment_variables/share/environment_variables/scripts/
