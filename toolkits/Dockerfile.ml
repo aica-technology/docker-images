@@ -50,6 +50,7 @@ RUN if [ "${TORCH_VARIANT}" = "jetson" ]; then \
       fi; \
       pip install --no-cache-dir \
         --target=${PY_DEPS} \
+        -c /tmp/constraints.txt \
         --extra-index-url ${INDEX_URL} \
         torch==${TORCH_VERSION} \
         torchaudio==${TORCHAUDIO_VERSION} \
