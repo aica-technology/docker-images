@@ -60,8 +60,8 @@ image = "v4.4.2"
 
 [packages]
 <YOUR PACKAGES OF CHOICE>
-"@aica/toolkits/cuda-toolkit" = "v0.1.0"
-"@aica/toolkits/ml-toolkit" = "v0.1.0"
+"@aica/toolkits/cuda-toolkit" = "v0.1.0-24.12-py3"
+"@aica/toolkits/ml-toolkit" = "v0.1.0-gpu-24.12-py3"
 ```
 
 ## Building a custom image
@@ -80,6 +80,17 @@ example, if you specify:
 you will obtain a `ghcr.io/aica-technology/cuda-toolkit:vX.Y.Z-24.12-py3` image (refer
 [here]((https://docs.nvidia.com/deeplearning/frameworks/container-release-notes/index.html)) for information on CUDA and
 TensorRT versions).
+
+Similarly, you can do:
+
+```shell
+./build.sh --ml-toolkit \
+  --tensorrt-image-tag 24.12-py3 \
+  --torch-variant gpu \
+  --target gpu
+```
+
+to obtain `ghcr.io/aica-technology/cuda-toolkit:vX.Y.Z-gpu-24.12-py3`.
 
 ### Example 2
 
