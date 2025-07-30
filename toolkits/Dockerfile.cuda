@@ -117,18 +117,15 @@ RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
   colcon build"
 RUN cp -r $ROS_WS/install/environment_variables /environment_variables
 
-FROM scratch AS barebones
+FROM scratch
 
 ARG CUDA_DEPS
 COPY --from=builder ${CUDA_DEPS} /
+COPY --from=environment-variables /environment_variables /ws/install/environment_variables
+COPY --from=builder /tmp/cuda_env.sh /ws/install/environment_variables/share/environment_variables/scripts/
 
 ARG VERSION=0.0.0
 LABEL org.opencontainers.image.title="AICA CUDA libraries"
 LABEL org.opencontainers.image.description="AICA CUDA libraries"
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL tech.aica.image.metadata='{"type":"lib"}'
-
-FROM barebones AS env-vars
-
-COPY --from=environment-variables /environment_variables /ws/install/environment_variables
-COPY --from=builder /tmp/cuda_env.sh /ws/install/environment_variables/share/environment_variables/scripts/

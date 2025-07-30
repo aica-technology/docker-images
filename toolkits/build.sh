@@ -146,10 +146,6 @@ elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
   echo "CUDA and ML toolkits can not be built simultaneously. Please choose one."
   exit 1
 elif [ $CUDA_TOOLKIT -eq 1 ]; then
-  if [[ "$TARGET" != "barebones" && "$TARGET" != "env-vars" ]]; then
-    echo "Invalid target specified. Use 'barebones' or 'env-vars'."
-    exit 1
-  fi
   BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
 
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.cuda)-${TRT_IMAGE_TAG}
@@ -181,9 +177,9 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
 
   BUILD_FLAGS+=(--build-arg=PYTHON_VERSION=${PYTHON_VERSION})
   BUILD_FLAGS+=(--build-arg=TORCH_VARIANT=${TORCH_VARIANT})
+  BUILD_FLAGS+=(--target ${TARGET})
 fi
 
-BUILD_FLAGS+=(--target ${TARGET})
 BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})
 BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
