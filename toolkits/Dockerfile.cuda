@@ -117,7 +117,7 @@ RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
   colcon build"
 RUN cp -r $ROS_WS/install/environment_variables /environment_variables
 
-FROM scratch
+FROM scratch AS final
 
 ARG CUDA_DEPS
 COPY --from=builder ${CUDA_DEPS} /
