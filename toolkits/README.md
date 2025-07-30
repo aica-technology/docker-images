@@ -27,6 +27,7 @@ Jetson's kernel.
 
 <!-- | Image name  | Target (CPU/GPU) | Needs CUDA | Python Version | Description |
 |-------------|-----|---|---|--| -->
+
 **No images available yet.**
 
 ### On the use of GPUs
@@ -85,7 +86,8 @@ image = "v2.0.5-jazzy"
 "@aica/foss/control-libraries" = "v9.2.0"
 "@aica/foss/modulo" = "v5.2.0"
 
-# along with the above core libraries, you can also include these ancillary images
+# along with the above core libraries, you can also include the toolkit
+# images for easy access to CUDA and ML libraries
 "@aica/toolkits/cuda-toolkit" = "v0.1.0-24.12-py3"
 "@aica/toolkits/ml-toolkit" = "v0.1.0-gpu-24.12-py3"
 
