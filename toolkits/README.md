@@ -120,7 +120,6 @@ Similarly, you can do:
 ```shell
 ./build.sh --ml-toolkit \
   --tensorrt-image-tag 24.12-py3 \
-  --torch-variant gpu \
   --target gpu
 ```
 
@@ -136,8 +135,7 @@ the registries you would have to specify quite a few options and run the build s
 ```shell
 # For ML libraries (torch for Tegra)
 ./build.sh --ml-toolkit \
-  --target gpu \
-  --torch-variant jetson \
+  --target jetson \
   --ubuntu-version 22.04 \
   --python-version 3.10 \
   --tensorrt-image nvcr.io/nvidia/l4t-tensorrt \

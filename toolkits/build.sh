@@ -3,7 +3,6 @@
 TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 TRT_IMAGE_TAG=24.12-py3
 
-TORCH_VARIANT=cpu
 TORCH_VERSION="2.6.0"
 JETSON_TORCH_VERSION="torch-2.3.0-cp310-cp310-linux_aarch64.whl"
 JETSON_TORCHVISION_VERSION="torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl"
@@ -55,15 +54,6 @@ while [ "$#" -gt 0 ]; do
     shift 2
     ;;
 
-  --torch-variant)
-    if [[ "$2" =~ ^(cpu|gpu|jetson)$ ]]; then
-      TORCH_VARIANT=$2
-      shift 2
-    else
-      echo "Invalid torch variant specified. Use 'cpu' or 'gpu'."
-      exit 1
-    fi
-    ;;
   --torch-version)
     TORCH_VERSION=$2
     shift 2
@@ -158,26 +148,24 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
   fi
 
   POSTFIX=${TARGET}-${TRT_IMAGE_TAG}
-  if [ $TORCH_VARIANT != $TARGET ]; then
-    POSTFIX=${POSTFIX}-${TORCH_VARIANT}
-  fi
-  if [ $TORCH_VARIANT = "jetson" ]; then
+  BUILD_FLAGS+=(--build-arg=PYTHON_VERSION=${PYTHON_VERSION})
+  if [ $TARGET = "jetson" ]; then
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$JETSON_TORCH_VERSION)
     BUILD_FLAGS+=(--build-arg=TORCH_SOURCE=$JETSON_TORCH_SOURCE)
     BUILD_FLAGS+=(--build-arg=TORCHVISION_VERSION=$JETSON_TORCHVISION_VERSION)
     BUILD_FLAGS+=(--build-arg=TORCHVISION_SOURCE=$JETSON_TORCHVISION_SOURCE)
     BUILD_FLAGS+=(--build-arg=TORCHAUDIO_VERSION=$JETSON_TORCHAUDIO_VERSION)
     BUILD_FLAGS+=(--build-arg=TORCHAUDIO_SOURCE=$JETSON_TORCHAUDIO_SOURCE)
+    BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
+    BUILD_FLAGS+=(--target gpu)
   else
+    BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$TORCH_VERSION)
+    BUILD_FLAGS+=(--target ${TARGET})
   fi
   VERSION=$(cat "${SCRIPT_DIR}"/VERSION.ml)-"${POSTFIX}"
   IMAGE_NAME="ghcr.io/aica-technology/ml-toolkit"
   TYPE="ml"
-
-  BUILD_FLAGS+=(--build-arg=PYTHON_VERSION=${PYTHON_VERSION})
-  BUILD_FLAGS+=(--build-arg=TORCH_VARIANT=${TORCH_VARIANT})
-  BUILD_FLAGS+=(--target ${TARGET})
 fi
 
 BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})

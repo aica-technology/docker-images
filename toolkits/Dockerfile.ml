@@ -8,7 +8,7 @@ ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 
 FROM python:${PYTHON_VERSION}-slim AS python-builder
 
-ARG TORCH_VARIANT=cpu
+ARG TARGET=cpu
 ARG TORCH_VERSION=2.6.0
 ARG TORCHVISION_VERSION=0.21.0
 ARG TORCHAUDIO_VERSION=2.6.0
@@ -32,7 +32,7 @@ RUN apt-get update \
 RUN pip install --upgrade pip \
  && mkdir -p ${PY_DEPS}
 
-RUN if [ "${TORCH_VARIANT}" = "jetson" ]; then \
+RUN if [ "${TARGET}" = "jetson" ]; then \
       wget -O ${TORCH_VERSION} ${TORCH_SOURCE} && \
       wget -O ${TORCHVISION_VERSION} ${TORCHVISION_SOURCE} && \
       wget -O ${TORCHAUDIO_VERSION} ${TORCHAUDIO_SOURCE} && \
@@ -43,7 +43,7 @@ RUN if [ "${TORCH_VARIANT}" = "jetson" ]; then \
         ${TORCHVISION_VERSION} \
         ${TORCHAUDIO_VERSION}; \
     else \
-      if [ "${TORCH_VARIANT}" = "cpu" ]; then \
+      if [ "${TARGET}" = "cpu" ]; then \
         INDEX_URL="https://download.pytorch.org/whl/cpu"; \
       else \
         INDEX_URL="https://download.pytorch.org/whl/${CU_VERSION}"; \
@@ -83,7 +83,7 @@ WORKDIR /deps
 RUN mkdir lib
 RUN find /opt/apt_root -type f \( -name "*.so*" -o -name "*.a*" \) -exec cp -L "{}" lib \;
 RUN cp -r /opt/apt_root/usr/bin .
-# TODO: also copy includes?
+RUN cp -r /opt/apt_root/usr/include .
 
 FROM ubuntu:${UBUNTU_VERSION} AS cpp-source
 
@@ -122,7 +122,8 @@ RUN apt-get update \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p ${CPP_DEPS}/lib ${CPP_DEPS}/include
-RUN pip install --no-cache-dir \
+
+RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir \
   flatbuffers==25.2.10 \
   packaging \
   numpy==1.26.4
@@ -158,7 +159,6 @@ ARG USE_CUDA=ON
 ARG CMAKE_VERSION=3.31
 ARG CMAKE_BUILD=8
 ARG PYTHON_VERSION
-ARG TORCH3D_VERSION=V0.7.8
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -186,7 +186,7 @@ RUN wget -O /tmp/cmake-installer.sh \
     https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}.${CMAKE_BUILD}/cmake-${CMAKE_VERSION}.${CMAKE_BUILD}-linux-`arch`.sh \
   && chmod +x /tmp/cmake-installer.sh && /tmp/cmake-installer.sh --skip-license --prefix=/usr/local
 
-RUN pip install --no-cache-dir \
+RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir \
   flatbuffers==25.2.10 \
   packaging \
   numpy==1.26.4
@@ -220,15 +220,14 @@ RUN mkdir -p ${PY_DEPS} \
       onnxruntime*.whl
 
 COPY --from=python-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
-RUN export PYTHONPATH=${PY_DEPS}:$PYTHONPATH && \
-    echo "\ntorch==$(pip show torch | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt && \
-    echo "\nnumpy==$(pip show numpy | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt
+RUN echo "torch==$(pip show torch | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt && \
+    echo -e "\nnumpy==$(pip show numpy | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt
 
+COPY install_dependencies/gpu-only-requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir \
       --target=${PY_DEPS} \
       -c /tmp/constraints.txt \
-      git+https://github.com/NVlabs/nvdiffrast.git@v0.3.3#egg=nvdiffrast \
-      git+https://github.com/facebookresearch/pytorch3d.git@${TORCH3D_VERSION}
+      -r /tmp/requirements.txt
 
 FROM scratch AS cpu
 
