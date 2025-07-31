@@ -14,7 +14,13 @@ RUN mkdir -p ${CUDA_DEPS}/usr/include/tensorrt
 RUN mkdir -p ${CUDA_DEPS}/opt/tensorrt
 
 RUN cp -a -L /usr/local/cuda/lib64/*.so* ${CUDA_DEPS}/usr/lib
-RUN cp -r /usr/local/cuda* ${CUDA_DEPS}/usr/local/
+RUN \
+  cd ${CUDA_DEPS}/usr/local && \
+  CUDA_SHORT=$(echo "$CUDA_VERSION" | cut -d. -f1-2) && \
+  CUDA_MAJOR=${CUDA_SHORT%%.*} && \
+  cp -r /usr/local/cuda-${CUDA_SHORT} ${CUDA_DEPS}/usr/local/ && \
+  ln -sfn cuda-${CUDA_SHORT} cuda-${CUDA_MAJOR} && \
+  ln -sfn cuda-${CUDA_SHORT} cuda
 RUN for lib in nvinfer nvonnxparser nvparsers nvinfer_plugin cudnn; do \
       cp -a /usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/lib${lib}*.so* \
          ${CUDA_DEPS}/usr/lib/ 2>/dev/null || : ; \
@@ -50,7 +56,8 @@ RUN printenv | \
       fi; \
     done > /tmp/cuda_env.sh
 RUN echo 'export NVIDIA_VISIBLE_DEVICES=all' >> /tmp/cuda_env.sh \
-  && echo 'export NVIDIA_DRIVER_CAPABILITIES=compute,utility' >> /tmp/cuda_env.sh
+  && echo 'export NVIDIA_DRIVER_CAPABILITIES=compute,utility' >> /tmp/cuda_env.sh \
+  && echo 'export CUDA_HOME=/usr/local/cuda' >> /tmp/cuda_env.sh
 
 RUN chown -R 1000:1000 /tmp/cuda_env.sh
 RUN chmod +x /tmp/cuda_env.sh
