@@ -254,7 +254,7 @@ ARG PYTHON_VERSION
 ARG CPP_DEPS
 ARG PY_DEPS
 
-COPY --from=apt-fetch /deps/lib /usr/local/lib
+COPY --from=apt-fetch /deps/lib /usr/lib
 COPY --from=apt-fetch /deps/bin /usr/bin
 COPY --from=cuda-builder ${CPP_DEPS}/lib/ /usr/lib/
 COPY --from=cuda-builder ${CPP_DEPS}/include/ /usr/include/
