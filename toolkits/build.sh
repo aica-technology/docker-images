@@ -129,7 +129,7 @@ while [ "$#" -gt 0 ]; do
   shift 2
 done
 
-
+VERSION_POSTFIX=""
 if [ $CUDA_TOOLKIT -eq 0 ] && [ $ML_TOOLKIT -eq 0 ]; then
   echo "No toolkit selected to build, nothing to do."
 elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
@@ -138,7 +138,8 @@ elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
 elif [ $CUDA_TOOLKIT -eq 1 ]; then
   BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
 
-  VERSION=$(cat "${SCRIPT_DIR}"/VERSION.cuda)-${TRT_IMAGE_TAG}
+  VERSION_FILE="${SCRIPT_DIR}/VERSION.cuda"
+  VERSION_POSTFIX="-${TRT_IMAGE_TAG}"
   IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
   TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
@@ -147,7 +148,6 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
     exit 1
   fi
 
-  POSTFIX=${TARGET}-${TRT_IMAGE_TAG}
   BUILD_FLAGS+=(--build-arg=PYTHON_VERSION=${PYTHON_VERSION})
   if [ $TARGET = "jetson" ]; then
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$JETSON_TORCH_VERSION)
@@ -163,10 +163,16 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$TORCH_VERSION)
     BUILD_FLAGS+=(--target ${TARGET})
   fi
-  VERSION=$(cat "${SCRIPT_DIR}"/VERSION.ml)-"${POSTFIX}"
+  VERSION_FILE="${SCRIPT_DIR}/VERSION.ml"
+  VERSION_POSTFIX="-${TARGET}-${TRT_IMAGE_TAG}"
   IMAGE_NAME="ghcr.io/aica-technology/ml-toolkit"
   TYPE="ml"
 fi
+
+RAW_VERSION=$(cat ${VERSION_FILE})
+BASE_VERSION=${RAW_VERSION%%-*}
+RC_SUFFIX=${RAW_VERSION#"$BASE_VERSION"} # this may be empty if version is not a release candidate
+VERSION=${BASE_VERSION}${VERSION_POSTFIX}${RC_SUFFIX}
 
 BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})
 BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
