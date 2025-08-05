@@ -1,0 +1,138 @@
+ARG TRT_IMAGE_TAG=24.12-py3
+ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
+ARG CUDA_DEPS=/tmp/cuda_deps
+ARG ROS_DISTRO=jazzy
+
+FROM ${TENSORRT_IMAGE}:${TRT_IMAGE_TAG} AS builder
+
+ARG CUDA_DEPS
+
+RUN mkdir -p ${CUDA_DEPS}/usr/lib
+RUN mkdir -p ${CUDA_DEPS}/usr/local
+RUN mkdir -p ${CUDA_DEPS}/usr/include/cuda
+RUN mkdir -p ${CUDA_DEPS}/usr/include/tensorrt
+RUN mkdir -p ${CUDA_DEPS}/opt/tensorrt
+
+RUN cp -a -L /usr/local/cuda/lib64/*.so* ${CUDA_DEPS}/usr/lib
+RUN \
+  cd ${CUDA_DEPS}/usr/local && \
+  CUDA_SHORT=$(echo "$CUDA_VERSION" | cut -d. -f1-2) && \
+  CUDA_MAJOR=${CUDA_SHORT%%.*} && \
+  cp -r /usr/local/cuda-${CUDA_SHORT} ${CUDA_DEPS}/usr/local/ && \
+  ln -sfn cuda-${CUDA_SHORT} cuda-${CUDA_MAJOR} && \
+  ln -sfn cuda-${CUDA_SHORT} cuda
+RUN for lib in nvinfer nvonnxparser nvparsers nvinfer_plugin cudnn; do \
+      cp -a /usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/lib${lib}*.so* \
+         ${CUDA_DEPS}/usr/lib/ 2>/dev/null || : ; \
+    done
+RUN for hdr in NvInfer NvOnnxParser NvParsers; do \
+      cp -a /usr/include/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/${hdr}* \
+         ${CUDA_DEPS}/usr/include/tensorrt/ 2>/dev/null || : ; \
+    done
+RUN cp -a /opt/tensorrt ${CUDA_DEPS}/opt/ 2>/dev/null || :
+RUN cp -a /opt/cuda ${CUDA_DEPS}/opt/ 2>/dev/null || :
+
+RUN PYV=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')") \
+  && echo $PYV > ${CUDA_DEPS}/PYTHON_VERSION.txt \
+  && mkdir -p ${CUDA_DEPS}/usr/lib/python${PYV}/dist-packages \
+  && cp -a /usr/local/lib/python${PYV}/dist-packages/tensorrt* \
+          ${CUDA_DEPS}/usr/lib/python${PYV}/dist-packages/ 2>/dev/null || : \
+  && cp -a /usr/local/lib/python${PYV}/dist-packages/_pywrap_tensorRT.so* \
+          ${CUDA_DEPS}/usr/lib/python${PYV}/dist-packages/ 2>/dev/null || : \
+  && cp -a /usr/local/lib/python${PYV}/dist-packages/pycuda \
+          ${CUDA_DEPS}/usr/lib/python${PYV}/dist-packages/ 2>/dev/null || : \
+  && cp -a /usr/local/lib/python${PYV}/dist-packages/polygraphy \
+         ${CUDA_DEPS}/usr/lib/python${PYV}/dist-packages/ 2>/dev/null || :
+
+RUN printenv | \
+    grep -E '(CUDA|_CUDA|CUDNN|CURAND|CUBLAS|CUSOLVER|CUFFT|CUTENSOR|NPP|NCCL|NVIDIA|TENSORRT|POLYGRAPHY|NSIGHT|TRANSFORMER_ENGINE|HPCX|OPENUCX|EFA|MOFED|AWS_OFI_NCCL|LD_LIBRARY_PATH|PATH)' \
+  | while IFS='=' read -r key val; do \
+      if [ "$key" = "PATH" ]; then \
+        printf 'export PATH="$PATH:%s"\n' "$val"; \
+      elif [ "$key" = "LD_LIBRARY_PATH" ]; then \
+        printf 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:%s"\n' "$val"; \
+      else \
+        printf 'export %s="%s"\n' "$key" "$val"; \
+      fi; \
+    done > /tmp/cuda_env.sh
+RUN echo 'export NVIDIA_VISIBLE_DEVICES=all' >> /tmp/cuda_env.sh \
+  && echo 'export NVIDIA_DRIVER_CAPABILITIES=compute,utility' >> /tmp/cuda_env.sh \
+  && echo 'export CUDA_HOME=/usr/local/cuda' >> /tmp/cuda_env.sh
+
+RUN chown -R 1000:1000 /tmp/cuda_env.sh
+RUN chmod +x /tmp/cuda_env.sh
+
+FROM ros:${ROS_DISTRO}-ros-base AS environment-variables
+
+ENV ROS_WS=/ros_ws
+RUN mkdir -p ${ROS_WS}/src
+WORKDIR ${ROS_WS}/src
+
+RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+  ros2 pkg create --build-type ament_cmake environment_variables"
+
+# package.xml
+RUN cat <<EOF > environment_variables/package.xml
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>environment_variables</name>
+  <version>0.0.0</version>
+  <description>Package to source hooks/scripts</description>
+  <maintainer email="support@aica.tech">root</maintainer>
+  <license>TODO: License declaration</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+EOF
+
+# CMakeLists.txt
+RUN sed -i \
+  -e '/ament_package()/i ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/00-environment-variables.sh")' \
+  -e '/ament_package()/i install(DIRECTORY scripts/ DESTINATION share/\${PROJECT_NAME}/scripts  FILES_MATCHING PATTERN "*.sh")' \
+  environment_variables/CMakeLists.txt
+
+# hook
+RUN mkdir -p environment_variables/hooks/ environment_variables/scripts/
+RUN cat <<EOF > environment_variables/hooks/00-environment-variables.sh
+#!/bin/bash
+ENV_SCRIPT_PATH=\$(readlink -f "\${BASH_SOURCE[0]}")
+PARENT="\$(dirname "\$ENV_SCRIPT_PATH")"
+SCRIPT_DIR="\${PARENT%/*}"
+for script in "\$SCRIPT_DIR"/scripts/*.sh; do
+  source "\$script"
+done
+EOF
+RUN chmod +x environment_variables/hooks/00-environment-variables.sh
+
+# colcon
+RUN cat <<EOF > environment_variables/colcon.pkg
+{
+  "hooks": ["share/environment_variables/environment/00-environment-variables.sh"]
+}
+EOF
+
+WORKDIR $ROS_WS
+RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && \
+  colcon build"
+RUN cp -r $ROS_WS/install/environment_variables /environment_variables
+
+FROM scratch AS final
+
+ARG CUDA_DEPS
+COPY --from=builder ${CUDA_DEPS} /
+COPY --from=environment-variables /environment_variables /ws/install/environment_variables
+COPY --from=builder /tmp/cuda_env.sh /ws/install/environment_variables/share/environment_variables/scripts/
+
+ARG VERSION=0.0.0
+LABEL org.opencontainers.image.title="AICA CUDA libraries"
+LABEL org.opencontainers.image.description="AICA CUDA libraries"
+LABEL org.opencontainers.image.version="${VERSION}"
+LABEL tech.aica.image.metadata='{"type":"lib"}'
