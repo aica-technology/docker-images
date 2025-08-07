@@ -15,12 +15,87 @@ jobs:
   build-ws:
     strategy:
       matrix:
-        ros2_distro: [ jazzy ]
+        ros2_distro: [jazzy]
 
     name: Build and publish ros2-ws:${{ matrix.ros2_distro }}
     uses: ./.github/workflows/reusable-build-push.yml
     with:
       ros_distro: ${{ matrix.ros2_distro }}
       force: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ml-toolkit-for-gpu:
+    uses: ./.github/workflows/toolkit-build-push.yml
+    with:
+      variant: ml
+      build_args: |
+        --build-arg PYTHON_VERSION=3.12
+        --build-arg TARGET=gpu
+        --build-arg TORCH_VERSION=2.6.0
+        --target gpu
+        --build-arg UBUNTU_VERSION=24.04
+        --build-arg TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
+        --build-arg TRT_IMAGE_TAG=24.12-py3
+        --build-arg VERSION=0.1.0-gpu-24.12-py3-rc0001 # TODO: remove those from here and handle them in the build
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ml-toolkit-for-cpu:
+    uses: ./.github/workflows/toolkit-build-push.yml
+    with:
+      variant: ml
+      build_args: |
+        --build-arg PYTHON_VERSION=3.12
+        --build-arg TARGET=cpu
+        --build-arg TORCH_VERSION=2.6.0
+        --target cpu
+        --build-arg UBUNTU_VERSION=24.04
+        --build-arg TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
+        --build-arg TRT_IMAGE_TAG=24.12-py3
+        --build-arg VERSION=0.1.0-cpu-24.12-py3-rc0001 # TODO: remove those from here and handle them in the build
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ml-toolkit-for-jetson:
+    uses: ./.github/workflows/toolkit-build-push.yml
+    with:
+      variant: ml
+      # TODO: quite a bit of hardcoding here, we can perhaps handle this better (?)
+      build_args: |
+        --build-arg TORCHVISION_SOURCE=https://nvidia.box.com/shared/static/xpr06qe6ql3l6rj22cu3c45tz1wzi36p.whl
+        --build-arg TORCHAUDIO_VERSION=torchaudio-2.3.0+952ea74-cp310-cp310-linux_aarch64.whl
+        --build-arg TORCHAUDIO_SOURCE=https://nvidia.box.com/shared/static/9agsjfee0my4sxckdpuk9x9gt8agvjje.whl
+        --build-arg TARGET=jetson
+        --build-arg UBUNTU_VERSION=22.04
+        --build-arg TENSORRT_IMAGE=nvcr.io/nvidia/l4t-tensorrt
+        --build-arg TRT_IMAGE_TAG=r8.6.2-devel
+        --build-arg VERSION=0.1.0-jetson-r8.6.2-devel-rc0001 # TODO: remove those from here and handle them in the build
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-cuda-toolkit:
+    uses: ./.github/workflows/toolkit-build-push.yml
+    with:
+      variant: cuda
+      build_args: |
+        --build-arg ROS_DISTRO=jazzy
+        --build-arg UBUNTU_VERSION=24.04
+        --build-arg TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
+        --build-arg TRT_IMAGE_TAG=24.12-py3
+        --build-arg VERSION=0.1.0-24.12-py3-rc0001 # TODO: remove those from here and handle them in the build
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-cuda-toolkit-for-jetson:
+    uses: ./.github/workflows/toolkit-build-push.yml
+    with:
+      variant: cuda
+      build_args: |
+        --build-arg ROS_DISTRO=jazzy
+        --build-arg UBUNTU_VERSION=22.04
+        --build-arg TENSORRT_IMAGE=nvcr.io/nvidia/l4t-tensorrt
+        --build-arg TRT_IMAGE_TAG=r8.6.2-devel
+        --build-arg VERSION=0.1.0-r8.6.2-devel-rc0001 # TODO: remove those from here and handle them in the build
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
