@@ -143,8 +143,8 @@ elif [ $CUDA_TOOLKIT -eq 1 ]; then
   IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
   TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
-  if [[ "$TARGET" != "cpu" && "$TARGET" != "gpu" ]]; then
-    echo "Invalid target specified. Use 'cpu' or 'gpu'."
+  if [[ "$TARGET" != "cpu" && "$TARGET" != "gpu" && "$TARGET" != "jetson" ]]; then
+    echo "Invalid target specified. Use 'cpu', 'gpu', or 'jetson'."
     exit 1
   fi
 
