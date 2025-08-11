@@ -219,7 +219,7 @@ for alias in "${ALIASES[@]}"; do
   echo "  - $alias (alias)"
 done
 
-docker buildx build -f Dockerfile."${TYPE}" -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
+docker buildx build -f $SCRIPT_DIR/Dockerfile."${TYPE}" -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
 for alias in "${ALIASES[@]}"; do
   docker tag "${IMAGE_NAME}:v${VERSION}" "${IMAGE_NAME}:v${alias}"
 done
