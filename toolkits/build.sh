@@ -177,10 +177,18 @@ generate_base_versions "${SCRIPT_DIR}/VERSION.${TYPE}"
 ALIASES=()
 if [ "$TYPE" = "cuda"  ]; then
   IMAGE_NAME=$CUDA_IMAGE_BASE
-  VERSION_SUFFIX="cuda"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
-  VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
-  ALIASES+=($BASE_VERSION"-cuda")
-  ALIASES+=("cuda")
+
+  if [ "$TARGET" = "jetson" ]; then
+    VERSION_SUFFIX="l4t"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+    ALIASES+=($BASE_VERSION"-l4t")
+    ALIASES+=("l4t")
+  else
+    VERSION_SUFFIX="cuda"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+    ALIASES+=($BASE_VERSION"-cuda")
+    ALIASES+=("cuda")
+  fi
 else
   IMAGE_NAME=$ML_IMAGE_BASE
 
