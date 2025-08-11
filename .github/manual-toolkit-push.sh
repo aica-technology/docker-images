@@ -75,5 +75,5 @@ for type in "${TYPE[@]}"; do
   fi
 
   # push to registry
-  docker image push --all-tags ghcr.io/aica-technology/toolkits/cuda:$type
+  docker image push --all-tags ghcr.io/aica-technology/toolkits/$type
 done
