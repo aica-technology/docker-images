@@ -74,6 +74,21 @@ for type in "${TYPE[@]}"; do
     done
   fi
 
-  # push to registry
-  docker image push --all-tags ghcr.io/aica-technology/toolkits/$type
+  # List available images for this type
+  echo "Looking for available images for \"ghcr.io/aica-technology/toolkits/$type\"..."
+  images=$(docker images --format "{{.Repository}}:{{.Tag}}" ghcr.io/aica-technology/toolkits/$type)
+  echo
+  if [ -z "$images" ]; then
+    echo "  No images found for ghcr.io/aica-technology/toolkits/$type. Exiting ..."
+    exit 1
+  else
+    echo "  Found:"
+    echo "$images"
+  fi
+  read -p "Do you want to push all tags for $type to the registry? [y/N]: " confirm
+  if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    docker image push --all-tags ghcr.io/aica-technology/toolkits/$type
+  else
+    echo "Push cancelled for $type."
+  fi
 done
