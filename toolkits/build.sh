@@ -181,13 +181,13 @@ if [ "$TYPE" = "cuda"  ]; then
   if [ "$TARGET" = "jetson" ]; then
     VERSION_SUFFIX="l4t"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
-    ALIASES+=($BASE_VERSION"-l4t")
-    ALIASES+=("l4t")
+    ALIASES+=($BASE_VERSION"-l4t"${RC_SUFFIX})
+    ALIASES+=("l4t"${RC_SUFFIX})
   else
     VERSION_SUFFIX="cuda"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
-    ALIASES+=($BASE_VERSION"-cuda")
-    ALIASES+=("cuda")
+    ALIASES+=($BASE_VERSION"-cuda"${RC_SUFFIX})
+    ALIASES+=("cuda"${RC_SUFFIX})
   fi
 else
   IMAGE_NAME=$ML_IMAGE_BASE
@@ -195,8 +195,8 @@ else
   if [ "$TARGET" = "jetson" ]; then
     VERSION_SUFFIX+="l4t"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
-    ALIASES+=("jetson")
-    ALIASES+=($BASE_VERSION"-jetson")
+    ALIASES+=("jetson"${RC_SUFFIX})
+    ALIASES+=($BASE_VERSION"-jetson"${RC_SUFFIX})
   else
     if [ "$TARGET" = "gpu" ]; then
       VERSION_SUFFIX+="$TARGET"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
@@ -204,8 +204,8 @@ else
       VERSION_SUFFIX+="$TARGET"$UBUNTU_VERSION
     fi
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
-    ALIASES+=($BASE_VERSION"-$TARGET")
-    ALIASES+=("$TARGET")
+    ALIASES+=($BASE_VERSION"-$TARGET"${RC_SUFFIX})
+    ALIASES+=("$TARGET"${RC_SUFFIX})
   fi
 fi
 
