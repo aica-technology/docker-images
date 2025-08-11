@@ -17,18 +17,18 @@ ROS_DISTRO=jazzy
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-CUDA_TOOLKIT=0
-ML_TOOLKIT=0
+CUDA_IMAGE_BASE="ghcr.io/aica-technology/toolkits/cuda"
+ML_IMAGE_BASE="ghcr.io/aica-technology/toolkits/ml"
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
   --cuda-toolkit)
-    CUDA_TOOLKIT=1
+    TYPE="cuda"
     shift 1
     ;;
   --ml-toolkit)
-    ML_TOOLKIT=1
+    TYPE="ml"
     shift 1
     ;;
 
@@ -129,19 +129,25 @@ while [ "$#" -gt 0 ]; do
   shift 2
 done
 
-VERSION_SUFFIX=$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
-if [ $CUDA_TOOLKIT -eq 0 ] && [ $ML_TOOLKIT -eq 0 ]; then
-  echo "No toolkit selected to build, nothing to do."
-elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
-  echo "CUDA and ML toolkits can not be built simultaneously. Please choose one."
-  exit 1
-elif [ $CUDA_TOOLKIT -eq 1 ]; then
-  BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
+generate_base_versions() {
+  local version_file=$1
+  RAW_VERSION=$(cat ${version_file})
+  BASE_VERSION=${RAW_VERSION%%-*}
+  RC_SUFFIX=${RAW_VERSION#"$BASE_VERSION"} # this may be empty if version is not a release candidate
+  VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+}
 
-  VERSION_FILE="${SCRIPT_DIR}/VERSION.cuda"
-  IMAGE_NAME="ghcr.io/aica-technology/toolkits/cuda"
-  TYPE="cuda"
-elif [ $ML_TOOLKIT -eq 1 ]; then
+if [ "$TYPE" = "cuda" ]; then
+  echo "Building CUDA toolkit..."
+  BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
+elif [ "$TYPE" = "ml" ]; then
+  echo "Building ML toolkit..."
+else
+  echo "Unknown toolkit type: $TYPE"
+  exit 1
+fi
+
+if [ "$TYPE" = "ml" ]; then
   if [[ "$TARGET" != "cpu" && "$TARGET" != "gpu" && "$TARGET" != "jetson" ]]; then
     echo "Invalid target specified. Use 'cpu', 'gpu', or 'jetson'."
     exit 1
@@ -157,25 +163,55 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
     BUILD_FLAGS+=(--build-arg=TORCHAUDIO_SOURCE=$JETSON_TORCHAUDIO_SOURCE)
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
     BUILD_FLAGS+=(--target gpu)
-    TARGET=$TARGET"-gpu"
   else
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$TORCH_VERSION)
     BUILD_FLAGS+=(--target ${TARGET})
   fi
-  VERSION_FILE="${SCRIPT_DIR}/VERSION.ml"
-  VERSION_SUFFIX="-${TARGET}-${VERSION_SUFFIX}"
-  IMAGE_NAME="ghcr.io/aica-technology/toolkits/ml"
-  TYPE="ml"
 fi
 
-RAW_VERSION=$(cat ${VERSION_FILE})
-BASE_VERSION=${RAW_VERSION%%-*}
-RC_SUFFIX=${RAW_VERSION#"$BASE_VERSION"} # this may be empty if version is not a release candidate
-VERSION=${BASE_VERSION}${VERSION_SUFFIX}${RC_SUFFIX}
+# handle image name and versions
+IMAGE_NAME=""
+generate_base_versions "${SCRIPT_DIR}/VERSION.${TYPE}"
+
+ALIASES=()
+if [ "$TYPE" = "cuda"  ]; then
+  IMAGE_NAME=$CUDA_IMAGE_BASE
+  VERSION_SUFFIX="cuda"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+  VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+  ALIASES+=($BASE_VERSION"-cuda")
+  ALIASES+=("cuda")
+else
+  IMAGE_NAME=$ML_IMAGE_BASE
+
+  if [ "$TARGET" = "jetson" ]; then
+    VERSION_SUFFIX+="l4t"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+    ALIASES+=("jetson")
+    ALIASES+=($BASE_VERSION"-jetson")
+  else
+    if [ "$TARGET" = "gpu" ]; then
+      VERSION_SUFFIX+="$TARGET"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    else
+      VERSION_SUFFIX+="$TARGET"$UBUNTU_VERSION
+    fi
+    VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+    ALIASES+=($BASE_VERSION"-$TARGET")
+    ALIASES+=("$TARGET")
+  fi
+fi
 
 BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})
 BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
+echo "Building image with base \"${IMAGE_NAME}\" and version tags: "
+echo "  - $VERSION"
+for alias in "${ALIASES[@]}"; do
+  echo "  - $alias (alias)"
+done
+
 docker buildx build -f Dockerfile."${TYPE}" -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
+for alias in "${ALIASES[@]}"; do
+  docker tag "${IMAGE_NAME}:v${VERSION}" "${IMAGE_NAME}:v${alias}"
+done
