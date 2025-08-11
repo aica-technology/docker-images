@@ -129,7 +129,7 @@ while [ "$#" -gt 0 ]; do
   shift 2
 done
 
-VERSION_SUFFIX=""
+VERSION_SUFFIX=$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
 if [ $CUDA_TOOLKIT -eq 0 ] && [ $ML_TOOLKIT -eq 0 ]; then
   echo "No toolkit selected to build, nothing to do."
 elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
@@ -139,7 +139,6 @@ elif [ $CUDA_TOOLKIT -eq 1 ]; then
   BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
 
   VERSION_FILE="${SCRIPT_DIR}/VERSION.cuda"
-  VERSION_SUFFIX="-${TRT_IMAGE_TAG}"
   IMAGE_NAME="ghcr.io/aica-technology/toolkits/cuda"
   TYPE="cuda"
 elif [ $ML_TOOLKIT -eq 1 ]; then
@@ -158,13 +157,14 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
     BUILD_FLAGS+=(--build-arg=TORCHAUDIO_SOURCE=$JETSON_TORCHAUDIO_SOURCE)
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
     BUILD_FLAGS+=(--target gpu)
+    TARGET=$TARGET"-gpu"
   else
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$TORCH_VERSION)
     BUILD_FLAGS+=(--target ${TARGET})
   fi
   VERSION_FILE="${SCRIPT_DIR}/VERSION.ml"
-  VERSION_SUFFIX="-${TARGET}-${TRT_IMAGE_TAG}"
+  VERSION_SUFFIX="-${TARGET}-${VERSION_SUFFIX}"
   IMAGE_NAME="ghcr.io/aica-technology/toolkits/ml"
   TYPE="ml"
 fi
