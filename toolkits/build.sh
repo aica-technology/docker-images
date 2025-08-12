@@ -214,7 +214,7 @@ BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
 echo "Building image with base \"${IMAGE_NAME}\" and version tags: "
-echo "  - $VERSION"
+echo "  - v$VERSION"
 for alias in "${ALIASES[@]}"; do
   echo "  - $alias (alias)"
 done
