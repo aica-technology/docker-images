@@ -20,6 +20,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 CUDA_IMAGE_BASE="ghcr.io/aica-technology/toolkits/cuda"
 ML_IMAGE_BASE="ghcr.io/aica-technology/toolkits/ml"
 
+PLATFORM=""
+MULTIARCH=0
+
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -95,6 +98,32 @@ while [ "$#" -gt 0 ]; do
     ;;
   -v | --verbose)
     BUILD_FLAGS+=(--progress=plain)
+    shift 1
+    ;;
+
+  --multiarch)
+    if [ "$PLATFORM" ]; then
+      echo "--multiarch can not be used when --platform is set." >&2
+      exit 1
+    fi
+    MULTIARCH=1
+    BUILD_FLAGS+=(--platform=linux/amd64,linux/arm64)
+    shift 1
+    ;;
+  --platform)
+    if [ "$MULTIARCH" -eq 1 ]; then
+      echo "--platform can not be used when --multiarch is set." >&2
+      exit 1
+    fi
+    if [ "$2" != "amd64" ] && [ "$2" != "arm64" ]; then
+      echo "Invalid platform specified. Use 'amd64' or 'arm64'." >&2
+      exit 1
+    fi
+    PLATFORM="$2"
+    shift 2
+    ;;
+  --push)
+    BUILD_FLAGS+=(--push)
     shift 1
     ;;
 
@@ -204,7 +233,7 @@ else
       VERSION_SUFFIX+="$TARGET"$UBUNTU_VERSION
     fi
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
-    ALIASES+=($BASE_VERSION"-$TARGET"${RC_SUFFIX})
+    ALIASES+=("v"$BASE_VERSION"-$TARGET"${RC_SUFFIX})
     ALIASES+=("$TARGET"${RC_SUFFIX})
   fi
 fi
@@ -213,13 +242,36 @@ BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})
 BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
+
+if [ "$MULTIARCH" -eq 0 ]; then
+  if [ -z "$PLATFORM" ]; then
+    PLATFORM=$(uname -m)
+  fi
+  if [ "$PLATFORM" = "amd64" ]; then
+    PLATFORM="amd64"
+  elif [ "$PLATFORM" = "arm64" ]; then
+    PLATFORM="arm64"
+  fi
+  VERSION=$VERSION"-"$PLATFORM
+  PLATFORMED_ALIASES=()
+  for alias in "${ALIASES[@]}"; do
+    PLATFORMED_ALIASES+=("$alias-$PLATFORM")
+  done
+  ALIASES=("${PLATFORMED_ALIASES[@]}")
+  BUILD_FLAGS+=(--platform="linux/${PLATFORM}")
+fi
+
 echo "Building image with base \"${IMAGE_NAME}\" and version tags: "
+TAGS=()
 echo "  - v$VERSION"
 for alias in "${ALIASES[@]}"; do
   echo "  - $alias (alias)"
+  TAGS+=(-t "${IMAGE_NAME}:${alias}")
 done
 
-docker buildx build -f $SCRIPT_DIR/Dockerfile."${TYPE}" -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
-for alias in "${ALIASES[@]}"; do
-  docker tag "${IMAGE_NAME}:v${VERSION}" "${IMAGE_NAME}:${alias}"
-done
+docker buildx build \
+  -f "$SCRIPT_DIR/Dockerfile.${TYPE}" \
+  -t "${IMAGE_NAME}:v${VERSION}" \
+  "${TAGS[@]}" \
+  "${BUILD_FLAGS[@]}" \
+  .
