@@ -247,9 +247,9 @@ if [ "$MULTIARCH" -eq 0 ]; then
   if [ -z "$PLATFORM" ]; then
     PLATFORM=$(uname -m)
   fi
-  if [ "$PLATFORM" = "amd64" ]; then
+  if [ "$PLATFORM" = "amd64" ] || [ "$PLATFORM" = "x86_64" ]; then
     PLATFORM="amd64"
-  elif [ "$PLATFORM" = "arm64" ]; then
+  elif [ "$PLATFORM" = "arm64" ] || [ "$PLATFORM" = "aarch64" ]; then
     PLATFORM="arm64"
   fi
   VERSION=$VERSION"-"$PLATFORM
