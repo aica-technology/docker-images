@@ -189,7 +189,8 @@ RUN wget -O /tmp/cmake-installer.sh \
 RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir \
   flatbuffers==25.2.10 \
   packaging \
-  numpy==1.26.4
+  numpy==1.26.4 \
+  psutil
 
 WORKDIR /tmp
 # install ONNX runtime library
