@@ -44,10 +44,11 @@ for type in "${TYPE[@]}"; do
           --ubuntu-version 22.04 \
           --python-version 3.10 \
           --tensorrt-image nvcr.io/nvidia/l4t-tensorrt \
-          --tensorrt-image-tag r8.6.2-devel
+          --tensorrt-image-tag r8.6.2-devel \
+          --push
       else
         echo "Building for generic platform..."
-        bash $SCRIPT_DIR/../toolkits/build.sh --cuda-toolkit
+        bash $SCRIPT_DIR/../toolkits/build.sh --cuda-toolkit --push
       fi
     done
   elif [ "$type" = "ml" ]; then
@@ -63,32 +64,14 @@ for type in "${TYPE[@]}"; do
           --ubuntu-version 22.04 \
           --python-version 3.10 \
           --tensorrt-image nvcr.io/nvidia/l4t-tensorrt \
-          --tensorrt-image-tag r8.6.2-devel
+          --tensorrt-image-tag r8.6.2-devel \
+          --push
       elif [ "$target" = "cpu" ]; then
         echo "Building for CPU..."
-        $SCRIPT_DIR/../toolkits/build.sh --ml-toolkit --target cpu
+        $SCRIPT_DIR/../toolkits/build.sh --ml-toolkit --target cpu --push
       elif [ "$target" = "gpu" ]; then
         echo "Building for GPU..."
-        $SCRIPT_DIR/../toolkits/build.sh --ml-toolkit --target gpu
+        $SCRIPT_DIR/../toolkits/build.sh --ml-toolkit --target gpu --push
       fi
     done
   fi
-
-  # List available images for this type
-  echo "Looking for available images for \"ghcr.io/aica-technology/toolkits/$type\"..."
-  images=$(docker images --format "{{.Repository}}:{{.Tag}}" ghcr.io/aica-technology/toolkits/$type)
-  echo
-  if [ -z "$images" ]; then
-    echo "  No images found for ghcr.io/aica-technology/toolkits/$type. Exiting ..."
-    exit 1
-  else
-    echo "  Found:"
-    echo "$images"
-  fi
-  read -p "Do you want to push all tags for $type to the registry? [y/N]: " confirm
-  if [[ "$confirm" =~ ^[Yy]$ ]]; then
-    docker image push --all-tags ghcr.io/aica-technology/toolkits/$type
-  else
-    echo "Push cancelled for $type."
-  fi
-done
