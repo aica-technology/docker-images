@@ -143,11 +143,11 @@ the registries you would have to specify quite a few options and run the build s
 
 # for CUDA libraries
 ./build.sh --cuda-toolkit \
+  --target jetson \
   --ubuntu-version 22.04 \
   --python-version 3.10 \
   --tensorrt-image nvcr.io/nvidia/l4t-tensorrt \
-  --tensorrt-image-tag r8.6.2-devel \
-  --target env-vars
+  --tensorrt-image-tag r8.6.2-devel
 ```
 
 Those are only few of the available arguments you can provide. Notice how here we specify L4T images as our base. These

@@ -210,7 +210,7 @@ if [ "$TYPE" = "cuda"  ]; then
   if [ "$TARGET" = "jetson" ]; then
     VERSION_SUFFIX="l4t"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
-    ALIASES+=("v"d$BASE_VERSION"-l4t"${RC_SUFFIX})
+    ALIASES+=("v"$BASE_VERSION"-l4t"${RC_SUFFIX})
     ALIASES+=("l4t"${RC_SUFFIX})
   else
     VERSION_SUFFIX="cuda"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
@@ -243,7 +243,7 @@ BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
 
-if [ "$MULTIARCH" -eq 0 ]; then
+if [ "$MULTIARCH" -eq 0 ] && [ "$TARGET" != "jetson" ]; then
   if [ -z "$PLATFORM" ]; then
     PLATFORM=$(uname -m)
   fi
