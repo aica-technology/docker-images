@@ -224,8 +224,8 @@ else
   if [ "$TARGET" = "jetson" ]; then
     VERSION_SUFFIX+="l4t"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
-    ALIASES+=("v"$BASE_VERSION"-jetson"${RC_SUFFIX})
-    ALIASES+=("jetson"${RC_SUFFIX})
+    ALIASES+=("v"$BASE_VERSION"-l4t"${RC_SUFFIX})
+    ALIASES+=("l4t"${RC_SUFFIX})
   else
     if [ "$TARGET" = "gpu" ]; then
       VERSION_SUFFIX+="$TARGET"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
