@@ -159,6 +159,7 @@ ARG USE_CUDA=ON
 ARG CMAKE_VERSION=3.31
 ARG CMAKE_BUILD=8
 ARG PYTHON_VERSION
+ARG CUDA_ARCHS=""
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -190,27 +191,33 @@ RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir \
   flatbuffers==25.2.10 \
   packaging \
   numpy==1.26.4 \
-  psutil
+  psutil==5.9.0
 
 WORKDIR /tmp
 # install ONNX runtime library
 COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
 WORKDIR /tmp/onnxruntime
-RUN ./build.sh \
-  --config Release \
-  --build_shared_lib \
-  --build_wheel \
-  --parallel \
-  --skip_tests \
-  --compile_no_warning_as_error \
-  --skip_submodule_sync \
-  --use_cuda \
-  --use_tensorrt \
-  --enable_pybind \
-  --cuda_home=/usr/local/cuda \
-  --cudnn_home=/usr/local/cuda \
-  --tensorrt_home=/usr \
-  --allow_running_as_root
+RUN set -eux; \
+    cmake_extra=""; \
+    if [ -n "${CUDA_ARCHS}" ]; then \
+      cmake_extra="--cmake_extra_defines CMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHS}"; \
+    fi; \
+    ./build.sh \
+      --config Release \
+      --build_shared_lib \
+      --build_wheel \
+      --parallel \
+      --skip_tests \
+      --compile_no_warning_as_error \
+      --skip_submodule_sync \
+      --use_cuda \
+      --use_tensorrt \
+      --enable_pybind \
+      --cuda_home=/usr/local/cuda \
+      --cudnn_home=/usr/local/cuda \
+      --tensorrt_home=/usr \
+      --allow_running_as_root \
+      ${cmake_extra}
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
 # build python package too
 RUN mkdir -p ${PY_DEPS} \
