@@ -232,7 +232,7 @@ RUN mkdir -p ${PY_DEPS} \
 
 COPY --from=python-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
 RUN echo "torch==$(pip show torch | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt && \
-    echo -e "\nnumpy==$(pip show numpy | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt
+    echo "\nnumpy==$(pip show numpy | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt
 
 COPY install_dependencies/gpu-only-requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir \
