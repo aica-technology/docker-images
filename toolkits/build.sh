@@ -127,13 +127,13 @@ while [ "$#" -gt 0 ]; do
     shift 1
     ;;
 
-  *)
-    echo "Unknown option: $1" >&2
-    exit 1
-    ;;
   --) # we can use this to use more flags that are not named by default
     shift
     break
+    ;;
+  *)
+    echo "Unknown option: $1" >&2
+    exit 1
     ;;
 
   esac
