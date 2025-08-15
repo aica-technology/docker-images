@@ -160,6 +160,8 @@ ARG CMAKE_VERSION=3.31
 ARG CMAKE_BUILD=8
 ARG PYTHON_VERSION
 ARG CUDA_ARCHS=""
+ARG ONNX_BUILD_PARALLEL
+ARG ONNX_BUILD_FOR_GPU=1
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -198,9 +200,15 @@ WORKDIR /tmp
 COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
 WORKDIR /tmp/onnxruntime
 RUN set -eux; \
-    cmake_extra=""; \
-    if [ -n "${CUDA_ARCHS}" ]; then \
-      cmake_extra="--cmake_extra_defines CMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHS}"; \
+    build_extra=""; \
+    if [ -n "${CUDA_ARCHS:-}" ]; then \
+      build_extra="$build_extra --cmake_extra_defines CMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHS}"; \
+    fi; \
+    if [ -n "${ONNX_BUILD_PARALLEL:-}" ]; then \
+      export CMAKE_BUILD_PARALLEL_LEVEL="${ONNX_BUILD_PARALLEL}"; \
+    fi; \
+    if [ "${ONNX_BUILD_FOR_GPU}" = "1" ]; then \
+      build_extra="$build_extra --use_cuda --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda --use_tensorrt --tensorrt_home=/usr"; \
     fi; \
     ./build.sh \
       --config Release \
@@ -210,14 +218,9 @@ RUN set -eux; \
       --skip_tests \
       --compile_no_warning_as_error \
       --skip_submodule_sync \
-      --use_cuda \
-      --use_tensorrt \
       --enable_pybind \
-      --cuda_home=/usr/local/cuda \
-      --cudnn_home=/usr/local/cuda \
-      --tensorrt_home=/usr \
       --allow_running_as_root \
-      ${cmake_extra}
+      ${build_extra}
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
 # build python package too
 RUN mkdir -p ${PY_DEPS} \
