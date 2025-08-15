@@ -160,6 +160,12 @@ ARG PYTHON_VERSION
 ARG CUDA_ARCHS=""
 ARG ONNX_BUILD_PARALLEL
 ARG ONNX_BUILD_FOR_GPU=1
+ARG TARGET
+
+ENV EXTRA_APT_PKGS=""
+RUN if [ "${TARGET}" = "jetson" ]; then \
+      EXTRA_APT_PKGS="nvidia-l4t-dla-compiler nvidia-l4t-cudla"; \
+    fi
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -178,6 +184,7 @@ RUN apt-get update \
     libopenblas-dev \
     libopenmpi-dev \
     tar \
+    ${EXTRA_APT_PKGS} \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
   && mkdir -p ${CPP_DEPS}/lib ${CPP_DEPS}/include
