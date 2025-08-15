@@ -88,7 +88,7 @@ RUN cp -r /opt/apt_root/usr/include .
 FROM ubuntu:${UBUNTU_VERSION} AS cpp-source
 
 # TODO: newer versions have issues with eigen3 / main works, but we need a tag (use tag right after v1.22.1 when available)
-ARG ONNX_RUNTIME_VERSION=main
+ARG ONNX_RUNTIME_VERSION=v1.22.2
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -96,8 +96,6 @@ RUN apt-get update \
 
 WORKDIR /tmp/onnxruntime
 RUN git clone -b ${ONNX_RUNTIME_VERSION} --recursive https://github.com/microsoft/onnxruntime . \
- # TODO: remove this when we have a tag for v1.22.1+ \
- && git checkout 4a730ca \
  && git submodule update --init --recursive
 
 FROM ubuntu:${UBUNTU_VERSION} AS cpu-builder
@@ -205,20 +203,19 @@ RUN set -eux; \
       build_extra="$build_extra --cmake_extra_defines CMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHS}"; \
     fi; \
     if [ -n "${ONNX_BUILD_PARALLEL:-}" ]; then \
-      export CMAKE_BUILD_PARALLEL_LEVEL="${ONNX_BUILD_PARALLEL}"; \
+      build_extra="$build_extra --parallel ${ONNX_BUILD_PARALLEL}"; \
     fi; \
     if [ "${ONNX_BUILD_FOR_GPU}" = "1" ]; then \
-      build_extra="$build_extra --use_cuda --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda --use_tensorrt --tensorrt_home=/usr"; \
+      build_extra="$build_extra --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda"; \
+      build_extra="$build_extra --use_tensorrt --tensorrt_home=/usr/lib/aarch64-linux-gnu"; \
     fi; \
     ./build.sh \
       --config Release \
-      --build_shared_lib \
-      --build_wheel \
-      --parallel \
+      --update --build --build_shared_lib \
+      --enable_pybind --build_wheel \
       --skip_tests \
-      --compile_no_warning_as_error \
-      --skip_submodule_sync \
-      --enable_pybind \
+      --use_cuda \
+      --use_preinstalled_eigen --eigen_path=/usr/include/eigen3 \
       --allow_running_as_root \
       ${build_extra}
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
