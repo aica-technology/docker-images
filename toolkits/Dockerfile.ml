@@ -200,12 +200,14 @@ RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir \
   numpy==1.26.4 \
   psutil==5.9.0
 
+ENV LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/nvidia:${LD_LIBRARY_PATH}
+
 WORKDIR /tmp
 # install ONNX runtime library
 COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
 WORKDIR /tmp/onnxruntime
 RUN set -eux; \
-    build_extra=""; \
+    build_extra="--cmake_extra_defines onnxruntime_BUILD_UNIT_TESTS=OFF"; \
     if [ -n "${CUDA_ARCHS:-}" ]; then \
       build_extra="$build_extra --cmake_extra_defines CMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHS}"; \
     fi; \
@@ -214,7 +216,7 @@ RUN set -eux; \
     fi; \
     if [ "${ONNX_BUILD_FOR_GPU}" = "1" ]; then \
       build_extra="$build_extra --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda"; \
-      build_extra="$build_extra --use_tensorrt --tensorrt_home=/usr/lib/aarch64-linux-gnu"; \
+      build_extra="$build_extra --use_tensorrt --tensorrt_home=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)"; \
     fi; \
     ./build.sh \
       --config Release \
