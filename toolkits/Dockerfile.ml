@@ -223,11 +223,13 @@ RUN set -eux; \
     if [ -n "${ONNX_BUILD_PARALLEL:-}" ]; then \
       build_extra="$build_extra --parallel ${ONNX_BUILD_PARALLEL}"; \
     fi; \
+    # in case we really needs to disable CUDA for onnxruntime, but we still need the remaining dependencies of this stage
     if [ "${ONNX_BUILD_FOR_GPU}" = "1" ]; then \
-      build_extra="$build_extra --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda"; \
+      build_extra="$build_extra --use_cuda --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda"; \
       build_extra="$build_extra --use_tensorrt --tensorrt_home=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)"; \
     fi; \
     # no longer available after version 1.22.0
+    # ! this does not check for the lower bound version when this argument was introduced
     if [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -lt 1 ] || \
        { [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -eq 1 ] && \
          [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f2)" -lt 22 ]; }; then \
@@ -238,7 +240,6 @@ RUN set -eux; \
       --update --build --build_shared_lib \
       --enable_pybind --build_wheel \
       --skip_tests \
-      --use_cuda \
       --allow_running_as_root \
       ${build_extra}
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
