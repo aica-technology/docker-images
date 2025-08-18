@@ -87,7 +87,6 @@ RUN cp -r /opt/apt_root/usr/include .
 
 FROM ubuntu:${UBUNTU_VERSION} AS cpp-source
 
-# TODO: newer versions have issues with eigen3 / main works, but we need a tag (use tag right after v1.22.1 when available)
 ARG ONNX_RUNTIME_VERSION=v1.22.2
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
