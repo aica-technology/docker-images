@@ -130,16 +130,25 @@ WORKDIR /tmp
 # install ONNX runtime library
 COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
 WORKDIR /tmp/onnxruntime
-RUN ./build.sh \
-  --config Release \
-  --build_shared_lib \
-  --build_wheel \
-  --parallel \
-  --skip_tests \
-  --compile_no_warning_as_error \
-  --skip_submodule_sync \
-  --enable_pybind \
-  --allow_running_as_root
+RUN set -eux; \
+    build_extra="--cmake_extra_defines onnxruntime_BUILD_UNIT_TESTS=OFF"; \
+    if [ -n "${ONNX_BUILD_PARALLEL:-}" ]; then \
+      build_extra="$build_extra --parallel ${ONNX_BUILD_PARALLEL}"; \
+    fi; \
+    # no longer available after version 1.22.0
+    # ! this does not check for the lower bound version when this argument was introduced
+    if [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -lt 1 ] || \
+       { [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -eq 1 ] && \
+         [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f2)" -lt 22 ]; }; then \
+      build_extra="$build_extra --use_preinstalled_eigen --eigen_path=/usr/include/eigen3"; \
+    fi; \
+    ./build.sh \
+      --config Release \
+      --update --build --build_shared_lib \
+      --enable_pybind --build_wheel \
+      --skip_tests \
+      --allow_running_as_root \
+      ${build_extra}
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
 # build python package too
 RUN mkdir -p ${PY_DEPS} \
@@ -218,13 +227,18 @@ RUN set -eux; \
       build_extra="$build_extra --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda"; \
       build_extra="$build_extra --use_tensorrt --tensorrt_home=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)"; \
     fi; \
+    # no longer available after version 1.22.0
+    if [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -lt 1 ] || \
+       { [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -eq 1 ] && \
+         [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f2)" -lt 22 ]; }; then \
+      build_extra="$build_extra --use_preinstalled_eigen --eigen_path=/usr/include/eigen3"; \
+    fi; \
     ./build.sh \
       --config Release \
       --update --build --build_shared_lib \
       --enable_pybind --build_wheel \
       --skip_tests \
       --use_cuda \
-      --use_preinstalled_eigen --eigen_path=/usr/include/eigen3 \
       --allow_running_as_root \
       ${build_extra}
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
