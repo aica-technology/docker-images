@@ -17,18 +17,21 @@ ROS_DISTRO=jazzy
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-CUDA_TOOLKIT=0
-ML_TOOLKIT=0
+CUDA_IMAGE_BASE="ghcr.io/aica-technology/toolkits/cuda"
+ML_IMAGE_BASE="ghcr.io/aica-technology/toolkits/ml"
+
+PLATFORM=""
+MULTIARCH=0
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
   --cuda-toolkit)
-    CUDA_TOOLKIT=1
+    TYPE="cuda"
     shift 1
     ;;
   --ml-toolkit)
-    ML_TOOLKIT=1
+    TYPE="ml"
     shift 1
     ;;
 
@@ -98,6 +101,32 @@ while [ "$#" -gt 0 ]; do
     shift 1
     ;;
 
+  --multiarch)
+    if [ "$PLATFORM" ]; then
+      echo "--multiarch can not be used when --platform is set." >&2
+      exit 1
+    fi
+    MULTIARCH=1
+    BUILD_FLAGS+=(--platform=linux/amd64,linux/arm64)
+    shift 1
+    ;;
+  --platform)
+    if [ "$MULTIARCH" -eq 1 ]; then
+      echo "--platform can not be used when --multiarch is set." >&2
+      exit 1
+    fi
+    if [ "$2" != "amd64" ] && [ "$2" != "arm64" ]; then
+      echo "Invalid platform specified. Use 'amd64' or 'arm64'." >&2
+      exit 1
+    fi
+    PLATFORM="$2"
+    shift 2
+    ;;
+  --push)
+    BUILD_FLAGS+=(--push)
+    shift 1
+    ;;
+
   *)
     echo "Unknown option: $1" >&2
     exit 1
@@ -129,20 +158,25 @@ while [ "$#" -gt 0 ]; do
   shift 2
 done
 
-VERSION_POSTFIX=""
-if [ $CUDA_TOOLKIT -eq 0 ] && [ $ML_TOOLKIT -eq 0 ]; then
-  echo "No toolkit selected to build, nothing to do."
-elif [ $CUDA_TOOLKIT -eq 1 ] && [ $ML_TOOLKIT -eq 1 ]; then
-  echo "CUDA and ML toolkits can not be built simultaneously. Please choose one."
-  exit 1
-elif [ $CUDA_TOOLKIT -eq 1 ]; then
-  BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
+generate_base_versions() {
+  local version_file=$1
+  RAW_VERSION=$(cat ${version_file})
+  BASE_VERSION=${RAW_VERSION%%-*}
+  RC_SUFFIX=${RAW_VERSION#"$BASE_VERSION"} # this may be empty if version is not a release candidate
+  VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+}
 
-  VERSION_FILE="${SCRIPT_DIR}/VERSION.cuda"
-  VERSION_POSTFIX="-${TRT_IMAGE_TAG}"
-  IMAGE_NAME="ghcr.io/aica-technology/cuda-toolkit"
-  TYPE="cuda"
-elif [ $ML_TOOLKIT -eq 1 ]; then
+if [ "$TYPE" = "cuda" ]; then
+  echo "Building CUDA toolkit..."
+  BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
+elif [ "$TYPE" = "ml" ]; then
+  echo "Building ML toolkit..."
+else
+  echo "Unknown toolkit type: $TYPE"
+  exit 1
+fi
+
+if [ "$TYPE" = "ml" ]; then
   if [[ "$TARGET" != "cpu" && "$TARGET" != "gpu" && "$TARGET" != "jetson" ]]; then
     echo "Invalid target specified. Use 'cpu', 'gpu', or 'jetson'."
     exit 1
@@ -157,25 +191,97 @@ elif [ $ML_TOOLKIT -eq 1 ]; then
     BUILD_FLAGS+=(--build-arg=TORCHAUDIO_VERSION=$JETSON_TORCHAUDIO_VERSION)
     BUILD_FLAGS+=(--build-arg=TORCHAUDIO_SOURCE=$JETSON_TORCHAUDIO_SOURCE)
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
+    # BUILD_FLAGS+=(--build-arg=CUDA_ARCHS="87;72")
+    BUILD_FLAGS+=(--build-arg=ONNX_BUILD_FOR_GPU=0) # CUDA build is currently failing on tegra TODO: revisit when Microsoft supports this properly
     BUILD_FLAGS+=(--target gpu)
   else
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$TORCH_VERSION)
     BUILD_FLAGS+=(--target ${TARGET})
   fi
-  VERSION_FILE="${SCRIPT_DIR}/VERSION.ml"
-  VERSION_POSTFIX="-${TARGET}-${TRT_IMAGE_TAG}"
-  IMAGE_NAME="ghcr.io/aica-technology/ml-toolkit"
-  TYPE="ml"
 fi
 
-RAW_VERSION=$(cat ${VERSION_FILE})
-BASE_VERSION=${RAW_VERSION%%-*}
-RC_SUFFIX=${RAW_VERSION#"$BASE_VERSION"} # this may be empty if version is not a release candidate
-VERSION=${BASE_VERSION}${VERSION_POSTFIX}${RC_SUFFIX}
+# handle image name and versions
+IMAGE_NAME=""
+generate_base_versions "${SCRIPT_DIR}/VERSION.${TYPE}"
+
+ALIASES=()
+if [ "$TYPE" = "cuda"  ]; then
+  IMAGE_NAME=$CUDA_IMAGE_BASE
+
+  if [ "$TARGET" = "jetson" ]; then
+    TRT_IMAGE_SUFFIX=$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    TRT_IMAGE_SUFFIX="${TRT_IMAGE_SUFFIX/#r/}"
+    VERSION_SUFFIX="l4t${TRT_IMAGE_SUFFIX}"
+    VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+    ALIASES+=("v"$BASE_VERSION"-l4t"${RC_SUFFIX})
+    ALIASES+=("l4t"${TRT_IMAGE_SUFFIX}${RC_SUFFIX})
+    ALIASES+=("l4t"${RC_SUFFIX})
+  else
+    VERSION_SUFFIX="cuda"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+    ALIASES+=("v"$BASE_VERSION"-cuda"${RC_SUFFIX})
+    ALIASES+=("${VERSION_SUFFIX}${RC_SUFFIX}")
+    ALIASES+=("cuda"${RC_SUFFIX})
+  fi
+else
+  IMAGE_NAME=$ML_IMAGE_BASE
+
+  if [ "$TARGET" = "jetson" ]; then
+    TRT_IMAGE_SUFFIX=$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    TRT_IMAGE_SUFFIX="${TRT_IMAGE_SUFFIX/#r/}"
+    VERSION_SUFFIX="l4t${TRT_IMAGE_SUFFIX}"
+    VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+    ALIASES+=("v"$BASE_VERSION"-l4t"${RC_SUFFIX})
+    ALIASES+=("l4t"${TRT_IMAGE_SUFFIX}${RC_SUFFIX})
+    ALIASES+=("l4t"${RC_SUFFIX})
+  else
+    if [ "$TARGET" = "gpu" ]; then
+      VERSION_SUFFIX+="$TARGET"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    else
+      VERSION_SUFFIX+="$TARGET"$UBUNTU_VERSION
+    fi
+    VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
+    ALIASES+=("v"$BASE_VERSION"-$TARGET"${RC_SUFFIX})
+    ALIASES+=("${VERSION_SUFFIX}${RC_SUFFIX}")
+    ALIASES+=("$TARGET"${RC_SUFFIX})
+  fi
+fi
 
 BUILD_FLAGS+=(--build-arg=UBUNTU_VERSION=${UBUNTU_VERSION})
 BUILD_FLAGS+=(--build-arg=TENSORRT_IMAGE=${TENSORRT_IMAGE})
 BUILD_FLAGS+=(--build-arg=TRT_IMAGE_TAG=${TRT_IMAGE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
-docker buildx build -f Dockerfile."${TYPE}" -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
+
+if [ "$MULTIARCH" -eq 0 ] && [ "$TARGET" != "jetson" ]; then
+  if [ -z "$PLATFORM" ]; then
+    PLATFORM=$(uname -m)
+  fi
+  if [ "$PLATFORM" = "amd64" ] || [ "$PLATFORM" = "x86_64" ]; then
+    PLATFORM="amd64"
+  elif [ "$PLATFORM" = "arm64" ] || [ "$PLATFORM" = "aarch64" ]; then
+    PLATFORM="arm64"
+  fi
+  VERSION=$VERSION"-"$PLATFORM
+  PLATFORMED_ALIASES=()
+  for alias in "${ALIASES[@]}"; do
+    PLATFORMED_ALIASES+=("$alias-$PLATFORM")
+  done
+  ALIASES=("${PLATFORMED_ALIASES[@]}")
+  BUILD_FLAGS+=(--platform="linux/${PLATFORM}")
+fi
+
+echo "Building image with base \"${IMAGE_NAME}\" and version tags: "
+TAGS=()
+echo "  - v$VERSION"
+for alias in "${ALIASES[@]}"; do
+  echo "  - $alias (alias)"
+  TAGS+=(-t "${IMAGE_NAME}:${alias}")
+done
+
+docker buildx build \
+  -f "$SCRIPT_DIR/Dockerfile.${TYPE}" \
+  -t "${IMAGE_NAME}:v${VERSION}" \
+  "${TAGS[@]}" \
+  "${BUILD_FLAGS[@]}" \
+  .
