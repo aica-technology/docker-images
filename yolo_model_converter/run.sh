@@ -24,6 +24,8 @@ fi
 
 xhost +
 docker run --rm -it \
+    -e UID=$(id -u) \
+    -e GID=$(id -g) \
     -e model="${MODEL}" \
     -v .:/exports \
     --name yolo_model_converter \
