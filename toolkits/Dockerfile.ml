@@ -208,7 +208,7 @@ RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir \
   numpy==1.26.4 \
   psutil==5.9.0
 
-ENV LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/nvidia:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/tegra:/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/nvidia:${LD_LIBRARY_PATH}
 
 WORKDIR /tmp
 # install ONNX runtime library

@@ -215,23 +215,30 @@ if [ "$TYPE" = "cuda"  ]; then
   IMAGE_NAME=$CUDA_IMAGE_BASE
 
   if [ "$TARGET" = "jetson" ]; then
-    VERSION_SUFFIX="l4t"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    TRT_IMAGE_SUFFIX=$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    TRT_IMAGE_SUFFIX="${TRT_IMAGE_SUFFIX/#r/}"
+    VERSION_SUFFIX="l4t${TRT_IMAGE_SUFFIX}"
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
     ALIASES+=("v"$BASE_VERSION"-l4t"${RC_SUFFIX})
+    ALIASES+=("l4t"${TRT_IMAGE_SUFFIX}${RC_SUFFIX})
     ALIASES+=("l4t"${RC_SUFFIX})
   else
     VERSION_SUFFIX="cuda"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
     ALIASES+=("v"$BASE_VERSION"-cuda"${RC_SUFFIX})
+    ALIASES+=("${VERSION_SUFFIX}${RC_SUFFIX}")
     ALIASES+=("cuda"${RC_SUFFIX})
   fi
 else
   IMAGE_NAME=$ML_IMAGE_BASE
 
   if [ "$TARGET" = "jetson" ]; then
-    VERSION_SUFFIX+="l4t"$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    TRT_IMAGE_SUFFIX=$(echo "$TRT_IMAGE_TAG" | cut -d'-' -f1)
+    TRT_IMAGE_SUFFIX="${TRT_IMAGE_SUFFIX/#r/}"
+    VERSION_SUFFIX="l4t${TRT_IMAGE_SUFFIX}"
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
     ALIASES+=("v"$BASE_VERSION"-l4t"${RC_SUFFIX})
+    ALIASES+=("l4t"${TRT_IMAGE_SUFFIX}${RC_SUFFIX})
     ALIASES+=("l4t"${RC_SUFFIX})
   else
     if [ "$TARGET" = "gpu" ]; then
@@ -241,6 +248,7 @@ else
     fi
     VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
     ALIASES+=("v"$BASE_VERSION"-$TARGET"${RC_SUFFIX})
+    ALIASES+=("${VERSION_SUFFIX}${RC_SUFFIX}")
     ALIASES+=("$TARGET"${RC_SUFFIX})
   fi
 fi
