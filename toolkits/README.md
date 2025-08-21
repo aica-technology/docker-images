@@ -63,8 +63,8 @@ image = "v4.4.2"
 
 [packages]
 <Other packages you wish to include>
-"@aica/toolkits/cuda" = "v0.1.0-cuda24.12-rc0001"
-"@aica/toolkits/ml" = "v0.1.0-gpu24.12-rc0001"
+"@aica/foss/toolkits/cuda" = "v0.1.0-cuda24.12-rc0001"
+"@aica/foss/toolkits/ml" = "v0.1.0-gpu24.12-rc0001"
 ```
 
 If your custom component is depending on some of the included packages (e.g., CUDA libraries, torch, ...), note that you
@@ -88,8 +88,8 @@ image = "v2.0.5-jazzy"
 
 # along with the above core libraries, you can also include the toolkit
 # images for easy access to CUDA and ML libraries
-"@aica/toolkits/cuda" = "v0.1.0-cuda24.12-rc0001"
-"@aica/toolkits/ml" = "v0.1.0-gpu24.12-rc0001"
+"@aica/foss/toolkits/cuda" = "v0.1.0-cuda24.12-rc0001"
+"@aica/foss/toolkits/ml" = "v0.1.0-gpu24.12-rc0001"
 
 [build.packages.my_custom_component]
 source = "./source/my_custom_component"
