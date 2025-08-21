@@ -10,6 +10,7 @@ JETSON_TORCHAUDIO_VERSION="torchaudio-2.3.0+952ea74-cp310-cp310-linux_aarch64.wh
 JETSON_TORCH_SOURCE="https://nvidia.box.com/shared/static/mp164asf3sceb570wvjsrezk1p4ftj8t.whl"
 JETSON_TORCHVISION_SOURCE="https://nvidia.box.com/shared/static/xpr06qe6ql3l6rj22cu3c45tz1wzi36p.whl"
 JETSON_TORCHAUDIO_SOURCE="https://nvidia.box.com/shared/static/9agsjfee0my4sxckdpuk9x9gt8agvjje.whl"
+JETSON_ONNX_RUNTIME_VERSION="v1.17.3"
 
 PYTHON_VERSION=3.12
 UBUNTU_VERSION=24.04
@@ -86,6 +87,10 @@ while [ "$#" -gt 0 ]; do
     JETSON_TORCHAUDIO_SOURCE=$2
     shift 2
     ;;
+  --jetson-onnxruntime-version)
+    JETSON_ONNX_RUNTIME_VERSION=$2
+    shift 2
+    ;;
 
   --target)
     TARGET=$2
@@ -127,13 +132,13 @@ while [ "$#" -gt 0 ]; do
     shift 1
     ;;
 
-  *)
-    echo "Unknown option: $1" >&2
-    exit 1
-    ;;
   --) # we can use this to use more flags that are not named by default
     shift
     break
+    ;;
+  *)
+    echo "Unknown option: $1" >&2
+    exit 1
     ;;
 
   esac
@@ -190,9 +195,9 @@ if [ "$TYPE" = "ml" ]; then
     BUILD_FLAGS+=(--build-arg=TORCHVISION_SOURCE=$JETSON_TORCHVISION_SOURCE)
     BUILD_FLAGS+=(--build-arg=TORCHAUDIO_VERSION=$JETSON_TORCHAUDIO_VERSION)
     BUILD_FLAGS+=(--build-arg=TORCHAUDIO_SOURCE=$JETSON_TORCHAUDIO_SOURCE)
+    BUILD_FLAGS+=(--build-arg=ONNX_RUNTIME_VERSION=$JETSON_ONNX_RUNTIME_VERSION)
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
-    # BUILD_FLAGS+=(--build-arg=CUDA_ARCHS="87;72")
-    BUILD_FLAGS+=(--build-arg=ONNX_BUILD_FOR_GPU=0) # CUDA build is currently failing on tegra TODO: revisit when Microsoft supports this properly
+    BUILD_FLAGS+=(--build-arg=CUDA_ARCHS="87;72")
     BUILD_FLAGS+=(--target gpu)
   else
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})

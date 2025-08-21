@@ -87,8 +87,7 @@ RUN cp -r /opt/apt_root/usr/include .
 
 FROM ubuntu:${UBUNTU_VERSION} AS cpp-source
 
-# TODO: newer versions have issues with eigen3 / main works, but we need a tag (use tag right after v1.22.1 when available)
-ARG ONNX_RUNTIME_VERSION=main
+ARG ONNX_RUNTIME_VERSION=v1.22.2
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -96,8 +95,6 @@ RUN apt-get update \
 
 WORKDIR /tmp/onnxruntime
 RUN git clone -b ${ONNX_RUNTIME_VERSION} --recursive https://github.com/microsoft/onnxruntime . \
- # TODO: remove this when we have a tag for v1.22.1+ \
- && git checkout 4a730ca \
  && git submodule update --init --recursive
 
 FROM ubuntu:${UBUNTU_VERSION} AS cpu-builder
@@ -132,16 +129,25 @@ WORKDIR /tmp
 # install ONNX runtime library
 COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
 WORKDIR /tmp/onnxruntime
-RUN ./build.sh \
-  --config Release \
-  --build_shared_lib \
-  --build_wheel \
-  --parallel \
-  --skip_tests \
-  --compile_no_warning_as_error \
-  --skip_submodule_sync \
-  --enable_pybind \
-  --allow_running_as_root
+RUN set -eux; \
+    build_extra="--cmake_extra_defines onnxruntime_BUILD_UNIT_TESTS=OFF"; \
+    if [ -n "${ONNX_BUILD_PARALLEL:-}" ]; then \
+      build_extra="$build_extra --parallel ${ONNX_BUILD_PARALLEL}"; \
+    fi; \
+    # no longer available after version 1.22.0
+    # ! this does not check for the lower bound version when this argument was introduced
+    if [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -lt 1 ] || \
+       { [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -eq 1 ] && \
+         [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f2)" -lt 22 ]; }; then \
+      build_extra="$build_extra --use_preinstalled_eigen --eigen_path=/usr/include/eigen3"; \
+    fi; \
+    ./build.sh \
+      --config Release \
+      --update --build --build_shared_lib \
+      --enable_pybind --build_wheel \
+      --skip_tests \
+      --allow_running_as_root \
+      ${build_extra}
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
 # build python package too
 RUN mkdir -p ${PY_DEPS} \
@@ -162,6 +168,12 @@ ARG PYTHON_VERSION
 ARG CUDA_ARCHS=""
 ARG ONNX_BUILD_PARALLEL
 ARG ONNX_BUILD_FOR_GPU=1
+ARG TARGET
+
+ENV EXTRA_APT_PKGS=""
+RUN if [ "${TARGET}" = "jetson" ]; then \
+      EXTRA_APT_PKGS="nvidia-l4t-dla-compiler nvidia-l4t-cudla"; \
+    fi
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -180,6 +192,7 @@ RUN apt-get update \
     libopenblas-dev \
     libopenmpi-dev \
     tar \
+    ${EXTRA_APT_PKGS} \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
   && mkdir -p ${CPP_DEPS}/lib ${CPP_DEPS}/include
@@ -195,30 +208,37 @@ RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir \
   numpy==1.26.4 \
   psutil==5.9.0
 
+ENV LD_LIBRARY_PATH=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/tegra:/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/nvidia:${LD_LIBRARY_PATH}
+
 WORKDIR /tmp
 # install ONNX runtime library
 COPY --from=cpp-source /tmp/onnxruntime/ /tmp/onnxruntime
 WORKDIR /tmp/onnxruntime
 RUN set -eux; \
-    build_extra=""; \
+    build_extra="--cmake_extra_defines onnxruntime_BUILD_UNIT_TESTS=OFF"; \
     if [ -n "${CUDA_ARCHS:-}" ]; then \
       build_extra="$build_extra --cmake_extra_defines CMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHS}"; \
     fi; \
     if [ -n "${ONNX_BUILD_PARALLEL:-}" ]; then \
-      export CMAKE_BUILD_PARALLEL_LEVEL="${ONNX_BUILD_PARALLEL}"; \
+      build_extra="$build_extra --parallel ${ONNX_BUILD_PARALLEL}"; \
     fi; \
+    # in case we really needs to disable CUDA for onnxruntime, but we still need the remaining dependencies of this stage
     if [ "${ONNX_BUILD_FOR_GPU}" = "1" ]; then \
-      build_extra="$build_extra --use_cuda --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda --use_tensorrt --tensorrt_home=/usr"; \
+      build_extra="$build_extra --use_cuda --cuda_home=/usr/local/cuda --cudnn_home=/usr/local/cuda"; \
+      build_extra="$build_extra --use_tensorrt --tensorrt_home=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)"; \
+    fi; \
+    # no longer available after version 1.22.0
+    # ! this does not check for the lower bound version when this argument was introduced
+    if [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -lt 1 ] || \
+       { [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -eq 1 ] && \
+         [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f2)" -lt 22 ]; }; then \
+      build_extra="$build_extra --use_preinstalled_eigen --eigen_path=/usr/include/eigen3"; \
     fi; \
     ./build.sh \
       --config Release \
-      --build_shared_lib \
-      --build_wheel \
-      --parallel \
+      --update --build --build_shared_lib \
+      --enable_pybind --build_wheel \
       --skip_tests \
-      --compile_no_warning_as_error \
-      --skip_submodule_sync \
-      --enable_pybind \
       --allow_running_as_root \
       ${build_extra}
 RUN cmake --install build/Linux/Release --prefix ${CPP_DEPS}
@@ -231,8 +251,8 @@ RUN mkdir -p ${PY_DEPS} \
       onnxruntime*.whl
 
 COPY --from=python-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
-RUN echo "torch==$(pip show torch | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt && \
-    echo "\nnumpy==$(pip show numpy | awk '/^Version:/ {print $2}')" >> /tmp/constraints.txt
+RUN echo "torch==$(pip show torch | awk '/^Version:/ {print $2}') " >> /tmp/constraints.txt && \
+    echo "numpy==$(pip show numpy | awk '/^Version:/ {print $2}') " >> /tmp/constraints.txt
 
 COPY install_dependencies/gpu-only-requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir \
