@@ -1,5 +1,7 @@
 #!/bin/bash
 
+IMAGE_NAME=ghcr.io/aica-technology/camera_calibration
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 VERSION=$(cat VERSION)
@@ -9,11 +11,20 @@ CALIB_HEIGHT=9
 CALIB_SQUARE=0.015
 CALIB_TOPIC=/camera_streamer/image
 
-ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-echo "Using ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}"
-
+BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
+  # build args
+  -r | --rebuild)
+    BUILD_FLAGS+=(--no-cache)
+    shift 1
+    ;;
+  -v | --verbose)
+    BUILD_FLAGS+=(--progress=plain)
+    shift 1
+    ;;
+
+  # run args
   --calibration-width)
     CALIB_WIDTH=$2
     shift 2
@@ -34,12 +45,18 @@ while [ "$#" -gt 0 ]; do
     OUTPUT_DIR=$2
     shift 2
     ;;
+
   *)
     echo "Unknown option: $1" >&2
     exit 1
     ;;
   esac
 done
+
+ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+echo "Using ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}"
+
+docker buildx build -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .
 
 if [ ! -d "$OUTPUT_DIR" ]; then
   mkdir -p "$OUTPUT_DIR"
@@ -58,7 +75,8 @@ docker run -it --rm \
     -e CALIB_TOPIC=${CALIB_TOPIC} \
     -v $OUTPUT_DIR:/export \
     -v /dev:/dev:rw \
+    -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
     --privileged \
     --net host \
     --name camera_calibration \
-    ghcr.io/aica-technology/camera_calibration:${VERSION}
+    "${IMAGE_NAME}":v"${VERSION}"
