@@ -6,10 +6,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 VERSION=$(cat VERSION)
 OUTPUT_DIR="${SCRIPT_DIR}"/calibration
-CALIB_WIDTH=7
-CALIB_HEIGHT=9
+CALIB_WIDTH=10
+CALIB_HEIGHT=7
 CALIB_SQUARE=0.015
 CALIB_TOPIC=/camera_streamer/image
+CALIB_KCOEFF=3
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
@@ -39,6 +40,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   --calibration-topic)
     CALIB_TOPIC=$2
+    shift 2
+    ;;
+  --calibration-kcoeff)
+    CALIB_KCOEFF=$2
     shift 2
     ;;
   --output-dir)
@@ -73,6 +78,7 @@ docker run -it --rm \
     -e CALIB_HEIGHT="${CALIB_HEIGHT}" \
     -e CALIB_SQUARE="${CALIB_SQUARE}" \
     -e CALIB_TOPIC=${CALIB_TOPIC} \
+    -e CALIB_KCOEFF=${CALIB_KCOEFF} \
     -v $OUTPUT_DIR:/export \
     -v /dev:/dev:rw \
     -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
