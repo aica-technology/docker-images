@@ -283,6 +283,7 @@ LABEL tech.aica.image.metadata='{"type":"lib"}'
 
 FROM scratch AS gpu
 
+ARG CUDA_TOOLKIT_VARIANT
 ARG PYTHON_VERSION
 ARG CPP_DEPS
 ARG PY_DEPS
