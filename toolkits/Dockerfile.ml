@@ -210,7 +210,7 @@ RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-cache-dir \
   numpy==1.26.4 \
   psutil==5.9.0
 
-ENV LD_LIBRARY_PATH=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/tegra:/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/nvidia:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/nvidia:${LD_LIBRARY_PATH}
 
 WORKDIR /tmp
 # install ONNX runtime library
@@ -296,9 +296,7 @@ COPY --from=cuda-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
 COPY --from=python-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
 
 ARG VERSION=0.0.0
-LABEL org.opencontainers.image.title="AICA Machine Learning Tool`kit"
+LABEL org.opencontainers.image.title="AICA Machine Learning Toolkit"
 LABEL org.opencontainers.image.description="AICA Machine Learning Toolkit (GPU support)"
 LABEL org.opencontainers.image.version="${VERSION}"
-LABEL tech.aica.image.metadata='{"type":"lib","packages":{\
-"@aica/foss/toolkits/cuda": "'${CUDA_TOOLKIT_VARIANT}'"\
-}}'
+LABEL tech.aica.image.metadata='{"type":"lib","dependencies":{"@aica/foss/toolkits/cuda": ">= v0.1.0-0, < v0.1.0-zzzzz"}}'
