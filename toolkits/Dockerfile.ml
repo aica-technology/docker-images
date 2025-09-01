@@ -6,6 +6,8 @@ ARG UBUNTU_VERSION=24.04
 ARG TRT_IMAGE_TAG=24.12-py3
 ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 
+ARG CUDA_TOOLKIT_VARIANT=v0.1.0-cuda24.12-rc0001
+
 FROM python:${PYTHON_VERSION}-slim AS python-builder
 
 ARG TARGET=cpu
@@ -296,4 +298,6 @@ ARG VERSION=0.0.0
 LABEL org.opencontainers.image.title="AICA Machine Learning Tool`kit"
 LABEL org.opencontainers.image.description="AICA Machine Learning Toolkit (GPU support)"
 LABEL org.opencontainers.image.version="${VERSION}"
-LABEL tech.aica.image.metadata='{"type":"lib"}'
+LABEL tech.aica.image.metadata='{"type":"lib","packages":{\
+"@aica/foss/toolkits/cuda": "'${CUDA_TOOLKIT_VARIANT}'"\
+}}'
