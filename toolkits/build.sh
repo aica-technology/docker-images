@@ -21,6 +21,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 CUDA_IMAGE_BASE="ghcr.io/aica-technology/toolkits/cuda"
 ML_IMAGE_BASE="ghcr.io/aica-technology/toolkits/ml"
 
+CUDA_TOOLKIT_VARIANT=v0.1.0-cuda24.12-rc0001
+CUDA_L4T_TOOLKIT_VARIANT=v0.1.0-l4tr8.6.2-rc0001 # todo: change to v0.1.0-l4t8.6.2-rc0002 that has the updated naming convention
+
 PLATFORM=""
 MULTIARCH=0
 
@@ -189,6 +192,7 @@ if [ "$TYPE" = "ml" ]; then
 
   BUILD_FLAGS+=(--build-arg=PYTHON_VERSION=${PYTHON_VERSION})
   if [ $TARGET = "jetson" ]; then
+    BUILD_FLAGS+=(--build-arg=CUDA_TOOLKIT_VARIANT=${CUDA_L4T_TOOLKIT_VARIANT})
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$JETSON_TORCH_VERSION)
     BUILD_FLAGS+=(--build-arg=TORCH_SOURCE=$JETSON_TORCH_SOURCE)
     BUILD_FLAGS+=(--build-arg=TORCHVISION_VERSION=$JETSON_TORCHVISION_VERSION)
@@ -200,6 +204,7 @@ if [ "$TYPE" = "ml" ]; then
     BUILD_FLAGS+=(--build-arg=CUDA_ARCHS="87;72")
     BUILD_FLAGS+=(--target gpu)
   else
+    BUILD_FLAGS+=(--build-arg=CUDA_TOOLKIT_VARIANT=${CUDA_TOOLKIT_VARIANT})
     BUILD_FLAGS+=(--build-arg=TARGET=${TARGET})
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$TORCH_VERSION)
     BUILD_FLAGS+=(--target ${TARGET})
