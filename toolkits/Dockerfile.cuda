@@ -132,7 +132,7 @@ COPY --from=environment-variables /environment_variables /ws/install/environment
 COPY --from=builder /tmp/cuda_env.sh /ws/install/environment_variables/share/environment_variables/scripts/
 
 ARG VERSION=0.0.0
-LABEL org.opencontainers.image.title="AICA CUDA libraries"
-LABEL org.opencontainers.image.description="AICA CUDA libraries"
+LABEL org.opencontainers.image.title="AICA CUDA Toolkit"
+LABEL org.opencontainers.image.description="AICA CUDA Toolkit"
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL tech.aica.image.metadata='{"type":"lib"}'
