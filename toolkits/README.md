@@ -52,7 +52,7 @@ this can be found [here](#building-a-custom-image).
 > may refer to the this [NVIDIA](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) forum post.
 >
 > That also means that l4t images can not be used in a drop-in fashion with other multiarch images, as the may
-> contain different library version and/or dependencies.
+> contain different library versions and/or dependencies.
 
 ## Using registry images
 
