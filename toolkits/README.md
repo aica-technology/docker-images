@@ -51,7 +51,7 @@ this can be found [here](#building-a-custom-image).
 > You may also need to install custom versions of PyTorch that are built for Tegra (or compile wheels from source). You
 > may refer to the this [NVIDIA](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) forum post.
 >
-> That also means that l4t images are can not be used in a drop-in fashion with other multiarch images, as the may
+> That also means that l4t images can not be used in a drop-in fashion with other multiarch images, as the may
 > contain different library version and/or dependencies.
 
 ## Using registry images
