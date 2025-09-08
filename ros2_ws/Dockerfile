@@ -64,7 +64,7 @@ RUN wget https://go.dev/dl/go${GOVERSION}.linux-${TARGETPLATFORM#*/}.tar.gz -O /
   rm /tmp/go.tar.gz
 ENV PATH="${PATH}:/usr/local/go/bin"
 WORKDIR /go
-COPY config/validate_json ./
+COPY config/validate_interface ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
   --mount=type=cache,target=/go/pkg/mod \
   go build
@@ -200,7 +200,7 @@ FROM ros2-control-${ROS_DISTRO} AS ros2-control
 
 FROM environment-variables AS final
 COPY --from=ros2-control / /
-COPY --from=build-go /go/validate_json /usr/bin/
+COPY --from=build-go /go/validate_interface /usr/bin/
 RUN rm -rf /home/ubuntu
 
 # start as ROS user
