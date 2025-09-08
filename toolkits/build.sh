@@ -165,6 +165,9 @@ done
 
 generate_base_versions() {
   local version_file=$1
+  if [ $TARGET = "jetson" ]; then
+    version_file="${version_file}.l4t"
+  fi
   RAW_VERSION=$(cat ${version_file})
   BASE_VERSION=${RAW_VERSION%%-*}
   RC_SUFFIX=${RAW_VERSION#"$BASE_VERSION"} # this may be empty if version is not a release candidate
