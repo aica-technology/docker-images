@@ -50,6 +50,9 @@ this can be found [here](#building-a-custom-image).
 > 
 > You may also need to install custom versions of PyTorch that are built for Tegra (or compile wheels from source). You
 > may refer to the this [NVIDIA](https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048) forum post.
+>
+> That also means that l4t images can not be used in a drop-in fashion with other multiarch images, as the may
+> contain different library versions and/or dependencies.
 
 ## Using registry images
 
@@ -63,8 +66,8 @@ image = "v4.4.2"
 
 [packages]
 <Other packages you wish to include>
-"@aica/foss/toolkits/cuda" = "v0.1.0-cuda24.12-rc0001"
-"@aica/foss/toolkits/ml" = "v0.1.0-gpu24.12-rc0001"
+"@aica/foss/toolkits/cuda" = "v1.0.0-cuda24.12-rc0001"
+"@aica/foss/toolkits/ml" = "v1.0.0-gpu24.12-rc0001"
 ```
 
 If your custom component is depending on some of the included packages (e.g., CUDA libraries, torch, ...), note that you
@@ -88,8 +91,8 @@ image = "v2.0.5-jazzy"
 
 # along with the above core libraries, you can also include the toolkit
 # images for easy access to CUDA and ML libraries
-"@aica/foss/toolkits/cuda" = "v0.1.0-cuda24.12-rc0001"
-"@aica/foss/toolkits/ml" = "v0.1.0-gpu24.12-rc0001"
+"@aica/foss/toolkits/cuda" = "v1.0.0-cuda24.12-rc0001"
+"@aica/foss/toolkits/ml" = "v1.0.0-gpu24.12-rc0001"
 
 [build.packages.my_custom_component]
 source = "./source/my_custom_component"
