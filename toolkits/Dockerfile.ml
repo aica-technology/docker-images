@@ -103,6 +103,7 @@ FROM ubuntu:${UBUNTU_VERSION} AS cpu-builder
 
 ARG CPP_DEPS
 ARG PY_DEPS
+ARG ONNX_BUILD_PARALLEL
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
