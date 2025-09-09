@@ -8,6 +8,8 @@ ARG TENSORRT_IMAGE=nvcr.io/nvidia/tensorrt
 
 ARG CUDA_TOOLKIT_VARIANT
 
+ARG ONNX_RUNTIME_VERSION=v1.22.2
+
 FROM python:${PYTHON_VERSION}-slim AS python-builder
 
 ARG TARGET=cpu
@@ -89,7 +91,7 @@ RUN cp -r /opt/apt_root/usr/include .
 
 FROM ubuntu:${UBUNTU_VERSION} AS cpp-source
 
-ARG ONNX_RUNTIME_VERSION=v1.22.2
+ARG ONNX_RUNTIME_VERSION
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -104,6 +106,7 @@ FROM ubuntu:${UBUNTU_VERSION} AS cpu-builder
 ARG CPP_DEPS
 ARG PY_DEPS
 ARG ONNX_BUILD_PARALLEL
+ARG ONNX_RUNTIME_VERSION
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -139,9 +142,9 @@ RUN set -eux; \
     fi; \
     # no longer available after version 1.22.0
     # ! this does not check for the lower bound version when this argument was introduced
-    if [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -lt 1 ] || \
-       { [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -eq 1 ] && \
-         [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f2)" -lt 22 ]; }; then \
+    if [ "$(echo ${ONNX_RUNTIME_VERSION#v} | cut -d. -f1)" -lt 1 ] || \
+       { [ "$(echo ${ONNX_RUNTIME_VERSION#v} | cut -d. -f1)" -eq 1 ] && \
+         [ "$(echo ${ONNX_RUNTIME_VERSION#v} | cut -d. -f2)" -lt 22 ]; }; then \
       build_extra="$build_extra --use_preinstalled_eigen --eigen_path=/usr/include/eigen3"; \
     fi; \
     ./build.sh \
@@ -171,6 +174,7 @@ ARG PYTHON_VERSION
 ARG CUDA_ARCHS=""
 ARG ONNX_BUILD_PARALLEL
 ARG ONNX_BUILD_FOR_GPU=1
+ARG ONNX_RUNTIME_VERSION
 ARG TARGET
 
 ENV EXTRA_APT_PKGS=""
@@ -232,9 +236,9 @@ RUN set -eux; \
     fi; \
     # no longer available after version 1.22.0
     # ! this does not check for the lower bound version when this argument was introduced
-    if [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -lt 1 ] || \
-       { [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f1)" -eq 1 ] && \
-         [ "$(echo ${ONNX_RUNTIME_VERSION} | cut -d. -f2)" -lt 22 ]; }; then \
+    if [ "$(echo ${ONNX_RUNTIME_VERSION#v} | cut -d. -f1)" -lt 1 ] || \
+       { [ "$(echo ${ONNX_RUNTIME_VERSION#v} | cut -d. -f1)" -eq 1 ] && \
+         [ "$(echo ${ONNX_RUNTIME_VERSION#v} | cut -d. -f2)" -lt 22 ]; }; then \
       build_extra="$build_extra --use_preinstalled_eigen --eigen_path=/usr/include/eigen3"; \
     fi; \
     ./build.sh \
