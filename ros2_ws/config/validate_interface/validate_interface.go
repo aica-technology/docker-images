@@ -6,9 +6,12 @@ import (
     "fmt"
     "net/http"
     "os"
+    "path/filepath"
+    "strings"
     "time"
 
     "github.com/santhosh-tekuri/jsonschema/v6"
+    "gopkg.in/yaml.v3"
 )
 
 type HTTPURLLoader http.Client
@@ -42,22 +45,32 @@ func newHTTPURLLoader(insecure bool) *HTTPURLLoader {
 
 func main() {
     if len(os.Args) != 2 {
-        fmt.Println("Program requires path to JSON instance file as unique argument!")
+        fmt.Println("Program requires path to instance file as unique argument!")
         os.Exit(1)
         return
     }
     instanceFile := os.Args[1]
     instanceData, err := os.ReadFile(instanceFile)
     if err != nil {
-        fmt.Printf("Error reading JSON instance file '%s': %v\n", instanceFile, err)
+        fmt.Printf("Error reading instance file '%s': %v\n", instanceFile, err)
         os.Exit(1)
         return
     }
 
     var instance map[string]interface{}
-    err = json.Unmarshal(instanceData, &instance)
+    ext := strings.ToLower(filepath.Ext(instanceFile))
+    switch ext {
+    case ".json":
+        err = json.Unmarshal(instanceData, &instance)
+    case ".yaml", ".yml":
+        err = yaml.Unmarshal(instanceData, &instance)
+    default:
+        fmt.Printf("Unsupported file extension: %s\n", ext)
+        os.Exit(1)
+        return
+    }
     if err != nil {
-        fmt.Printf("Error unmarshalling JSON instance: %v\n", err)
+        fmt.Printf("Error unmarshalling instance: %v\n", err)
         os.Exit(1)
         return
     }
