@@ -304,4 +304,4 @@ ARG VERSION=0.0.0
 LABEL org.opencontainers.image.title="AICA Machine Learning Toolkit"
 LABEL org.opencontainers.image.description="AICA Machine Learning Toolkit (GPU support)"
 LABEL org.opencontainers.image.version="${VERSION}"
-LABEL tech.aica.image.metadata='{"type":"lib","dependencies":{"@aica/foss/toolkits/cuda": ">= v0.1.0-0, < v0.1.0-zzzzz"}}'
+LABEL tech.aica.image.metadata='{"type":"lib","dependencies":{"@aica/foss/toolkits/cuda": ">= v1.0.0-0, < v1.0.0-zzzzz"}}'
