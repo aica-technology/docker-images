@@ -10,6 +10,8 @@ ARG CUDA_TOOLKIT_VARIANT
 
 ARG ONNX_RUNTIME_VERSION=v1.22.2
 
+ARG IMAGE_DEPENDENCIES
+
 FROM python:${PYTHON_VERSION}-slim AS python-builder
 
 ARG TARGET=cpu
@@ -301,7 +303,8 @@ COPY --from=cuda-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
 COPY --from=python-builder ${PY_DEPS} /usr/lib/python3/dist-packages/
 
 ARG VERSION=0.0.0
+ARG IMAGE_DEPENDENCIES
 LABEL org.opencontainers.image.title="AICA Machine Learning Toolkit"
 LABEL org.opencontainers.image.description="AICA Machine Learning Toolkit (GPU support)"
 LABEL org.opencontainers.image.version="${VERSION}"
-LABEL tech.aica.image.metadata='{"type":"lib","dependencies":{"@aica/foss/toolkits/cuda": ">= v1.0.0-0, < v1.0.0-zzzzz"}}'
+LABEL tech.aica.image.metadata='{"type":"lib",${IMAGE_DEPENDENCIES}}'

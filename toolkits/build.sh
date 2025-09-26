@@ -174,6 +174,36 @@ generate_base_versions() {
   VERSION=${BASE_VERSION}"-"${VERSION_SUFFIX}${RC_SUFFIX}
 }
 
+compute_cuda_dep_range() {
+  local version_file="$1"
+  if [ ! -f "$version_file" ]; then
+    echo "ERROR: VERSION file not found: $version_file" >&2
+    return 1
+  fi
+
+  local raw base major minor patch
+  raw="$(cat "$version_file")"
+  base="${raw%%-*}"
+  base="${base#v}"
+  IFS='.' read -r major minor patch <<< "$base"
+
+  if [ -z "$major" ] || [ -z "$minor" ] || [ -z "$patch" ]; then
+    echo "ERROR: Could not parse semantic version from $version_file (got: $raw)" >&2
+    return 1
+  fi
+
+  local lower upper
+  lower="v${major}.${minor}.0-0"
+  upper="v${major}.$((minor+1)).0-0"
+
+  echo ">=${lower},<${upper}"
+}
+
+build_dependencies_object() {
+  local dep_range="$1"
+  printf '"dependencies":{"@aica/foss/toolkits/cuda":"%s"}' "$dep_range"
+}
+
 if [ "$TYPE" = "cuda" ]; then
   echo "Building CUDA toolkit..."
   BUILD_FLAGS+=(--build-arg=ROS_DISTRO=$ROS_DISTRO)
@@ -207,6 +237,13 @@ if [ "$TYPE" = "ml" ]; then
     BUILD_FLAGS+=(--build-arg=TORCH_VERSION=$TORCH_VERSION)
     BUILD_FLAGS+=(--target ${TARGET})
   fi
+
+  # the following has not effect when target=cpu
+  CUDA_VERSION_FILE="${SCRIPT_DIR}/VERSION.cuda"
+  [ "$TARGET" = "jetson" ] && CUDA_VERSION_FILE="${SCRIPT_DIR}/VERSION.cuda.l4t"
+  CUDA_DEP_RANGE="$(compute_cuda_dep_range "$CUDA_VERSION_FILE")" || exit 1
+  IMAGE_DEPENDENCIES="$(build_dependencies_object "$CUDA_DEP_RANGE")"
+  BUILD_FLAGS+=(--build-arg=IMAGE_DEPENDENCIES=${IMAGE_DEPENDENCIES})
 fi
 
 # handle image name and versions
