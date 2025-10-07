@@ -34,7 +34,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   libtool \
   mesa-utils \
   nano \
-  nlohmann-json3-dev \
   python3-pip \
   ros-${ROS_DISTRO}-xacro \
   ros-${ROS_DISTRO}-robot-state-publisher \
