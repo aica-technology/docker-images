@@ -1,4 +1,4 @@
-module validate_interface
+module validate_extension
 
 go 1.22.5
 

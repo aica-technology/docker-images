@@ -6,7 +6,7 @@ macro(install_aica_descriptions BASE_FOLDER OUT_FOLDER)
         ${BASE_FOLDER}/*.yml
     )
     foreach(FILE ${DESC})
-        execute_process(COMMAND validate_interface ${FILE}
+        execute_process(COMMAND validate_extension ${FILE}
                         OUTPUT_VARIABLE VALIDATION_OUTPUT
                         RESULT_VARIABLE VALIDATION_RESULT)
         if(NOT VALIDATION_RESULT EQUAL 0)
