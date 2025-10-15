@@ -128,7 +128,7 @@ while [ "$#" -gt 0 ]; do
     shift 2
     ;;
   --push)
-    BUILD_FLAGS+=(--push)
+    BUILD_FLAGS+=(--push --provenance=false --sbom=false)
     shift 1
     ;;
 
