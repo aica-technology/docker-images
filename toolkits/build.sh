@@ -111,6 +111,7 @@ while [ "$#" -gt 0 ]; do
       echo "--multiarch can not be used when --platform is set." >&2
       exit 1
     fi
+    echo "Building multi-architecture image for amd64 and arm64..."
     MULTIARCH=1
     BUILD_FLAGS+=(--platform=linux/amd64,linux/arm64)
     shift 1
@@ -129,6 +130,8 @@ while [ "$#" -gt 0 ]; do
     ;;
   --push)
     BUILD_FLAGS+=(--push --provenance=false --sbom=false)
+    # print in yellow color
+    echo -e "\033[1;33mThe built image will be pushed to the remote registry.\033[0m"
     shift 1
     ;;
 
