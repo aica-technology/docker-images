@@ -23,16 +23,16 @@ PLATFORM  ?=
 EXTRA     ?=   # free-form extra args appended to the command
 
 # ---------- Common flag composers ----------
-define FLAGS_COMMON
-$(if $(filter 1,$(REBUILD)),--rebuild,)
-$(if $(filter 1,$(VERBOSE)),-v,)
-$(if $(filter 1,$(PUSH)),--push,)
-endef
+FLAGS_COMMON := $(strip \
+  $(if $(filter 1,$(REBUILD)),--rebuild,) \
+  $(if $(filter 1,$(VERBOSE)),-v,) \
+  $(if $(filter 1,$(PUSH)),--push,) \
+)
 
 # only for non-Jetson (Jetson builds generally run on-device; avoid forcing platforms)
-define FLAGS_ARCH
-$(if $(filter 1,$(MULTIARCH)),--multiarch,$(if $(PLATFORM),--platform $(PLATFORM),))
-endef
+FLAGS_ARCH := $(strip \
+  $(if $(filter 1,$(MULTIARCH)),--multiarch,$(if $(PLATFORM),--platform $(PLATFORM),)) \
+)
 
 define FLAGS_BASE
 --tensorrt-image $(TRT_IMAGE) \
