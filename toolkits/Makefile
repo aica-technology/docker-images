@@ -23,7 +23,6 @@ PLATFORM  ?=
 EXTRA     ?=   # free-form extra args appended to the command
 
 # ---------- Common flag composers ----------
-# ---------- Common flag composers ----------
 FLAGS_COMMON := $(strip \
   $(if $(filter 1,$(REBUILD)),--rebuild,) \
   $(if $(filter 1,$(VERBOSE)),-v,) \
