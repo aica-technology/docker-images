@@ -18,7 +18,7 @@ ENV COLCON_WORKSPACE=${ROS2_WORKSPACE}
 FROM environment-variables AS base-dependencies
 
 # FIXME: remove after new ros images are released
-RUN rm /etc/apt/sources.list.d/ros2-latest.list && rm /usr/share/keyrings/ros2-latest-archive-keyring.gpg
+# RUN rm /etc/apt/sources.list.d/ros2-latest.list && rm /usr/share/keyrings/ros2-latest-archive-keyring.gpg
 RUN apt-get update && apt-get install --no-install-recommends -y curl && rm -rf /var/lib/apt/lists/*
 RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') ;\
   curl -L -s -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo $VERSION_CODENAME)_all.deb" \
@@ -51,6 +51,21 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   ssh \
   unzip \
   wget \
+  liboctomap-dev \
+  libqhull-dev \
+  libfcl-dev \
+  libassimp-dev \
+  freeglut3-dev \
+  libxmu-dev \
+  libxi-dev \
+  ros-${ROS_DISTRO}-ruckig \
+  ros-${ROS_DISTRO}-stomp \
+  ros-${ROS_DISTRO}-pluginlib \
+  ros-${ROS_DISTRO}-ros-testing \
+  ros-${ROS_DISTRO}-cv-bridge \
+  ros-${ROS_DISTRO}-ompl \
+  ros-${ROS_DISTRO}-warehouse-ros \
+  ros-${ROS_DISTRO}-ament-cmake-google-benchmark \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
@@ -199,9 +214,27 @@ RUN git clone -b 1.0.2 --depth 1 https://github.com/PickNikRobotics/cpp_polyfill
 RUN git clone -b 3.2.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
 RUN git clone -b 2.1.2 --depth 1 https://github.com/ros/filters.git
 RUN git clone -b 1.1.0 --depth 1 https://github.com/ros-controls/kinematics_interface.git
+RUN git clone -b 2.9.0 --depth 1 https://github.com/moveit/moveit2.git
+RUN git clone -b 2.3.2 --depth 1 https://github.com/moveit/geometric_shapes.git
+RUN git clone -b 2.6.0 --depth 1 https://github.com/moveit/moveit_msgs.git
+RUN git clone -b 3.1.0 --depth 1 https://github.com/moveit/moveit_resources.git
+RUN git clone -b 2.0.7 --depth 1 https://github.com/moveit/srdfdom.git
+RUN git clone --depth 1 https://github.com/ros/eigen_stl_containers.git
+RUN git clone -b ros2 --depth 1 https://github.com/moveit/random_numbers
+RUN git clone -b ros2 --depth 1 https://github.com/wg-perception/object_recognition_msgs.git
+RUN git clone -b ros2 --depth 1 https://github.com/OctoMap/octomap_msgs.git
+
+RUN git clone https://github.com/osqp/osqp.git /tmp/osqp \
+ && cd /tmp/osqp \
+ && mkdir build && cd build \
+ && cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. \
+ && make -j$(nproc) \
+ && sudo make install
+
 
 WORKDIR ${ROS2_WORKSPACE}
-RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
+# RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --packages-select moveit_core angles backward_ros diagnostic_updater eigen_stl_containers generate_parameter_library_py moveit_resources_panda_description moveit_resources_pr2_description octomap_msgs random_numbers ros2_control_test_assets srdfdom tcb_span test_interface_files tl_expected controller_manager_msgs filters geometric_shapes moveit_common rsl test_msgs parameter_traits realtime_tools control_msgs generate_parameter_library object_recognition_msgs control_toolbox joint_limits moveit_msgs hardware_interface controller_interface hardware_interface_testing controller_manager forward_command_controller gripper_controllers position_controllers moveit_resources_panda_moveit_config"
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --packages-skip moveit_ros_benchmarks moveit_ros moveit"
 RUN rm -rf ./src
 
 FROM ros2-control-${ROS_DISTRO} AS ros2-control
@@ -210,7 +243,7 @@ FROM environment-variables AS final
 COPY --from=ros2-control / /
 COPY --from=build-go /go/validate_json /usr/bin/
 RUN rm -rf /home/ubuntu
-RUN rm /etc/apt/sources.list.d/ros2-latest.list && rm /usr/share/keyrings/ros2-latest-archive-keyring.gpg
+# RUN rm /etc/apt/sources.list.d/ros2-latest.list && rm /usr/share/keyrings/ros2-latest-archive-keyring.gpg
 
 # start as ROS user
 USER ${USER}
