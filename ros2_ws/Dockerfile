@@ -65,6 +65,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   ros-${ROS_DISTRO}-cv-bridge \
   ros-${ROS_DISTRO}-ompl \
   ros-${ROS_DISTRO}-warehouse-ros \
+  ros-${ROS_DISTRO}-joint-state-publisher-gui \
+  ros-${ROS_DISTRO}-launch-param-builder \
   ros-${ROS_DISTRO}-ament-cmake-google-benchmark \
   && rm -rf /var/lib/apt/lists/*
 
@@ -223,6 +225,11 @@ RUN git clone --depth 1 https://github.com/ros/eigen_stl_containers.git
 RUN git clone -b ros2 --depth 1 https://github.com/moveit/random_numbers
 RUN git clone -b ros2 --depth 1 https://github.com/wg-perception/object_recognition_msgs.git
 RUN git clone -b ros2 --depth 1 https://github.com/OctoMap/octomap_msgs.git
+RUN git clone -b 2.4.10 --depth 1 https://github.com/UniversalRobots/Universal_Robots_ROS2_Driver.git
+RUN git clone -b 2.0.1 --depth 1 https://github.com/ros-industrial/ur_msgs.git
+RUN git clone -b 1.4.0 --depth 1 https://github.com/UniversalRobots/Universal_Robots_Client_Library.git
+RUN git clone -b 4.2.0 --depth 1 https://github.com/UniversalRobots/Universal_Robots_ROS2_Description.git
+
 
 RUN git clone https://github.com/osqp/osqp.git /tmp/osqp \
  && cd /tmp/osqp \
@@ -234,7 +241,7 @@ RUN git clone https://github.com/osqp/osqp.git /tmp/osqp \
 
 WORKDIR ${ROS2_WORKSPACE}
 # RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --packages-select moveit_core angles backward_ros diagnostic_updater eigen_stl_containers generate_parameter_library_py moveit_resources_panda_description moveit_resources_pr2_description octomap_msgs random_numbers ros2_control_test_assets srdfdom tcb_span test_interface_files tl_expected controller_manager_msgs filters geometric_shapes moveit_common rsl test_msgs parameter_traits realtime_tools control_msgs generate_parameter_library object_recognition_msgs control_toolbox joint_limits moveit_msgs hardware_interface controller_interface hardware_interface_testing controller_manager forward_command_controller gripper_controllers position_controllers moveit_resources_panda_moveit_config"
-RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --packages-skip moveit_ros_benchmarks moveit_ros moveit"
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build --packages-skip moveit_py moveit_ros_tests moveit_ros_manipulation moveit_ros_benchmarks moveit_ros moveit"
 RUN rm -rf ./src
 
 FROM ros2-control-${ROS_DISTRO} AS ros2-control
