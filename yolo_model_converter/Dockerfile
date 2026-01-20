@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir \
                 ultralytics==${ULTRALYTICS_VERSION} \
                 "onnx<1.18.0" \
+		        onnxscript \
                 opencv-python-headless
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
