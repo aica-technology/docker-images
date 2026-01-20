@@ -43,4 +43,3 @@ EOF
 RUN chmod +x converter.py
 
 ENTRYPOINT [ "/ws/converter.py" ]
-
