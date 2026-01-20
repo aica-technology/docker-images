@@ -3,15 +3,23 @@ ARG PYTHON_VERSION=3.12
 FROM python:${PYTHON_VERSION}-slim
 
 ARG ULTRALYTICS_VERSION=8.3.182
+ARG TORCH_VERSION=2.4.1
+ARG TORCHVISION_VERSION=0.19.1
+
 ENV UID=1000
 ENV GID=1000
 
-RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip install --no-cache-dir \
+    torch==${TORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    --index-url https://download.pytorch.org/whl/cpu
+
 RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir \
                 ultralytics==${ULTRALYTICS_VERSION} \
                 "onnx<1.18.0" \
-		        onnxscript \
+                onnxscript==0.5.7 \
                 opencv-python-headless
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
