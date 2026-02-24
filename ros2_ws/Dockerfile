@@ -238,6 +238,9 @@ COPY --from=build-go /go/validate_json /usr/bin/
 RUN rm -rf /home/ubuntu
 # RUN rm /etc/apt/sources.list.d/ros2-latest.list && rm /usr/share/keyrings/ros2-latest-archive-keyring.gpg
 
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  ros-${ROS_DISTRO}-topic-tools 
+    
 # start as ROS user
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}
