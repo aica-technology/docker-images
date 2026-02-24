@@ -27,7 +27,7 @@ jobs:
       version: ${{ steps.versions.outputs.new_version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
       - id: versions
@@ -110,13 +110,13 @@ jobs:
         arch: [amd64, arm64]
         include:
           - image: ubuntu-latest
-          - image: buildjet-2vcpu-ubuntu-2204-arm
+          - image: ubuntu-24.04-arm
             arch: arm64
 
     runs-on: ${{ matrix.image }}
     name: Build and publish (${{ matrix.arch }})
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - run: |
           CONFIG_PATH=$ROS2_WS_PATH/config
