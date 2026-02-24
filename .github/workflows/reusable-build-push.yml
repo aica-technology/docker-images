@@ -131,7 +131,7 @@ jobs:
           suffixes: ${{ matrix.arch }}
           glue_separator: "-"
 
-      - uses: aica-technology/.github/.github/actions/ghcr-build@v0.6.1
+      - uses: aica-technology/.github/.github/actions/ghcr-build@v1.0.4
         with:
           image_name: ${{ needs.metadata.outputs.image_name }}
           image_tags: ${{ steps.merge-tags.outputs.list }}
