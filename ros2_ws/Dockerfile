@@ -83,12 +83,12 @@ RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
 RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
 
-# configure sshd entrypoint to authorise the new user for ssh access and
+# configure sshd entrypoint to authorize the new user for ssh access and
 # optionally update UID and GID when invoking the container with the entrypoint script
 COPY ./config/sshd_entrypoint.sh /sshd_entrypoint.sh
 RUN chmod 744 /sshd_entrypoint.sh
 
-# crete user group with realtime permissions and add user to it
+# create user group with realtime permissions and add user to it
 RUN groupadd -g 3719 realtime && usermod -aG realtime ${USER}
 RUN echo "@realtime        soft    rtprio          99\n@realtime        hard    rtprio          99\n" > \
     /etc/security/limits.d/realtime.conf
@@ -96,7 +96,7 @@ RUN echo "@realtime        soft    rtprio          99\n@realtime        hard    
 # configure colcon defaults and utilities
 USER ${USER}
 WORKDIR ${HOME}
-RUN wget https://raw.githubusercontent.com/aica-technology/.github/v0.9.0/guidelines/.clang-format
+RUN wget https://raw.githubusercontent.com/aica-technology/.github/v1.0.4/guidelines/.clang-format
 COPY ./config/config.rviz config.rviz
 COPY --chown=${USER}:${USER} ./config/generate_compile_commands.sh /usr/local/bin/generate_compile_commands
 COPY --chown=${USER}:${USER} ./config/InstallAicaDescriptions.cmake /tmp
@@ -125,32 +125,36 @@ RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-sessi
 FROM base-workspace AS ros2-control-jazzy
 RUN apt-get update && apt-get install --no-install-recommends -y \
   libcap-dev \
+  libexpected-dev \
   python3-jinja2 \
   python3-typeguard \
+  ros-${ROS_DISTRO}-pinocchio \
   && rm -rf /var/lib/apt/lists/*
 
 # build as ROS user
 USER ${USER}
 WORKDIR ${ROS2_WORKSPACE}/src
 
-RUN git clone -b 4.24.0 --depth 1 https://github.com/ros-controls/ros2_control.git
-RUN git clone -b 4.19.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
+RUN git clone -b 4.44.0 --depth 1 https://github.com/ros-controls/ros2_control.git
+RUN git clone -b 4.39.0 --depth 1 https://github.com/ros-controls/ros2_controllers.git
 # get additional interface dependencies manually
-RUN git clone -b 5.3.0 --depth 1 https://github.com/ros-controls/control_msgs.git
-RUN git clone -b 1.0.6 --depth 1 https://github.com/pal-robotics/backward_ros.git
-RUN git clone -b 4.3.1 --depth 1 https://github.com/ros/diagnostics.git
-RUN git clone -b 3.1.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
-RUN git clone -b 2.2.0 --depth 1 https://github.com/ros2/rcl_interfaces.git
-RUN git clone -b 0.13.0 --depth 1 https://github.com/ros2/test_interface_files.git
-RUN git clone -b 0.13.0 --depth 1 https://github.com/ros2/example_interfaces.git
-RUN git clone -b 1.16.0 --depth 1 https://github.com/ros/angles.git
+RUN git clone -b 5.9.0 --depth 1 https://github.com/ros-controls/control_msgs.git
+RUN git clone -b 1.0.8 --depth 1 https://github.com/pal-robotics/backward_ros.git
+RUN git clone -b 4.2.6 --depth 1 https://github.com/ros/diagnostics.git
+RUN git clone -b 3.11.0 --depth 1 https://github.com/ros-controls/realtime_tools.git
+RUN git clone -b 2.0.3 --depth 1 https://github.com/ros2/rcl_interfaces.git
+RUN git clone -b 0.11.0 --depth 1 https://github.com/ros2/test_interface_files.git
+RUN git clone -b 0.12.0 --depth 1 https://github.com/ros2/example_interfaces.git
+RUN git clone -b 1.16.1 --depth 1 https://github.com/ros/angles.git
 RUN git clone -b 2.0.2 --depth 1 https://github.com/ros-drivers/ackermann_msgs.git
-RUN git clone -b 0.3.9 --depth 1 https://github.com/PickNikRobotics/generate_parameter_library.git
-RUN git clone -b 1.1.0 --depth 1 https://github.com/PickNikRobotics/RSL.git
-RUN git clone -b 1.0.2 --depth 1 https://github.com/PickNikRobotics/cpp_polyfills.git
-RUN git clone -b 3.4.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
-RUN git clone -b 2.1.2 --depth 1 https://github.com/ros/filters.git
-RUN git clone -b 1.2.1 --depth 1 https://github.com/ros-controls/kinematics_interface.git
+RUN git clone -b 0.8.0 --depth 1 https://github.com/PickNikRobotics/generate_parameter_library.git
+RUN git clone -b 1.3.0 --depth 1 https://github.com/PickNikRobotics/RSL.git
+RUN git clone -b 2.0.1 --depth 1 https://github.com/PickNikRobotics/cpp_polyfills.git
+RUN git clone -b 4.10.0 --depth 1 https://github.com/ros-controls/control_toolbox.git
+RUN git clone -b 2.2.2 --depth 1 https://github.com/ros/filters.git
+RUN git clone -b 1.7.0 --depth 1 https://github.com/ros-controls/kinematics_interface.git
+RUN git clone -b 0.3.0 --depth 1 https://github.com/ros-controls/ros2_control_cmake.git
+RUN git clone -b 2.7.0 --depth 1 https://github.com/pal-robotics/pal_statistics.git
 
 WORKDIR ${ROS2_WORKSPACE}
 RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; colcon build"
@@ -159,8 +163,13 @@ RUN rm -rf ./src
 FROM ros2-control-${ROS_DISTRO} AS ros2-control
 
 FROM environment-variables AS final
+# for pinocchio
+ENV PKG_CONFIG_PATH=/opt/ros/${ROS_DISTRO}/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
+ENV LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+ENV CMAKE_PREFIX_PATH=/opt/ros/${ROS_DISTRO}:$CMAKE_PREFIX_PATH
+
 COPY --from=ros2-control / /
-COPY --from=build-go /go/validate_json /usr/bin/
+COPY --from=build-go /go/validate_extension /usr/bin/
 RUN rm -rf /home/ubuntu
 
 # start as ROS user
@@ -169,7 +178,7 @@ WORKDIR ${ROS2_WORKSPACE}
 
 # Metadata
 ARG BASE_IMAGE=docker.io/library/ros
-ARG BASE_TAG=iron
+ARG BASE_TAG=jazzy
 ARG VERSION=v0.0.0
 LABEL org.opencontainers.image.title="AICA ROS 2 image"
 LABEL org.opencontainers.image.description="AICA base ROS 2 image (includes ros2_control)"
