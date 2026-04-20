@@ -3,25 +3,22 @@ ARG BASE_TAG=jazzy
 ARG ROS_DISTRO=jazzy
 ARG VERSION=v0.0.0
 
-FROM ghcr.io/aica-technology/ros2-ws:v2.0.5-jazzy AS build-go
-ARG TARGETPLATFORM
-ARG GOVERSION=1.24.2
+FROM ghcr.io/aica-technology/ros2-ws:v2.0.6-jazzy AS final
 
-RUN wget https://go.dev/dl/go${GOVERSION}.linux-${TARGETPLATFORM#*/}.tar.gz -O /tmp/go.tar.gz && \
-  sudo tar -C /usr/local -xzf /tmp/go.tar.gz && \
-  rm /tmp/go.tar.gz
-ENV PATH="${PATH}:/usr/local/go/bin"
-WORKDIR /go
-COPY config/validate_extension ./
-RUN --mount=type=cache,target=/root/.cache/go-build \
-  --mount=type=cache,target=/go/pkg/mod \
-  go build
+RUN sudo rm -f /etc/apt/sources.list.d/ros*.list || true \
+ && sudo mkdir -p /usr/share/keyrings \
+ && curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+    | sudo tee /usr/share/keyrings/ros-archive-keyring.gpg > /dev/null \
+ && echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://repo.ros2.org/ubuntu/main noble main" \
+    | sudo tee /etc/apt/sources.list.d/ros2-latest.list
 
-FROM ghcr.io/aica-technology/ros2-ws:v2.0.5-jazzy AS final
-COPY --chown=${USER}:${USER} ./config/InstallAicaDescriptions.cmake /tmp
-RUN sudo mv /tmp/InstallAicaDescriptions.cmake /usr/share/cmake-$(cmake --version | awk '/cmake version/ {split($3, v, "."); print v[1]"."v[2]}')/Modules
-RUN sudo rm /usr/bin/validate_json
-COPY --from=build-go /go/validate_extension /usr/bin/
+RUN sudo apt update \
+  && sudo apt upgrade -y --no-install-recommends \
+  && sudo apt install -y --no-install-recommends \
+       ros-jazzy-rosapi \
+  && sudo apt-get clean \
+  && sudo rm -rf /var/lib/apt/lists/*
+
 
 # Metadata
 ARG BASE_IMAGE=docker.io/library/ros
