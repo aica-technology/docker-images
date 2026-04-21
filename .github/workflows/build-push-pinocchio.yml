@@ -107,7 +107,7 @@ jobs:
           BUILD_FLAGS=${{ needs.metadata.outputs.build_flags }}
           if [[ "${{ matrix.arch }}" == "arm64" ]]; then
             BUILD_FLAGS+=(--build-arg ARCH=aarch64)
-          else if [[ "${{ matrix.arch }}" == "amd64" ]]; then
+          elif [[ "${{ matrix.arch }}" == "amd64" ]]; then
             BUILD_FLAGS+=(--build-arg ARCH=x86_64)
           fi
           echo "build_flags=${BUILD_FLAGS[@]}" >> $GITHUB_OUTPUT
