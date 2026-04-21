@@ -1,0 +1,7 @@
+libboost-all-dev
+libeigen3-dev
+liburdfdom-dev
+libassimp-dev
+libopenblas-dev
+python3-numpy
+python3-scipy
