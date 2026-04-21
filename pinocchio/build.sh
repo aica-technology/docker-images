@@ -28,6 +28,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 VERSION=$(cat "${SCRIPT_DIR}"/VERSION)
+BUILD_FLAGS+=(--build-arg=ARCH=$(arch))
 BUILD_FLAGS+=(--build-arg=BASE_TAG=${BASE_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION})
 docker buildx build -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" .

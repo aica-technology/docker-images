@@ -68,11 +68,12 @@ xargs -a /tmp/new-packages.txt dpkg-query -L \
 HEREDOC
 
 FROM base AS eigenpy
+ARG ARCH
 ARG TARGETPLATFORM
 ARG CACHEID
 ARG EIGENPY_TAG=v3.12.0
 COPY --from=apt-dependencies /tmp/apt /
-ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/openblas-pthread:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/lib/${ARCH}-linux-gnu/openblas-pthread:$LD_LIBRARY_PATH
 
 RUN --mount=type=cache,target=/eigenpy,id=cmake-eigenpy-${EIGENPY_TAG}-${TARGETPLATFORM}-${CACHEID},uid=1000 \
   if [ ! -f /eigenpy/eigenpy/CMakeLists.txt ]; then \
@@ -83,13 +84,14 @@ RUN --mount=type=cache,target=/eigenpy,id=cmake-eigenpy-${EIGENPY_TAG}-${TARGETP
   cmake --build /eigenpy/build --target all install
 
 FROM base AS pinocchio-dependencies
+ARG ARCH
 ARG TARGETPLATFORM
 ARG CACHEID
 ARG OCTOMAP_TAG=v1.10.0
 ARG HPP_FCL_TAG=v2.4.5
 COPY --from=apt-dependencies /tmp/apt /
 COPY --from=eigenpy /tmp/deps /usr
-ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/openblas-pthread:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/lib/${ARCH}-linux-gnu/openblas-pthread:$LD_LIBRARY_PATH
 RUN --mount=type=cache,target=/octomap,id=cmake-octomap-src-${OCTOMAP_TAG}-${TARGETPLATFORM}-${CACHEID},uid=1000 \
   --mount=type=cache,target=/coal,id=cmake-coal-src-${HPP_FCL_TAG}-${TARGETPLATFORM}-${CACHEID},uid=1000 \
   --mount=type=cache,target=/build,id=cmake-${HPP_FCL_TAG}-${OCTOMAP_TAG}-${TARGETPLATFORM}-${CACHEID},uid=1000 \
@@ -116,13 +118,14 @@ cmake --build /build/coal --target all install
 EOF
 
 FROM base AS pinocchio
+ARG ARCH
 ARG TARGETPLATFORM
 ARG CACHEID
 ARG PINOCCHIO_TAG=v3.9.0
 COPY --from=apt-dependencies /tmp/apt /
 COPY --from=eigenpy /tmp/deps /usr
 COPY --from=pinocchio-dependencies /tmp/deps /usr
-ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/openblas-pthread:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/lib/${ARCH}-linux-gnu/openblas-pthread:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/usr/lib/python3.12/site-packages:$PYTHONPATH
 
 RUN --mount=type=cache,target=/pinocchio,id=cmake-pinocchio-${PINOCCHIO_TAG}-${TARGETPLATFORM}-${CACHEID},uid=1000 \
