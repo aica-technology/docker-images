@@ -27,12 +27,14 @@ jobs:
           fetch-depth: 2
       - id: versions
         run: |
+          set +e
           git show HEAD^:$PINOCCHIO_PATH/VERSION 2>/dev/null
           if [[ $? == 0 ]]; then
             PREV_VERSION=$(git show HEAD^:$PINOCCHIO_PATH/VERSION)
           else
             PREV_VERSION=0.0.0
           fi
+          set -e
           NEW_VERSION=$(git show HEAD:$PINOCCHIO_PATH/VERSION)
 
           echo "prev_version=${PREV_VERSION}" >> $GITHUB_OUTPUT
