@@ -2,6 +2,8 @@ ARG BASE_IMAGE=docker.io/library/ros
 ARG BASE_TAG=jazzy
 ARG ROS_DISTRO=jazzy
 ARG VERSION=v0.0.0
+ARG PINOCCHIO_TAG=v0.1.0
+FROM ghcr.io/aica-technology/pinocchio:${PINOCCHIO_TAG} AS pinocchio
 
 FROM ${BASE_IMAGE}:${BASE_TAG} AS environment-variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -43,7 +45,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   unzip \
   wget \
   && apt-get upgrade -y \
-  && rm -rf /var/lib/apt/lists/*
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN echo "Set disable_coredump false" >> /etc/sudo.conf
 
@@ -69,15 +71,13 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
   --mount=type=cache,target=/go/pkg/mod \
   go build
 
-FROM base-dependencies AS base-user-jazzy
+FROM base-dependencies AS base-workspace
 
 # rename existing ubuntu user
 RUN usermod -l ${USER} ubuntu
 RUN groupmod -n ${USER} ubuntu
-RUN usermod -d ${HOME} -m ros2
-RUN chfn -f "ROS2 User" ros2
-
-FROM base-user-${ROS_DISTRO} AS base-workspace
+RUN usermod -d ${HOME} -m ${USER}
+RUN chfn -f "ROS2 User" ${USER}
 
 RUN usermod -a -G dialout ${USER}
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
@@ -123,15 +123,14 @@ RUN mkdir -p /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hos
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
 FROM base-workspace AS ros2-control-jazzy
-COPY --from=ghcr.io/aica-technology/pinocchio:v0.1.0 / /
+COPY --from=pinocchio / /
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
   libcap-dev \
   libexpected-dev \
   python3-jinja2 \
   python3-typeguard \
-  # ros-${ROS_DISTRO}-pinocchio \
-  && rm -rf /var/lib/apt/lists/*
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # build as ROS user
 USER ${USER}
@@ -165,11 +164,7 @@ RUN rm -rf ./src
 FROM ros2-control-${ROS_DISTRO} AS ros2-control
 
 FROM environment-variables AS final
-# for pinocchio
 ENV PYTHONPATH=/usr/lib/python3.12/site-packages:$PYTHONPATH
-# ENV PKG_CONFIG_PATH=/opt/ros/${ROS_DISTRO}/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
-# ENV LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
-# ENV CMAKE_PREFIX_PATH=/opt/ros/${ROS_DISTRO}:$CMAKE_PREFIX_PATH
 
 COPY --from=ros2-control / /
 COPY --from=build-go /go/validate_extension /usr/bin/
