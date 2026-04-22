@@ -126,14 +126,15 @@ COPY --from=apt-dependencies /tmp/apt /
 COPY --from=eigenpy /tmp/deps /usr
 COPY --from=pinocchio-dependencies /tmp/deps /usr
 ENV LD_LIBRARY_PATH=/usr/lib/${ARCH}-linux-gnu/openblas-pthread:$LD_LIBRARY_PATH
-ENV PYTHONPATH=/usr/lib/python3.12/site-packages:$PYTHONPATH
+# For Python stubs generation, pinocchio can only import hppfcl from dist-packages
+RUN mv /usr/lib/python3.12/site-packages/hppfcl /usr/lib/python3/dist-packages
 
 RUN --mount=type=cache,target=/pinocchio,id=cmake-pinocchio-${PINOCCHIO_TAG}-${TARGETPLATFORM}-${CACHEID},uid=1000 \
   if [ ! -f /pinocchio/pinocchio/CMakeLists.txt ]; then \
     git clone --depth 1 -b ${PINOCCHIO_TAG} --recursive https://github.com/stack-of-tasks/pinocchio /pinocchio/pinocchio; \
   fi && \
   cmake -B /pinocchio/build -S /pinocchio/pinocchio -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_EXAMPLES=OFF \
-    -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=ON -DGENERATE_PYTHON_STUBS=OFF -DCMAKE_INSTALL_PREFIX=/tmp/deps && \
+    -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=ON -DPYTHON_EXECUTABLE=$(which python3) -DGENERATE_PYTHON_STUBS=ON -DCMAKE_INSTALL_PREFIX=/tmp/deps && \
   cmake --build /pinocchio/build --target all install
 
 # FIXME: pinocchio produces non-portable paths
