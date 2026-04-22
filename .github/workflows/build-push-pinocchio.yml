@@ -72,7 +72,7 @@ jobs:
             GIT_TAG=pinocchio/${VERSION_TAG}
           fi
           IMAGE_TAGS=${VERSION_TAG}
-          BUILD_FLAGS+=(--build-arg VERSION=${VERSION_TAG})
+          BUILD_FLAGS+=(--build-arg=VERSION=${VERSION_TAG})
 
           echo "Image tags: ${IMAGE_TAGS}"
           echo "Git tag: ${GIT_TAG}"
@@ -106,9 +106,9 @@ jobs:
         run: |
           BUILD_FLAGS=${{ needs.metadata.outputs.build_flags }}
           if [[ "${{ matrix.arch }}" == "arm64" ]]; then
-            BUILD_FLAGS+=(--build-arg ARCH=aarch64)
+            BUILD_FLAGS+=(--build-arg=ARCH=aarch64)
           elif [[ "${{ matrix.arch }}" == "amd64" ]]; then
-            BUILD_FLAGS+=(--build-arg ARCH=x86_64)
+            BUILD_FLAGS+=(--build-arg=ARCH=x86_64)
           fi
           echo "build_flags=${BUILD_FLAGS[@]}" >> $GITHUB_OUTPUT
 
