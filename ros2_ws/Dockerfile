@@ -123,12 +123,14 @@ RUN mkdir -p /root/.ssh/ && ssh-keyscan github.com | tee -a /root/.ssh/known_hos
 RUN echo "session required pam_limits.so" | tee --append /etc/pam.d/common-session > /dev/null
 
 FROM base-workspace AS ros2-control-jazzy
+COPY --from=ghcr.io/aica-technology/pinocchio:v0.1.0 / /
+
 RUN apt-get update && apt-get install --no-install-recommends -y \
   libcap-dev \
   libexpected-dev \
   python3-jinja2 \
   python3-typeguard \
-  ros-${ROS_DISTRO}-pinocchio \
+  # ros-${ROS_DISTRO}-pinocchio \
   && rm -rf /var/lib/apt/lists/*
 
 # build as ROS user
@@ -164,9 +166,10 @@ FROM ros2-control-${ROS_DISTRO} AS ros2-control
 
 FROM environment-variables AS final
 # for pinocchio
-ENV PKG_CONFIG_PATH=/opt/ros/${ROS_DISTRO}/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
-ENV LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
-ENV CMAKE_PREFIX_PATH=/opt/ros/${ROS_DISTRO}:$CMAKE_PREFIX_PATH
+ENV PYTHONPATH=/usr/lib/python3.12/site-packages:$PYTHONPATH
+# ENV PKG_CONFIG_PATH=/opt/ros/${ROS_DISTRO}/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH
+# ENV LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+# ENV CMAKE_PREFIX_PATH=/opt/ros/${ROS_DISTRO}:$CMAKE_PREFIX_PATH
 
 COPY --from=ros2-control / /
 COPY --from=build-go /go/validate_extension /usr/bin/
