@@ -3,6 +3,7 @@
 IMAGE_NAME=ghcr.io/aica-technology/ros2-ws
 BASE_TAG=jazzy
 ROS_DISTRO=jazzy
+PINOCCHIO_TAG=v0.1.0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 if [[ ! -f "${SCRIPT_DIR}"/config/sshd_entrypoint.sh ]]; then
@@ -25,6 +26,10 @@ while [ "$#" -gt 0 ]; do
     ROS_DISTRO=$2
     shift 2
     ;;
+  --pinocchio-tag)
+    PINOCCHIO_TAG=$2
+    shift 2
+    ;;
   -r | --rebuild)
     BUILD_FLAGS+=(--no-cache)
     shift 1
@@ -43,5 +48,6 @@ done
 VERSION=$(cat "${SCRIPT_DIR}"/VERSION."${ROS_DISTRO}")
 BUILD_FLAGS+=(--build-arg=BASE_TAG=${BASE_TAG})
 BUILD_FLAGS+=(--build-arg=ROS_DISTRO=${ROS_DISTRO})
+BUILD_FLAGS+=(--build-arg=PINOCCHIO_TAG=${PINOCCHIO_TAG})
 BUILD_FLAGS+=(--build-arg=VERSION=${VERSION}-${ROS_DISTRO})
 docker buildx build -t "${IMAGE_NAME}":v"${VERSION}"-"${ROS_DISTRO}" "${BUILD_FLAGS[@]}" .
