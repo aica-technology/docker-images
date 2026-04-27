@@ -128,6 +128,8 @@ COPY --from=pinocchio / /
 RUN apt-get update && apt-get install --no-install-recommends -y \
   libcap-dev \
   libexpected-dev \
+  libpoco-dev \
+  nlohmann-json3-dev \
   python3-jinja2 \
   python3-typeguard \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
