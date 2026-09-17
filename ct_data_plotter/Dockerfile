@@ -32,6 +32,7 @@ RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/99_aptget
 RUN chmod 0440 /etc/sudoers.d/99_aptget && chown root:root /etc/sudoers.d/99_aptget
 
 RUN pip3 install --break-system-packages \
+   "numpy==1.26.4" \
     matplotlib \
     mcap \
     mcap-ros2-support

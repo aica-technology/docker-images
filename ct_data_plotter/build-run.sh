@@ -44,7 +44,7 @@ if [ -z "$BAG_PATH" ]; then
     exit 1
 fi
 
-docker buildx build -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" "${SCRIPT_DIR}"
+docker buildx build --load -t "${IMAGE_NAME}":v"${VERSION}" "${BUILD_FLAGS[@]}" "${SCRIPT_DIR}"
 
 if [ ! -d "$OUTPUT_DIR" ]; then
   mkdir -p "$OUTPUT_DIR"
