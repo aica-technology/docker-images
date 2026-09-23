@@ -151,6 +151,30 @@ def load_samples(mcap_path: Path, topic: str | None) -> tuple[str, list[Telemetr
     return topic, samples
 
 
+def _running_average(time_series: np.ndarray, window: int) -> np.ndarray:
+    if window <= 1:
+        return time_series
+
+    n = time_series.shape[0]
+    window = min(window, n)
+    zero = np.zeros_like(time_series[:1])
+    cumulative = np.concatenate([zero, np.cumsum(time_series, axis=0)], axis=0)
+
+    half_left = (window - 1) // 2
+    half_right = window // 2
+
+    idx = np.arange(n)
+    start = np.maximum(0, idx - half_left)
+    end = np.minimum(n, idx + half_right + 1)
+
+    total = cumulative[end] - cumulative[start]
+    count = (end - start).astype(float)
+
+    if time_series.ndim == 1:
+        return total / count
+    return total / count[:, None]
+
+
 def _style_axis(ax: plt.Axes, title: str, ylabel: str) -> None:
     ax.set_title(title, fontsize=11, fontweight="semibold")
     ax.set_xlabel("time [s]")
@@ -159,7 +183,13 @@ def _style_axis(ax: plt.Axes, title: str, ylabel: str) -> None:
     ax.legend(loc="upper right", fontsize=8)
 
 
-def plot_samples(samples: list[TelemetrySample], topic: str, save: Path | None, show: bool) -> None:
+def plot_samples(
+    samples: list[TelemetrySample],
+    topic: str,
+    save: Path | None,
+    show: bool,
+    smooth: int = 1,
+) -> None:
     t = np.array([s.t for s in samples])
 
     ref_pos = np.vstack([s.ref_pos for s in samples])
@@ -175,6 +205,7 @@ def plot_samples(samples: list[TelemetrySample], topic: str, save: Path | None, 
     ref_force = np.vstack([s.ref_force for s in samples])
     act_force = np.vstack([s.act_force for s in samples])
     has_wrench = np.any(np.abs(ref_force) > 1e-12) or np.any(np.abs(act_force) > 1e-12)
+    act_force = _running_average(act_force, smooth)
 
     try:
         plt.style.use("seaborn-v0_8-whitegrid")
@@ -279,15 +310,28 @@ def main() -> None:
     )
     parser.add_argument("--save", type=Path, help="Save main figure to this path (e.g. plot.png)")
     parser.add_argument("--no-show", action="store_true", help="Do not open an interactive window")
+    parser.add_argument(
+        "--smooth",
+        type=int,
+        default=1,
+        metavar="N",
+        help="Centered running-average window in samples, applied to force signals (1 disables)",
+    )
     args = parser.parse_args()
 
     if not args.mcap.is_file():
         raise SystemExit(f"File not found: {args.mcap}")
+    if args.smooth < 1:
+        raise SystemExit(f"--smooth must be at least 1, got {args.smooth}")
 
     topic, samples = load_samples(args.mcap, args.topic)
-    print(f"Loaded {len(samples)} samples from '{topic}' ({samples[-1].t - samples[0].t:.2f} s)")
+    duration = samples[-1].t - samples[0].t
+    print(f"Loaded {len(samples)} samples from '{topic}' ({duration:.2f} s)")
+    if args.smooth > 1 and len(samples) > 1:
+        dt = float(np.median(np.diff([s.t for s in samples])))
+        print(f"Smoothing force signals over {args.smooth} samples (~{args.smooth * dt * 1e3:.1f} ms)")
 
-    plot_samples(samples, topic, args.save, show=not args.no_show)
+    plot_samples(samples, topic, args.save, show=not args.no_show, smooth=args.smooth)
 
 
 if __name__ == "__main__":

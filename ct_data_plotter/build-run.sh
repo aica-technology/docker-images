@@ -7,6 +7,7 @@ VERSION=$(cat "${SCRIPT_DIR}/VERSION")
 OUTPUT_DIR="${SCRIPT_DIR}/export"
 OUTPUT_NAME="plot.png"
 BAG_PATH=""
+SMOOTH=""
 
 BUILD_FLAGS=()
 while [ "$#" -gt 0 ]; do
@@ -28,6 +29,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   --output-name)
     OUTPUT_NAME=$2
+    shift 2
+    ;;
+  --smooth)
+    SMOOTH=$2
     shift 2
     ;;
 
@@ -65,4 +70,5 @@ docker run -it --rm \
     --net host \
     --name ct_data_plotter \
     "${IMAGE_NAME}":v"${VERSION}" \
-    python3 /usr/local/bin/plot.py /bag --save /export/"$OUTPUT_NAME"
+    python3 /usr/local/bin/plot.py /bag --save /export/"$OUTPUT_NAME" \
+    ${SMOOTH:+--smooth "$SMOOTH"}
